@@ -17,7 +17,7 @@ class ApiClient {
     // 2. For Android Emulators: Use 'http://10.0.2.2:8080/'
     // 3. For Physical Devices + Wi-Fi: Use your Computer's Local IP (e.g. 'http://192.168.1.15:8080/')
     
-    const String baseUrl = 'http://localhost:8080/'; 
+    const String baseUrl = 'https://expense-tracker-c9h8.onrender.com/'; 
     
     client = Client(
       baseUrl,
