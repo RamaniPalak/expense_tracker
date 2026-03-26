@@ -48,5 +48,4 @@ app.*.map.json
 .fvm/
 
 # Serverpod
-**/config/passwords.yaml
-**/bin/server
+**/bin/server

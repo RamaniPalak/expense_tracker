@@ -1,40 +1,56 @@
 #!/bin/sh
 
-# This script is used to inject environment variables into Serverpod configuration files
-# at runtime. This is useful for deployment platforms like Render.
+# This script injects environment variables into Serverpod config files at runtime.
 
-# Parse DATABASE_URL if it exists (format: postgres://user:password@host:port/dbname)
+# Parse DATABASE_URL (format: postgresql://user:password@host:port/dbname OR postgres://...)
 if [ -n "$DATABASE_URL" ]; then
-  # Use sed to extract parts of the URL
-  DB_USER=$(echo $DATABASE_URL | sed -e 's|postgres://\([^:]*\):.*|\1|')
-  DB_PASS=$(echo $DATABASE_URL | sed -e 's|postgres://[^:]*:\([^@]*\)@.*|\1|')
-  DB_HOST=$(echo $DATABASE_URL | sed -e 's|.*@\([^:]*\):.*|\1|')
-  DB_PORT=$(echo $DATABASE_URL | sed -e 's|.*:\([0-9]*\)/.*|\1|')
-  DB_NAME=$(echo $DATABASE_URL | sed -e 's|.*/\([^?]*\).*|\1|')
+  # Strip the scheme (postgres:// or postgresql://)
+  STRIPPED=$(echo "$DATABASE_URL" | sed -e 's|^postgres://||' -e 's|^postgresql://||')
 
-  echo "Injecting Database Configuration: $DB_HOST:$DB_PORT/$DB_NAME"
+  # Extract user (everything before the first colon)
+  DB_USER=$(echo "$STRIPPED" | sed -e 's|:.*||')
 
-  # Replace database values in production.yaml
-  sed -i "s|host:.*|host: $DB_HOST|g" config/production.yaml
-  sed -i "s|port:.*|port: $DB_PORT|g" config/production.yaml
-  sed -i "s|name:.*|name: $DB_NAME|g" config/production.yaml
-  sed -i "s|user:.*|user: $DB_USER|g" config/production.yaml
+  # Extract password (between first colon and @)
+  DB_PASS=$(echo "$STRIPPED" | sed -e 's|[^:]*:\([^@]*\)@.*|\1|')
 
-  # Replace database password in passwords.yaml
-  sed -i "s|database: '.*'|database: '$DB_PASS'|g" config/passwords.yaml
+  # Extract host (between @ and the next / or end)
+  DB_HOST=$(echo "$STRIPPED" | sed -e 's|.*@\([^/:]*\).*|\1|')
+
+  # Extract port (between last : before / and /)
+  DB_PORT=$(echo "$STRIPPED" | sed -e 's|.*@[^:]*:\([0-9]*\)/.*|\1|')
+  # Default to 5432 if port is empty or same as DB_HOST (no port in URL)
+  if [ -z "$DB_PORT" ] || [ "$DB_PORT" = "$DB_HOST" ]; then
+    DB_PORT="5432"
+  fi
+
+  # Extract dbname (everything after the last /)
+  DB_NAME=$(echo "$STRIPPED" | sed -e 's|.*/||' -e 's|?.*||')
+
+  echo "Injecting Database Configuration: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
+
+  # Inject into production.yaml using line-aware replacement
+  sed -i "s|^  host:.*|  host: $DB_HOST|" config/production.yaml
+  sed -i "s|^  port:.*|  port: $DB_PORT|" config/production.yaml
+  sed -i "s|^  name:.*|  name: $DB_NAME|" config/production.yaml
+  sed -i "s|^  user:.*|  user: $DB_USER|" config/production.yaml
+
+  # Inject password into passwords.yaml
+  sed -i "s|database: '.*'|database: '$DB_PASS'|" config/passwords.yaml
 fi
 
-# Replace PUBLIC_HOST if it exists
+# Inject PUBLIC_HOST
 if [ -n "$PUBLIC_HOST" ]; then
   echo "Injecting Public Host: $PUBLIC_HOST"
-  sed -i "s|publicHost:.*|publicHost: $PUBLIC_HOST|g" config/production.yaml
+  sed -i "s|publicHost: PLACEHOLDER_PUBLIC_HOST|publicHost: $PUBLIC_HOST|" config/production.yaml
+  sed -i "s|publicHost: insights.PLACEHOLDER_PUBLIC_HOST|publicHost: insights.$PUBLIC_HOST|" config/production.yaml
+  sed -i "s|publicHost: app.PLACEHOLDER_PUBLIC_HOST|publicHost: app.$PUBLIC_HOST|" config/production.yaml
 fi
 
-# Replace SERVICE_SECRET if it exists
+# Inject SERVICE_SECRET
 if [ -n "$SERVICE_SECRET" ]; then
   echo "Injecting Service Secret"
-  sed -i "s|serviceSecret: '.*'|serviceSecret: '$SERVICE_SECRET'|g" config/passwords.yaml
+  sed -i "s|serviceSecret: '.*'|serviceSecret: '$SERVICE_SECRET'|" config/passwords.yaml
 fi
 
-# Execute the original server command with auto-migration
+# Execute the server with auto-migration
 exec ./server --apply-migrations "$@"
