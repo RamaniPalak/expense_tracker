@@ -1,0 +1,9 @@
+auth:
+  - register:
+  - login:
+expenseEntry:
+  - addExpenseEntry:
+  - deleteExpenseEntry:
+  - getExpenseEntries:
+greeting:
+  - hello:

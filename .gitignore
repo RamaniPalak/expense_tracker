@@ -49,6 +49,4 @@ app.*.map.json
 
 # Serverpod
 **/config/passwords.yaml
-**/bin/server
-**/generated/
-**/protocol.yaml
+**/bin/server
