@@ -36,5 +36,5 @@ if [ -n "$SERVICE_SECRET" ]; then
   sed -i "s|serviceSecret: '.*'|serviceSecret: '$SERVICE_SECRET'|g" config/passwords.yaml
 fi
 
-# Execute the original server command
-exec ./server "$@"
+# Execute the original server command with auto-migration
+exec ./server --apply-migrations "$@"
