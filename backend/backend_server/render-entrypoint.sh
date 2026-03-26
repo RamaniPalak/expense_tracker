@@ -1,56 +1,45 @@
 #!/bin/sh
 
 # This script injects environment variables into Serverpod config files at runtime.
+# Uses placeholder substitution (safer than line-level sed replacement).
 
-# Parse DATABASE_URL (format: postgresql://user:password@host:port/dbname OR postgres://...)
 if [ -n "$DATABASE_URL" ]; then
-  # Strip the scheme (postgres:// or postgresql://)
+  # Strip scheme (postgres:// or postgresql://)
   STRIPPED=$(echo "$DATABASE_URL" | sed -e 's|^postgres://||' -e 's|^postgresql://||')
 
-  # Extract user (everything before the first colon)
-  DB_USER=$(echo "$STRIPPED" | sed -e 's|:.*||')
+  # user = everything before the first colon
+  DB_USER=$(echo "$STRIPPED" | cut -d':' -f1)
 
-  # Extract password (between first colon and @)
-  DB_PASS=$(echo "$STRIPPED" | sed -e 's|[^:]*:\([^@]*\)@.*|\1|')
+  # after @ = host/dbname
+  AFTER_AT=$(echo "$STRIPPED" | sed 's|.*@||')
 
-  # Extract host (between @ and the next / or end)
-  DB_HOST=$(echo "$STRIPPED" | sed -e 's|.*@\([^/:]*\).*|\1|')
+  # host = before / (strip port if present)
+  DB_HOST=$(echo "$AFTER_AT" | cut -d'/' -f1 | cut -d':' -f1)
 
-  # Extract port (between last : before / and /)
-  DB_PORT=$(echo "$STRIPPED" | sed -e 's|.*@[^:]*:\([0-9]*\)/.*|\1|')
-  # Default to 5432 if port is empty or same as DB_HOST (no port in URL)
-  if [ -z "$DB_PORT" ] || [ "$DB_PORT" = "$DB_HOST" ]; then
-    DB_PORT="5432"
-  fi
+  # dbname = after the /
+  DB_NAME=$(echo "$AFTER_AT" | cut -d'/' -f2 | cut -d'?' -f1)
 
-  # Extract dbname (everything after the last /)
-  DB_NAME=$(echo "$STRIPPED" | sed -e 's|.*/||' -e 's|?.*||')
+  # password = between first : and @
+  DB_PASS=$(echo "$STRIPPED" | sed 's|[^:]*:\([^@]*\)@.*|\1|')
 
-  echo "Injecting Database Configuration: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
+  echo "Injecting Database: $DB_USER@$DB_HOST/$DB_NAME"
 
-  # Inject into production.yaml using line-aware replacement
-  sed -i "s|^  host:.*|  host: $DB_HOST|" config/production.yaml
-  sed -i "s|^  port:.*|  port: $DB_PORT|" config/production.yaml
-  sed -i "s|^  name:.*|  name: $DB_NAME|" config/production.yaml
-  sed -i "s|^  user:.*|  user: $DB_USER|" config/production.yaml
-
-  # Inject password into passwords.yaml
-  sed -i "s|database: '.*'|database: '$DB_PASS'|" config/passwords.yaml
+  # Replace ONLY the named placeholders — does NOT touch port: lines
+  sed -i "s|PLACEHOLDER_DB_HOST|$DB_HOST|g" config/production.yaml
+  sed -i "s|PLACEHOLDER_DB_NAME|$DB_NAME|g" config/production.yaml
+  sed -i "s|PLACEHOLDER_DB_USER|$DB_USER|g" config/production.yaml
+  sed -i "s|PLACEHOLDER_DB_PASS|$DB_PASS|g" config/passwords.yaml
 fi
 
-# Inject PUBLIC_HOST
 if [ -n "$PUBLIC_HOST" ]; then
   echo "Injecting Public Host: $PUBLIC_HOST"
-  sed -i "s|publicHost: PLACEHOLDER_PUBLIC_HOST|publicHost: $PUBLIC_HOST|" config/production.yaml
-  sed -i "s|publicHost: insights.PLACEHOLDER_PUBLIC_HOST|publicHost: insights.$PUBLIC_HOST|" config/production.yaml
-  sed -i "s|publicHost: app.PLACEHOLDER_PUBLIC_HOST|publicHost: app.$PUBLIC_HOST|" config/production.yaml
+  sed -i "s|PLACEHOLDER_PUBLIC_HOST|$PUBLIC_HOST|g" config/production.yaml
 fi
 
-# Inject SERVICE_SECRET
 if [ -n "$SERVICE_SECRET" ]; then
   echo "Injecting Service Secret"
-  sed -i "s|serviceSecret: '.*'|serviceSecret: '$SERVICE_SECRET'|" config/passwords.yaml
+  sed -i "s|PLACEHOLDER_SERVICE_SECRET|$SERVICE_SECRET|g" config/passwords.yaml
 fi
 
-# Execute the server with auto-migration
+# Start the server with automatic database migration
 exec ./server --apply-migrations "$@"
