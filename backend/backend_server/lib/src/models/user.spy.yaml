@@ -1,0 +1,11 @@
+class: User
+table: user_info
+fields:
+  name: String
+  email: String
+  password: String
+  createdAt: DateTime?
+indexes:
+  user_email_idx:
+    fields: email
+    unique: true

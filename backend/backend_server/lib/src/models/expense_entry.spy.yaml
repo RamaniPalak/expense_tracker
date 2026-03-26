@@ -1,0 +1,9 @@
+class: ExpenseEntry
+table: expense_entry
+fields:
+  title: String
+  amount: double
+  date: DateTime
+  category: String
+  isIncome: bool
+  userEmail: String

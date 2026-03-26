@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\Users\\Albiorix Technology\\StudioProjects\\fantix-mobile-app\\.fvm\\versions\\3.29.0\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "D:\\android_studio\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "D:\\Palak_Data\\expense_tracker\\android\\app\\.cxx\\Debug\\3j515r5f\\armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "D:\\android_studio\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "D:\\Palak_Data\\expense_tracker\\android\\app\\.cxx\\Debug\\3j515r5f\\armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

@@ -1,0 +1,2 @@
+D:/Palak_Data/expense_tracker/android/app/.cxx/Debug/2y156k39/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Palak_Data/expense_tracker/android/app/.cxx/Debug/2y156k39/armeabi-v7a/CMakeFiles/rebuild_cache.dir
