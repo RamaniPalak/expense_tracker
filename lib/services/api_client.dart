@@ -22,6 +22,8 @@ class ApiClient {
     client = Client(
       baseUrl,
       authenticationKeyManager: FlutterAuthenticationKeyManager(),
+      connectionTimeout: const Duration(seconds: 90),
+      streamingConnectionTimeout: const Duration(seconds: 90),
     )..connectivityMonitor = FlutterConnectivityMonitor();
   }
 }

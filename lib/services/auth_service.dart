@@ -8,6 +8,7 @@ class AuthService {
   static const String _isLoggedInKey = 'isLoggedIn';
   static const String _userEmailKey = 'userEmail';
   static const String _userNameKey = 'userName';
+  static const String _isBiometricEnabledKey = 'isBiometricEnabled';
 
   Future<bool> login(String email, String password) async {
     try {
@@ -46,6 +47,7 @@ class AuthService {
     await prefs.setBool(_isLoggedInKey, false);
     await prefs.remove(_userEmailKey);
     await prefs.remove(_userNameKey);
+    await prefs.remove(_isBiometricEnabledKey);
   }
 
   Future<bool> checkLoginStatus() async {
@@ -61,5 +63,15 @@ class AuthService {
   Future<String?> getUserName() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userNameKey);
+  }
+
+  Future<bool> isBiometricEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isBiometricEnabledKey) ?? false;
+  }
+
+  Future<void> setBiometricEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isBiometricEnabledKey, value);
   }
 }

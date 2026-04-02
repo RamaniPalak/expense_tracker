@@ -1,7 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/expense_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
 import 'expense_service.dart';
 import 'package:backend_client/backend_client.dart';
 
@@ -10,7 +11,8 @@ class DatabaseHelper {
   static Database? _database;
 
   // ValueNotifier to notify listeners of database changes
-  final ValueNotifier<List<Expense>> expensesNotifier = ValueNotifier([]);
+  final ValueNotifier<List<TransactionModel>> expensesNotifier = ValueNotifier([]);
+  final ValueNotifier<List<BudgetModel>> budgetsNotifier = ValueNotifier([]);
 
   DatabaseHelper._init();
 
@@ -26,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -39,6 +41,18 @@ class DatabaseHelper {
     }
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE expenses ADD COLUMN remoteId INTEGER');
+    }
+    if (oldVersion < 4) {
+      await db.execute('''
+CREATE TABLE budgets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  category TEXT NOT NULL,
+  amount REAL NOT NULL,
+  month INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  userEmail TEXT NOT NULL
+)
+''');
     }
   }
 
@@ -60,15 +74,26 @@ CREATE TABLE expenses (
   userEmail $textType
   )
 ''');
+
+    await db.execute('''
+CREATE TABLE budgets (
+  id $idType,
+  category $textType,
+  amount $realType,
+  month $intType,
+  year $intType,
+  userEmail $textType
+  )
+''');
   }
 
-  Future<void> insertExpense(Expense expense) async {
+  Future<void> insertExpense(TransactionModel expense) async {
     final db = await instance.database;
     await db.insert('expenses', expense.toMap());
     await refreshExpenses(expense.userEmail); // Update notifier
   }
 
-  Future<List<Expense>> getExpenses(String? email) async {
+  Future<List<TransactionModel>> getExpenses(String? email) async {
     if (email == null) return [];
     final db = await instance.database;
     const orderBy = 'date DESC';
@@ -79,7 +104,7 @@ CREATE TABLE expenses (
       orderBy: orderBy,
     );
 
-    return result.map((json) => Expense.fromMap(json)).toList();
+    return result.map((json) => TransactionModel.fromMap(json)).toList();
   }
 
   Future<void> refreshExpenses(String? email,
@@ -110,7 +135,7 @@ CREATE TABLE expenses (
 
         if (existing.isEmpty) {
           // Insert missing remote entry into local DB
-          final expense = Expense(
+          final expense = TransactionModel(
             remoteId: entry.id,
             title: entry.title,
             amount: entry.amount,
@@ -137,7 +162,7 @@ CREATE TABLE expenses (
     await refreshExpenses(email);
   }
 
-  Future<void> updateExpense(Expense expense) async {
+  Future<void> updateExpense(TransactionModel expense) async {
     final db = await instance.database;
     await db.update(
       'expenses',
@@ -146,6 +171,46 @@ CREATE TABLE expenses (
       whereArgs: [expense.id],
     );
     await refreshExpenses(expense.userEmail);
+  }
+
+  // Budget Operations
+  Future<void> upsertBudget(BudgetModel budget) async {
+    final db = await instance.database;
+    // For recurring budgets, we treat category+user as the unique key
+    final existing = await db.query(
+      'budgets',
+      where: 'category = ? AND userEmail = ?',
+      whereArgs: [budget.category, budget.userEmail],
+    );
+
+    if (existing.isNotEmpty) {
+      await db.update(
+        'budgets',
+        budget.toMap()..remove('id'),
+        where: 'id = ?',
+        whereArgs: [existing.first['id']],
+      );
+    } else {
+      await db.insert('budgets', budget.toMap());
+    }
+    await refreshBudgets(budget.userEmail);
+  }
+
+  Future<List<BudgetModel>> getBudgets(String? email) async {
+    if (email == null) return [];
+    final db = await instance.database;
+    // Get all budgets for this user (each category has one master budget)
+    final result = await db.query(
+      'budgets',
+      where: 'userEmail = ?',
+      whereArgs: [email],
+    );
+    return result.map((json) => BudgetModel.fromMap(json)).toList();
+  }
+
+  Future<void> refreshBudgets(String? email) async {
+    if (email == null) return;
+    budgetsNotifier.value = await getBudgets(email);
   }
 
   Future<void> close() async {
