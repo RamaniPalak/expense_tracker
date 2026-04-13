@@ -26,10 +26,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _amountController =
       TextEditingController(text: "₹ 48.00");
-  
+
   // ValueNotifiers for local UI state
-  final ValueNotifier<DateTime> _selectedDate = ValueNotifier<DateTime>(DateTime.now());
-  final ValueNotifier<String> _selectedCategoryVal = ValueNotifier<String>(AppStrings.catNetflix);
+  final ValueNotifier<DateTime> _selectedDate =
+      ValueNotifier<DateTime>(DateTime.now());
+  final ValueNotifier<String> _selectedCategoryVal =
+      ValueNotifier<String>(AppStrings.catNetflix);
   final ValueNotifier<String?> _attachedFile = ValueNotifier<String?>(null);
   final ValueNotifier<bool> _isIncomeVal = ValueNotifier<bool>(false);
 
@@ -38,8 +40,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
   Future<void> _loadUserEmail() async {
     _userEmail = await sl<IAuthRepository>().getUserEmail();
   }
-
-
 
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles();
@@ -124,7 +124,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
       _selectedCategoryVal.value =
           exists ? widget.expense!.category : currentList[0]['name'];
     } else {
-      _selectedCategoryVal.value = AddExpenseHelper.expenseCategories[0]['name'];
+      _selectedCategoryVal.value =
+          AddExpenseHelper.expenseCategories[0]['name'];
     }
     _loadUserEmail();
     _controller = AnimationController(
@@ -163,28 +164,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
           listener: (context, state) {
             if (state is TransactionOperationSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+                SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.green),
               );
               context.pop();
             } else if (state is TransactionFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
+                SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: AppColors.error),
               );
             }
           },
         ),
-
       ],
       child: Scaffold(
         backgroundColor: AppColors.background,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: Stack(
-            children: [
-              const SizedBox.expand(),
-              // Fixed Header Section
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Stack(
+              children: [
+                const SizedBox.expand(),
+                // Fixed Header Section
                 AddExpenseHelper.buildHeader(
                   context: context,
                   isEdit: widget.expense != null,
@@ -192,116 +196,117 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                   onBack: () => context.pop(),
                 ),
 
-              // Scrollable Body
-              Positioned.fill(
-                top: 150,
-                child: SingleChildScrollView(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
+                // Scrollable Body
+                Positioned.fill(
+                  top: 150,
+                  child: SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _isIncomeVal,
-                            builder: (context, isIncome, _) {
-                              return AddExpenseHelper.buildTabSwitcher(
-                                isIncome: isIncome,
-                                onToggle: (val) {
-                                  if (_isIncomeVal.value == val) return;
-                                  _isIncomeVal.value = val;
-                                  _selectedCategoryVal.value = val 
-                                      ? AddExpenseHelper.incomeCategories[0]['name']
-                                      : AddExpenseHelper.expenseCategories[0]['name'];
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 32),
-                          Text(AppStrings.nameLabel,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<String>(
-                            valueListenable: _selectedCategoryVal,
-                            builder: (context, category, _) {
-                              return AddExpenseHelper.buildDropdownField(
-                                value: category,
-                                items: _currentCategories,
-                                onChanged: (newValue) {
-                                  _selectedCategoryVal.value = newValue!;
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 24),
-
-                          const SizedBox(height: 24),
-                          Text(AppStrings.amountLabel,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          AddExpenseHelper.buildAmountField(
-                            controller: _amountController,
-                            onClear: () => _amountController.clear(),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(AppStrings.dateLabel,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<DateTime>(
-                            valueListenable: _selectedDate,
-                            builder: (context, date, _) {
-                              return AddExpenseHelper.buildDateField(
-                                date: date,
-                                onTap: () => _selectDate(context),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                          Text(AppStrings.invoiceLabel,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<String?>(
-                            valueListenable: _attachedFile,
-                            builder: (context, fileName, _) {
-                              return AddExpenseHelper.buildInvoiceUploader(
-                                fileName: fileName,
-                                onTap: _pickFile,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 40),
-                          PrimaryButton(
-                            text: AppStrings.submit,
-                            onPressed: _submitExpense,
-                          ),
-                          const SizedBox(height: 40),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 32),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ValueListenableBuilder<bool>(
+                              valueListenable: _isIncomeVal,
+                              builder: (context, isIncome, _) {
+                                return AddExpenseHelper.buildTabSwitcher(
+                                  isIncome: isIncome,
+                                  onToggle: (val) {
+                                    if (_isIncomeVal.value == val) return;
+                                    _isIncomeVal.value = val;
+                                    _selectedCategoryVal.value = val
+                                        ? AddExpenseHelper.incomeCategories[0]
+                                            ['name']
+                                        : AddExpenseHelper.expenseCategories[0]
+                                            ['name'];
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            Text(AppStrings.nameLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            ValueListenableBuilder<String>(
+                              valueListenable: _selectedCategoryVal,
+                              builder: (context, category, _) {
+                                return AddExpenseHelper.buildDropdownField(
+                                  value: category,
+                                  items: _currentCategories,
+                                  onChanged: (newValue) {
+                                    _selectedCategoryVal.value = newValue!;
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            const SizedBox(height: 24),
+                            Text(AppStrings.amountLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            AddExpenseHelper.buildAmountField(
+                              controller: _amountController,
+                              onClear: () => _amountController.clear(),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(AppStrings.dateLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            ValueListenableBuilder<DateTime>(
+                              valueListenable: _selectedDate,
+                              builder: (context, date, _) {
+                                return AddExpenseHelper.buildDateField(
+                                  date: date,
+                                  onTap: () => _selectDate(context),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            Text(AppStrings.invoiceLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            ValueListenableBuilder<String?>(
+                              valueListenable: _attachedFile,
+                              builder: (context, fileName, _) {
+                                return AddExpenseHelper.buildInvoiceUploader(
+                                  fileName: fileName,
+                                  onTap: _pickFile,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 40),
+                            PrimaryButton(
+                              text: AppStrings.submit,
+                              onPressed: _submitExpense,
+                            ),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
