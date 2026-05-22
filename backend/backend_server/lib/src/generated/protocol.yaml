@@ -1,9 +1,8 @@
 auth:
   - register:
   - login:
+  - changePassword:
 expenseEntry:
   - addExpenseEntry:
   - deleteExpenseEntry:
   - getExpenseEntries:
-greeting:
-  - hello:
