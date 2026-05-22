@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class ChatBubble extends StatelessWidget {
   final bool isUser;
@@ -16,6 +17,7 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -30,7 +32,8 @@ class ChatBubble extends StatelessWidget {
                 const CircleAvatar(
                   radius: 14,
                   backgroundColor: AppColors.secondary,
-                  child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 16),
+                  child: Icon(Icons.smart_toy_outlined,
+                      color: Colors.white, size: 16),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -43,7 +46,8 @@ class ChatBubble extends StatelessWidget {
                     bottomRight: Radius.circular(isUser ? 0 : 20),
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       gradient: isUser
                           ? const LinearGradient(
@@ -52,10 +56,10 @@ class ChatBubble extends StatelessWidget {
                               end: Alignment.bottomRight,
                             )
                           : null,
-                      color: isUser ? null : Colors.white.withAlpha(204),
+                      color: isUser ? null : c.card,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withAlpha(isUser ? 26 : 5),
+                          color: c.shadow.withAlpha(isUser ? 26 : 10),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -64,7 +68,7 @@ class ChatBubble extends StatelessWidget {
                     child: Text(
                       text,
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: isUser ? Colors.white : AppColors.textPrimary,
+                        color: isUser ? Colors.white : c.textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -73,10 +77,11 @@ class ChatBubble extends StatelessWidget {
               ),
               if (isUser) ...[
                 const SizedBox(width: 8),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 14,
-                  backgroundColor: AppColors.greyLight,
-                  child: Icon(Icons.person_outline, color: AppColors.textSecondary, size: 16),
+                  backgroundColor: c.tabBg,
+                  child: Icon(Icons.person_outline,
+                      color: c.textSecondary, size: 16),
                 ),
               ],
             ],
@@ -90,7 +95,7 @@ class ChatBubble extends StatelessWidget {
             child: Text(
               "${time.hour}:${time.minute.toString().padLeft(2, '0')}",
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary.withAlpha(153),
+                color: c.textSecondary.withAlpha(153),
                 fontSize: 10,
               ),
             ),

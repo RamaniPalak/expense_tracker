@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
@@ -24,8 +26,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       extendBody: true,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -40,18 +43,18 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
-        color: Colors.white,
-        surfaceTintColor: Colors.white,
+        color: c.surface,
+        surfaceTintColor: c.surface,
         child: SizedBox(
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home_filled, 0),
-              _buildNavItem(Icons.bar_chart, 1),
+              _buildNavItem(context, Icons.home_filled, 0),
+              _buildNavItem(context, Icons.bar_chart, 1),
               const SizedBox(width: 48), // Space for FAB
-              _buildNavItem(Icons.account_balance_wallet, 2),
-              _buildNavItem(Icons.person, 3),
+              _buildNavItem(context, Icons.calendar_month, 2),
+              _buildNavItem(context, Icons.person, 3),
             ],
           ),
         ),
@@ -60,8 +63,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData icon, int index) {
+  Widget _buildNavItem(BuildContext context, IconData icon, int index) {
     final isSelected = navigationShell.currentIndex == index;
+    final c = context.appColors;
     return GestureDetector(
       onTap: () => _goBranch(index),
       behavior: HitTestBehavior.opaque,
@@ -80,7 +84,7 @@ class HomeScreen extends StatelessWidget {
                 icon,
                 color: isSelected
                     ? AppColors.primary
-                    : AppColors.textSecondary.withAlpha(127), // 0.5 * 255
+                    : c.textSecondary.withAlpha(127), // 0.5 * 255
                 size: 28,
               ),
             ),

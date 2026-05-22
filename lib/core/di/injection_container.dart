@@ -14,6 +14,12 @@ import 'package:expense_tracker/features/wallet/data/repositories/wallet_reposit
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_tracker/features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'package:expense_tracker/features/wallet/presentation/bloc/budget_bloc.dart';
+import 'package:expense_tracker/features/chatbot/domain/repositories/chatbot_repository.dart';
+import 'package:expense_tracker/features/chatbot/data/repositories/chatbot_repository_impl.dart';
+import 'package:expense_tracker/features/chatbot/data/sources/chatbot_remote_data_source.dart';
+import 'package:expense_tracker/features/chatbot/presentation/bloc/chatbot_bloc.dart';
+import 'package:expense_tracker/features/sync/data/sources/receipt_ocr_remote_data_source.dart';
+import 'package:expense_tracker/core/constants/app_strings.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -45,11 +51,30 @@ Future<void> init() async {
     ),
   );
   sl.registerLazySingleton<IAuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
-  sl.registerLazySingleton<IAuthLocalDataSource>(() => AuthLocalDataSourceImpl(sharedPreferences: sl()));
+  sl.registerLazySingleton<IAuthLocalDataSource>(
+      () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
 
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => TransactionBloc(transactionRepository: sl()));
   sl.registerFactory(() => BudgetBloc(walletRepository: sl()));
+  sl.registerFactory(() => ChatbotBloc(repository: sl()));
+
+  // Features - Chatbot
+  sl.registerLazySingleton<IChatbotRepository>(
+    () => ChatbotRepositoryImpl(
+      remoteDataSource: sl(),
+      sharedPreferences: sl(),
+      transactionRepository: sl(),
+      walletRepository: sl(),
+      authService: sl(),
+    ),
+  );
+  sl.registerLazySingleton<ChatbotRemoteDataSource>(
+    () => ChatbotRemoteDataSourceImpl(apiKey: AppStrings.geminiApiKey),
+  );
+  sl.registerLazySingleton<ReceiptOcrDataSource>(
+    () => ReceiptOcrDataSourceImpl(),
+  );
 
   // Core / Services (Legacy support)
   sl.registerLazySingleton(() => DatabaseHelper.instance);

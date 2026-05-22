@@ -9,8 +9,11 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/features/transactions/presentation/widgets/transaction_tile.dart';
 import 'package:expense_tracker/services/expense_service.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
+import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:expense_tracker/core/common_widgets/glass_container.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -36,15 +39,20 @@ class _HomeContentState extends State<HomeContent> {
       });
       // Initial sync from remote on load
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
+      sl<DatabaseHelper>().refreshBills(_userEmail);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    final c = context.appColors;
+    return Container(
+      color: c.background,
+      child: Stack(
       children: [
         Column(
           children: [
+
             // Header Stack (Fixed)
             Stack(
               clipBehavior: Clip.none,
@@ -55,7 +63,9 @@ class _HomeContentState extends State<HomeContent> {
                   child: Container(
                     height: 250,
                     width: double.infinity,
-                    color: AppColors.primary,
+                    decoration: const BoxDecoration(
+                      gradient: AppColors.mainGradient,
+                    ),
                     child: Stack(
                       children: [
                         Positioned(
@@ -102,12 +112,10 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                             ],
                           ),
-                          Container(
+                          GlassContainer(
                             padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(26),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            borderRadius: 12,
+                            opacity: 0.1,
                             child: Stack(
                               children: [
                                 const Icon(Icons.notifications_none,
@@ -154,13 +162,13 @@ class _HomeContentState extends State<HomeContent> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 24, horizontal: 24),
                             decoration: BoxDecoration(
-                              color: AppColors.secondary,
+                              gradient: AppColors.cardGradient,
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.secondary.withAlpha(127),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 8),
+                                  color: AppColors.secondary.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
                               ],
                             ),
@@ -188,10 +196,17 @@ class _HomeContentState extends State<HomeContent> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  "₹ ${totalBalance.toStringAsFixed(2)}",
-                                  style: AppTextStyles.heading1.copyWith(
-                                      color: Colors.white, fontSize: 30),
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(begin: 0, end: totalBalance),
+                                  duration: const Duration(milliseconds: 1500),
+                                  curve: Curves.fastOutSlowIn,
+                                  builder: (context, value, child) {
+                                    return Text(
+                                      "₹ ${value.toStringAsFixed(2)}",
+                                      style: AppTextStyles.heading1.copyWith(
+                                          color: Colors.white, fontSize: 30),
+                                    );
+                                  },
                                 ),
                                 const SizedBox(height: 24),
                                 Row(
@@ -290,17 +305,22 @@ class _HomeContentState extends State<HomeContent> {
             // Scrollable part
             Expanded(
               child: SingleChildScrollView(
-                child: Column(
-                  children: [
+                child: Container(
+                  width: double.infinity,
+                  color: c.background,
+                  child: Column(
+                    children: [
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(AppStrings.transactionsHistory,
+                          Text(AppStrings.transactionsHistory,
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: c.textPrimary)),
                           GestureDetector(
                             onTap: () {
                               context
@@ -309,7 +329,7 @@ class _HomeContentState extends State<HomeContent> {
                             },
                             child: Text(AppStrings.seeAll,
                                 style: AppTextStyles.bodySmall
-                                    .copyWith(color: AppColors.textSecondary)),
+                                    .copyWith(color: c.textSecondary)),
                           ),
                         ],
                       ),
@@ -360,44 +380,48 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    
+                    // Bill Management Section
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(AppStrings.sendAgain,
-                                  style: AppTextStyles.heading2
-                                      .copyWith(fontSize: 18)),
-                              Text("See all",
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.textSecondary)),
-                            ],
+                          Text("Upcoming Bills",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: c.textPrimary)),
+                          GestureDetector(
+                            onTap: () => context.push(RoutePaths.bills),
+                            child: Text(AppStrings.seeAll,
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(color: c.textSecondary)),
                           ),
-                          const SizedBox(height: 16),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                _buildAvatar('https://i.pravatar.cc/150?img=1'),
-                                const SizedBox(width: 16),
-                                _buildAvatar('https://i.pravatar.cc/150?img=2'),
-                                const SizedBox(width: 16),
-                                _buildAvatar('https://i.pravatar.cc/150?img=5'),
-                                const SizedBox(width: 16),
-                                _buildAvatar('https://i.pravatar.cc/150?img=4'),
-                                const SizedBox(width: 16),
-                                _buildAvatar('https://i.pravatar.cc/150?img=8'),
-                              ],
-                            ),
-                          )
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: ValueListenableBuilder<List<BillModel>>(
+                        valueListenable: sl<DatabaseHelper>().billsNotifier,
+                        builder: (context, bills, _) {
+                          final upcoming = bills.where((b) => !b.isPaid).take(2).toList();
+                          if (upcoming.isEmpty) {
+                            return _buildEmptyBillsCard(context);
+                          }
+                          return Column(
+                            children: upcoming.map((bill) {
+                              return _buildBillSummaryTile(context, bill);
+                            }).toList(),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 100),
                   ],
+                  ),
                 ),
               ),
             ),
@@ -416,20 +440,83 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
       ],
+    ),
     );
   }
 
-  Widget _buildAvatar(String url) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        color: AppColors.greyLight,
-        shape: BoxShape.circle,
-        image: DecorationImage(
-          image: NetworkImage(url),
-          fit: BoxFit.cover,
+  Widget _buildEmptyBillsCard(BuildContext context) {
+    final c = context.appColors;
+    return GestureDetector(
+      onTap: () => context.push(RoutePaths.bills),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border.withAlpha(127)),
         ),
+        child: Row(
+          children: [
+            const Icon(Icons.add_circle_outline, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text("Add your first bill reminder",
+                style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBillSummaryTile(BuildContext context, BillModel bill) {
+    final c = context.appColors;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: c.shadow,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(25),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(bill.title,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.bold, color: c.textPrimary)),
+                Text("Due ${DateFormat('MMM dd').format(bill.dueDate)}",
+                    style: AppTextStyles.bodySmall
+                        .copyWith(fontSize: 12, color: c.textSecondary)),
+              ],
+            ),
+          ),
+          Flexible(
+            child: Text(
+              "₹${bill.amount.toStringAsFixed(0)}",
+              style: AppTextStyles.bodyLarge
+                  .copyWith(fontSize: 16, color: c.textPrimary),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
       ),
     );
   }

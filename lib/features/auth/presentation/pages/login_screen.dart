@@ -1,3 +1,4 @@
+import 'package:expense_tracker/routing/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
@@ -9,8 +10,8 @@ import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/common_widgets/primary_button.dart';
 import 'package:go_router/go_router.dart';
-import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   // ValueNotifiers for small UI updates instead of setState
   final ValueNotifier<bool> _isPasswordVisible = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _canUseBiometric = ValueNotifier<bool>(false);
@@ -107,8 +108,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) {
@@ -130,196 +132,202 @@ class _LoginScreenState extends State<LoginScreen>
                 position: _slideAnimation,
                 child: Center(
                   child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Icon(
-                        Icons.account_balance_wallet,
-                        size: 64,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        "Welcome Back!",
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.heading1.copyWith(
-                          fontSize: 28,
-                        ),
-                      ),
-                      Text(
-                        "Login to manage your expenses",
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodySmall.copyWith(fontSize: 16),
-                      ),
-                      const SizedBox(height: 48),
-
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        style: AppTextStyles.bodyMedium,
-                        decoration: _inputDecoration(
-                          hint: "Email Address",
-                          icon: Icons.email_outlined,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          final emailRegex = RegExp(
-                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-                          if (!emailRegex.hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      ValueListenableBuilder<bool>(
-                        valueListenable: _isPasswordVisible,
-                        builder: (context, isVisible, _) {
-                          return TextFormField(
-                            controller: _passwordController,
-                            obscureText: !isVisible,
-                            style: AppTextStyles.bodyMedium,
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Icon(
+                            Icons.account_balance_wallet,
+                            size: 64,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            "Welcome Back!",
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.heading1.copyWith(
+                              fontSize: 28,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            "Login to manage your expenses",
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              fontSize: 16,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 48),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: c.textPrimary),
                             decoration: _inputDecoration(
-                              hint: "Password",
-                              icon: Icons.lock_outline,
-                            ).copyWith(
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  isVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                  color: AppColors.textSecondary,
-                                ),
-                                onPressed: () {
-                                  _isPasswordVisible.value = !isVisible;
-                                },
-                              ),
+                              context: context,
+                              hint: "Email Address",
+                              icon: Icons.email_outlined,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return 'Please enter your email';
                               }
-                              if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
+                              final emailRegex = RegExp(
+                                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                              if (!emailRegex.hasMatch(value)) {
+                                return 'Please enter a valid email';
                               }
                               return null;
                             },
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 12),
-                      
-                      ValueListenableBuilder<bool>(
-                        valueListenable: _canUseBiometric,
-                        builder: (context, canUse, _) {
-                          if (!canUse) return const SizedBox.shrink();
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: _enableBiometric,
-                            builder: (context, isEnabled, _) {
-                              return Row(
-                                children: [
-                                  Checkbox(
-                                    value: isEnabled,
-                                    activeColor: AppColors.primary,
-                                    onChanged: (val) {
-                                      _enableBiometric.value = val ?? false;
+                          ),
+                          const SizedBox(height: 20),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _isPasswordVisible,
+                            builder: (context, isVisible, _) {
+                              return TextFormField(
+                                controller: _passwordController,
+                                obscureText: !isVisible,
+                                style: AppTextStyles.bodyMedium
+                                    .copyWith(color: c.textPrimary),
+                                decoration: _inputDecoration(
+                                  context: context,
+                                  hint: "Password",
+                                  icon: Icons.lock_outline,
+                                ).copyWith(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      isVisible
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                      color: c.textSecondary,
+                                    ),
+                                    onPressed: () {
+                                      _isPasswordVisible.value = !isVisible;
                                     },
                                   ),
-                                  Expanded(
-                                    child: Text(
-                                      "Enable login with Fingerprint/Face ID",
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your password';
+                                  }
+                                  if (value.length < 6) {
+                                    return 'Password must be at least 6 characters';
+                                  }
+                                  return null;
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
-
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            "Forgot Password?",
-                            style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600),
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      state is AuthLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : PrimaryButton(
-                              text: "Login",
-                              onPressed: _handleLogin,
-                            ),
-
-                      const SizedBox(height: 24),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Don't have an account? ",
-                              style: AppTextStyles.bodySmall),
-                          GestureDetector(
-                            onTap: () {
-                              context.push(RoutePaths.signup);
+                          const SizedBox(height: 12),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _canUseBiometric,
+                            builder: (context, canUse, _) {
+                              if (!canUse) return const SizedBox.shrink();
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: _enableBiometric,
+                                builder: (context, isEnabled, _) {
+                                  return Row(
+                                    children: [
+                                      Checkbox(
+                                        value: isEnabled,
+                                        activeColor: AppColors.primary,
+                                        checkColor: Colors.white,
+                                        side: BorderSide(color: c.border),
+                                        onChanged: (val) {
+                                          _enableBiometric.value = val ?? false;
+                                        },
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "Enable login with Fingerprint/Face ID",
+                                          style:
+                                              AppTextStyles.bodySmall.copyWith(
+                                            color: c.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
                             },
-                            child: Text(
-                              "Sign Up",
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                "Forgot Password?",
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
+                          const SizedBox(height: 32),
+                          state is AuthLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : PrimaryButton(
+                                  text: "Login",
+                                  onPressed: _handleLogin,
+                                ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Don't have an account? ",
+                                  style: AppTextStyles.bodySmall
+                                      .copyWith(color: c.textSecondary)),
+                              GestureDetector(
+                                onTap: () {
+                                  context.push(RoutePaths.signup);
+                                },
+                                child: Text(
+                                  "Sign Up",
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      );
-    },
-  ),
-);
+          );
+        },
+      ),
+    );
   }
 
   InputDecoration _inputDecoration(
-      {required String hint, required IconData icon}) {
+      {required BuildContext context,
+      required String hint,
+      required IconData icon}) {
+    final c = context.appColors;
     return InputDecoration(
       hintText: hint,
-      hintStyle: AppTextStyles.bodySmall,
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      hintStyle: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+      prefixIcon: Icon(icon, color: c.textSecondary),
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: c.inputFill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.greyLight),
+        borderSide: BorderSide(color: c.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.greyLight),
+        borderSide: BorderSide(color: c.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -8,11 +8,12 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 
+// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
 import '../endpoints/transaction_endpoint.dart' as _i3;
-import 'package:backend_server/src/generated/user.dart' as _i5;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i6;
+import 'package:backend_server/src/generated/user.dart' as _i4;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i5;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -40,7 +41,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i5.User>(),
+              type: _i1.getType<_i4.User>(),
               nullable: false,
             )
           },
@@ -77,6 +78,36 @@ class Endpoints extends _i1.EndpointDispatch {
             params['password'],
           ),
         ),
+        'changePassword': _i1.MethodConnector(
+          name: 'changePassword',
+          params: {
+            'email': _i1.ParameterDescription(
+              name: 'email',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'oldPassword': _i1.ParameterDescription(
+              name: 'oldPassword',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'newPassword': _i1.ParameterDescription(
+              name: 'newPassword',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['auth'] as _i2.AuthEndpoint).changePassword(
+            session,
+            params['email'],
+            params['oldPassword'],
+            params['newPassword'],
+          ),
+        ),
       },
     );
     connectors['expenseEntry'] = _i1.EndpointConnector(
@@ -88,7 +119,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'expenseEntry': _i1.ParameterDescription(
               name: 'expenseEntry',
-              type: _i1.getType<_i6.ExpenseEntry>(),
+              type: _i1.getType<_i5.ExpenseEntry>(),
               nullable: false,
             )
           },

@@ -7,10 +7,15 @@ class RoutePaths {
   static const String signup = '/signup';
   static const String home = '/home';
   static const String statistics = '/statistics';
-  static const String wallet = '/wallet';
+  static const String calendar = '/calendar';
   static const String profile = '/profile';
   static const String addExpense = '/add-expense';
   static const String allTransactions = '/transactions';
   static const String connectWallet = '/connect-wallet';
   static const String chatbot = '/chatbot';
+  static const String bills = '/bills';
+  static const String smsSyncReview = '/sync/sms';
+  static const String fileSyncReview = '/sync/file';
+  static const String syncSuccess = '/sync/success';
+  static const String categoryBreakdown = '/category-breakdown';
 }

@@ -8,19 +8,24 @@ import 'package:expense_tracker/features/auth/presentation/pages/signup_screen.d
 import 'package:expense_tracker/features/home/presentation/pages/home_screen.dart';
 import 'package:expense_tracker/features/home/presentation/pages/home_content.dart';
 import 'package:expense_tracker/features/statistics/presentation/pages/statistics_screen.dart';
-import 'package:expense_tracker/features/wallet/presentation/pages/wallet_screen.dart';
+import 'package:expense_tracker/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:expense_tracker/features/profile/presentation/pages/profile_screen.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/add_expense_screen.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/all_transactions_screen.dart';
 import 'package:expense_tracker/features/wallet/presentation/pages/connect_wallet_screen.dart';
 import 'package:expense_tracker/features/chatbot/presentation/pages/chatbot_screen.dart';
+import 'package:expense_tracker/features/bills/presentation/pages/bills_screen.dart';
+import 'package:expense_tracker/features/sync/presentation/pages/sms_sync_review_screen.dart';
+import 'package:expense_tracker/features/sync/presentation/pages/file_sync_review_screen.dart';
+import 'package:expense_tracker/features/sync/presentation/pages/sync_success_screen.dart';
+import 'package:expense_tracker/features/statistics/presentation/pages/category_breakdown_screen.dart';
 
 part 'route_paths.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
 final GlobalKey<NavigatorState> _shellNavigatorStatsKey = GlobalKey<NavigatorState>(debugLabel: 'shellStats');
-final GlobalKey<NavigatorState> _shellNavigatorWalletKey = GlobalKey<NavigatorState>(debugLabel: 'shellWallet');
+final GlobalKey<NavigatorState> _shellNavigatorCalendarKey = GlobalKey<NavigatorState>(debugLabel: 'shellCalendar');
 final GlobalKey<NavigatorState> _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
 
 class AppRouter {
@@ -109,6 +114,90 @@ class AppRouter {
           );
         },
       ),
+      GoRoute(
+        path: RoutePaths.bills,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BillsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.smsSyncReview,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const SmsSyncReviewScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.fileSyncReview,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const FileSyncReviewScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.syncSuccess,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final count = (state.extra as int?) ?? 0;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: SyncSuccessScreen(importedCount: count),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.categoryBreakdown,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final isIncome = (state.extra as bool?) ?? false;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: CategoryBreakdownScreen(isIncome: isIncome),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutQuart,
+                )),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          );
+        },
+      ),
       // Stateful shell route for bottom navigation
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -134,12 +223,13 @@ class AppRouter {
               ),
             ],
           ),
+
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorWalletKey,
+            navigatorKey: _shellNavigatorCalendarKey,
             routes: [
               GoRoute(
-                path: RoutePaths.wallet,
-                builder: (context, state) => const WalletScreen(),
+                path: RoutePaths.calendar,
+                builder: (context, state) => const CalendarScreen(),
               ),
             ],
           ),

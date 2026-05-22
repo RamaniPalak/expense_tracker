@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:expense_tracker/core/common_widgets/glass_container.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class WalletHelper {
   static Widget buildHeader(BuildContext context) {
@@ -13,7 +16,9 @@ class WalletHelper {
           child: Container(
             height: 180,
             width: double.infinity,
-            color: AppColors.primary,
+            decoration: const BoxDecoration(
+              gradient: AppColors.mainGradient,
+            ),
             child: SafeArea(
               child: Padding(
                 padding:
@@ -36,12 +41,10 @@ class WalletHelper {
                           style: AppTextStyles.heading2
                               .copyWith(color: AppColors.white, fontSize: 18),
                         ),
-                        Container(
+                        GlassContainer(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withAlpha(26), // 0.1 * 255
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          borderRadius: 12,
+                          opacity: 0.1,
                           child: Stack(
                             children: [
                               const Icon(Icons.notifications_none,
@@ -73,27 +76,27 @@ class WalletHelper {
     );
   }
 
-  static Widget buildActionButton(IconData icon, String label,
+  static Widget buildActionButton(BuildContext context, IconData icon, String label,
       {VoidCallback? onTap}) {
+    final c = context.appColors;
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 1.5),
-              color: AppColors.white,
+              color: AppColors.primary.withOpacity(0.1),
             ),
-            child: Icon(icon, color: AppColors.primary),
+            child: Icon(icon, color: AppColors.primary, size: 28),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+                AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
           ),
         ],
       ),
@@ -101,16 +104,18 @@ class WalletHelper {
   }
 
   static Widget buildTabButton({
+    required BuildContext context,
     required String text,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final c = context.appColors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.white : Colors.transparent,
+          color: isSelected ? c.card : Colors.transparent,
           borderRadius: BorderRadius.circular(25),
           boxShadow: isSelected
               ? [
@@ -127,7 +132,7 @@ class WalletHelper {
             text,
             style: AppTextStyles.bodyMedium.copyWith(
               color:
-                  isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                  isSelected ? c.textPrimary : c.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),

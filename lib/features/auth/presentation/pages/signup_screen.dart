@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/common_widgets/primary_button.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -20,7 +21,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   // ValueNotifiers for small UI updates
   final ValueNotifier<bool> _isPasswordVisible = ValueNotifier<bool>(false);
 
@@ -47,13 +48,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_sharp, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_sharp, color: c.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -80,155 +82,158 @@ class _SignupScreenState extends State<SignupScreen> {
           return SafeArea(
             child: Center(
               child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "Create Account",
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.heading1.copyWith(fontSize: 28),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Sign up to start tracking expenses",
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySmall.copyWith(fontSize: 16),
-                  ),
-                  const SizedBox(height: 40),
-
-                  TextFormField(
-                    controller: _nameController,
-                    style: AppTextStyles.bodyMedium,
-                    decoration: _inputDecoration(
-                      hint: "Full Name",
-                      icon: Icons.person_outline,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: AppTextStyles.bodyMedium,
-                    decoration: _inputDecoration(
-                      hint: "Email Address",
-                      icon: Icons.email_outlined,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      final emailRegex = RegExp(
-                          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-                      if (!emailRegex.hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  ValueListenableBuilder<bool>(
-                    valueListenable: _isPasswordVisible,
-                    builder: (context, isVisible, _) {
-                      return TextFormField(
-                        controller: _passwordController,
-                        obscureText: !isVisible,
-                        style: AppTextStyles.bodyMedium,
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        "Create Account",
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.heading1.copyWith(
+                          fontSize: 28,
+                          color: c.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Sign up to start tracking expenses",
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontSize: 16,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      TextFormField(
+                        controller: _nameController,
+                        style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
                         decoration: _inputDecoration(
-                          hint: "Password",
-                          icon: Icons.lock_outline,
-                        ).copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              isVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () {
-                              _isPasswordVisible.value = !isVisible;
-                            },
-                          ),
+                          context: context,
+                          hint: "Full Name",
+                          icon: Icons.person_outline,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
+                            return 'Please enter your name';
                           }
                           return null;
                         },
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  state is AuthLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : PrimaryButton(
-                          text: "Sign Up",
-                          onPressed: _handleSignup,
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+                        decoration: _inputDecoration(
+                          context: context,
+                          hint: "Email Address",
+                          icon: Icons.email_outlined,
                         ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Already have an account? ",
-                          style: AppTextStyles.bodySmall),
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Text(
-                          "Login",
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          final emailRegex = RegExp(
+                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _isPasswordVisible,
+                        builder: (context, isVisible, _) {
+                          return TextFormField(
+                            controller: _passwordController,
+                            obscureText: !isVisible,
+                            style:
+                                AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+                            decoration: _inputDecoration(
+                              context: context,
+                              hint: "Password",
+                              icon: Icons.lock_outline,
+                            ).copyWith(
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  isVisible ? Icons.visibility : Icons.visibility_off,
+                                  color: c.textSecondary,
+                                ),
+                                onPressed: () {
+                                  _isPasswordVisible.value = !isVisible;
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 40),
+                      state is AuthLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : PrimaryButton(
+                              text: "Sign Up",
+                              onPressed: _handleSignup,
+                            ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Already have an account? ",
+                              style: AppTextStyles.bodySmall
+                                  .copyWith(color: c.textSecondary)),
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Text(
+                              "Login",
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      );
-    },
-  ),
-);
+          );
+        },
+      ),
+    );
   }
 
   InputDecoration _inputDecoration(
-      {required String hint, required IconData icon}) {
+      {required BuildContext context, required String hint, required IconData icon}) {
+    final c = context.appColors;
     return InputDecoration(
       hintText: hint,
-      hintStyle: AppTextStyles.bodySmall,
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      hintStyle: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+      prefixIcon: Icon(icon, color: c.textSecondary),
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: c.inputFill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.greyLight),
+        borderSide: BorderSide(color: c.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.greyLight),
+        borderSide: BorderSide(color: c.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

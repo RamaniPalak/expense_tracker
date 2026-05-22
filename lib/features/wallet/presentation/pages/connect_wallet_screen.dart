@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/features/wallet/presentation/widgets/connect_wallet_helper.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class ConnectWalletScreen extends StatefulWidget {
   const ConnectWalletScreen({super.key});
@@ -15,8 +15,9 @@ class _ConnectWalletScreenState extends State<ConnectWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       body: Column(
         children: [
           ConnectWalletHelper.buildHeader(context),
@@ -25,9 +26,9 @@ class _ConnectWalletScreenState extends State<ConnectWalletScreen> {
               offset: const Offset(0, -60),
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: c.background,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(30),
                     topRight: Radius.circular(30),
                   ),
@@ -38,6 +39,7 @@ class _ConnectWalletScreenState extends State<ConnectWalletScreen> {
                   child: Column(
                     children: [
                       ConnectWalletHelper.buildTabSwitcher(
+                        context: context,
                         selectedTabIndex: _selectedTabIndex,
                         onTabChanged: (index) {
                           setState(() {
@@ -47,9 +49,10 @@ class _ConnectWalletScreenState extends State<ConnectWalletScreen> {
                       ),
                       const SizedBox(height: 24),
                       if (_selectedTabIndex == 0)
-                        ConnectWalletHelper.buildCardsTab()
+                        ConnectWalletHelper.buildCardsTab(context)
                       else
                         ConnectWalletHelper.buildAccountsTab(
+                          context: context,
                           selectedAccount: _selectedAccount,
                           onAccountSelected: (account) {
                             setState(() {

@@ -13,8 +13,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:backend_client/src/protocol/user.dart' as _i3;
 import 'package:backend_client/src/protocol/expense_entry.dart' as _i4;
-import 'package:backend_client/src/protocol/greeting.dart' as _i5;
-import 'protocol.dart' as _i6;
+import 'protocol.dart' as _i5;
 
 /// {@category Endpoint}
 class EndpointAuth extends _i1.EndpointRef {
@@ -39,6 +38,21 @@ class EndpointAuth extends _i1.EndpointRef {
         {
           'email': email,
           'password': password,
+        },
+      );
+
+  _i2.Future<bool> changePassword(
+    String email,
+    String oldPassword,
+    String newPassword,
+  ) =>
+      caller.callServerEndpoint<bool>(
+        'auth',
+        'changePassword',
+        {
+          'email': email,
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
         },
       );
 }
@@ -72,24 +86,6 @@ class EndpointExpenseEntry extends _i1.EndpointRef {
       );
 }
 
-/// This is an example endpoint that returns a greeting message through
-/// its [hello] method.
-/// {@category Endpoint}
-class EndpointGreeting extends _i1.EndpointRef {
-  EndpointGreeting(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'greeting';
-
-  /// Returns a personalized greeting message: "Hello {name}".
-  _i2.Future<_i5.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i5.Greeting>(
-        'greeting',
-        'hello',
-        {'name': name},
-      );
-}
-
 class Client extends _i1.ServerpodClientShared {
   Client(
     String host, {
@@ -106,7 +102,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
           host,
-          _i6.Protocol(),
+          _i5.Protocol(),
           securityContext: securityContext,
           authenticationKeyManager: authenticationKeyManager,
           streamingConnectionTimeout: streamingConnectionTimeout,
@@ -118,20 +114,16 @@ class Client extends _i1.ServerpodClientShared {
         ) {
     auth = EndpointAuth(this);
     expenseEntry = EndpointExpenseEntry(this);
-    greeting = EndpointGreeting(this);
   }
 
   late final EndpointAuth auth;
 
   late final EndpointExpenseEntry expenseEntry;
 
-  late final EndpointGreeting greeting;
-
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
         'auth': auth,
         'expenseEntry': expenseEntry,
-        'greeting': greeting,
       };
 
   @override

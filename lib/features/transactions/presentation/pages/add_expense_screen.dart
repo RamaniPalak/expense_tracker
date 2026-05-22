@@ -12,7 +12,11 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/common_widgets/primary_button.dart';
 import 'package:expense_tracker/features/transactions/presentation/widgets/add_expense_helper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:expense_tracker/features/sync/data/sources/receipt_ocr_remote_data_source.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+import 'package:expense_tracker/features/transactions/presentation/pages/select_category_screen.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final TransactionModel? expense;
@@ -34,6 +38,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
       ValueNotifier<String>(AppStrings.catNetflix);
   final ValueNotifier<String?> _attachedFile = ValueNotifier<String?>(null);
   final ValueNotifier<bool> _isIncomeVal = ValueNotifier<bool>(false);
+  bool _isScanning = false;
 
   String? _userEmail;
 
@@ -48,19 +53,83 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     }
   }
 
+  Future<void> _scanReceipt() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() => _isScanning = true);
+      try {
+        final result = await sl<ReceiptOcrDataSource>().scanReceipt(image.path);
+
+        _amountController.text = "₹ ${result.amount.toStringAsFixed(2)}";
+        _selectedDate.value = result.date;
+        
+        // Ensure the category exists in our list
+        final exists = _currentCategories.any((c) => c['name'] == result.category);
+        if (exists) {
+          _selectedCategoryVal.value = result.category;
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Receipt scanned successfully!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Scan failed: ${e.toString()}"),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isScanning = false);
+        }
+      }
+    }
+  }
+
   void _submitExpense() {
-    final amountStr =
-        _amountController.text.replaceAll('₹', '').replaceAll(' ', '');
+    // Robust parsing: extract digits and decimal separator
+    final amountStr = _amountController.text
+        .replaceAll('₹', '')
+        .replaceAll(' ', '')
+        .replaceAll(',', '.');
+    
     final amount = double.tryParse(amountStr) ?? 0.0;
 
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.errorInvalidAmount)),
+        const SnackBar(
+          content: Text(AppStrings.errorInvalidAmount),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
-    if (_userEmail == null) return;
+    if (_userEmail == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error: User session not found. Please log in again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Prevent submitting if already loading
+    if (context.read<TransactionBloc>().state is TransactionLoading) return;
 
     final expense = TransactionModel(
       id: widget.expense?.id,
@@ -156,8 +225,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     super.dispose();
   }
 
+  Widget _buildSectionLabel({required IconData icon, required String label}) {
+    final c = context.appColors;
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: AppColors.primary),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: c.textSecondary,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return MultiBlocListener(
       listeners: [
         BlocListener<TransactionBloc, TransactionState>(
@@ -180,7 +269,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         ),
       ],
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: c.background,
         body: FadeTransition(
           opacity: _fadeAnimation,
           child: SlideTransition(
@@ -202,9 +291,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                   child: SingleChildScrollView(
                     child: Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.only(
+                      decoration: BoxDecoration(
+                        color: c.background,
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
                         ),
@@ -219,6 +308,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                               valueListenable: _isIncomeVal,
                               builder: (context, isIncome, _) {
                                 return AddExpenseHelper.buildTabSwitcher(
+                                  context: context,
                                   isIncome: isIncome,
                                   onToggle: (val) {
                                     if (_isIncomeVal.value == val) return;
@@ -228,73 +318,157 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                                             ['name']
                                         : AddExpenseHelper.expenseCategories[0]
                                             ['name'];
-                                  },
+                                  }
                                 );
                               },
                             ),
-                            const SizedBox(height: 32),
-                            Text(AppStrings.nameLabel,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
+                            // AI Scan Receipt Card
+                            AddExpenseHelper.buildScanReceiptCard(
+                              context: context,
+                              isScanning: _isScanning,
+                              onTap: _scanReceipt,
+                            ),
+                            const SizedBox(height: 28),
+
+                            // ── Category ──
+                            _buildSectionLabel(
+                              icon: Icons.label_rounded,
+                              label: AppStrings.nameLabel,
+                            ),
+                            const SizedBox(height: 10),
                             ValueListenableBuilder<String>(
                               valueListenable: _selectedCategoryVal,
                               builder: (context, category, _) {
-                                return AddExpenseHelper.buildDropdownField(
-                                  value: category,
-                                  items: _currentCategories,
-                                  onChanged: (newValue) {
-                                    _selectedCategoryVal.value = newValue!;
+                                final emoji = AddExpenseHelper.getCategoryEmoji(category);
+                                final pastelColor = AddExpenseHelper.getCategoryPastelColor(category, isIncome: _isIncomeVal.value);
+                                return GestureDetector(
+                                  onTap: () async {
+                                    final result = await Navigator.push<String>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SelectCategoryScreen(
+                                          isIncome: _isIncomeVal.value,
+                                          selectedCategory: category,
+                                        ),
+                                      ),
+                                    );
+                                    if (result != null) {
+                                      _selectedCategoryVal.value = result;
+                                    }
                                   },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: c.card,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: c.border, width: 1.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: c.shadow,
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                            color: pastelColor,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              emoji,
+                                              style: const TextStyle(fontSize: 18),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          category,
+                                          style: AppTextStyles.bodyMedium.copyWith(
+                                            color: c.textPrimary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Icon(
+                                          Icons.keyboard_arrow_right_rounded,
+                                          color: c.textSecondary,
+                                          size: 22,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               },
                             ),
-                            const SizedBox(height: 24),
-                            const SizedBox(height: 24),
-                            Text(AppStrings.amountLabel,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
+
+                            // ── Amount ──
+                            _buildSectionLabel(
+                              icon: Icons.currency_rupee_rounded,
+                              label: AppStrings.amountLabel,
+                            ),
+                            const SizedBox(height: 10),
                             AddExpenseHelper.buildAmountField(
+                              context: context,
                               controller: _amountController,
                               onClear: () => _amountController.clear(),
                             ),
-                            const SizedBox(height: 24),
-                            Text(AppStrings.dateLabel,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
+
+                            // ── Date ──
+                            _buildSectionLabel(
+                              icon: Icons.event_rounded,
+                              label: AppStrings.dateLabel,
+                            ),
+                            const SizedBox(height: 10),
                             ValueListenableBuilder<DateTime>(
                               valueListenable: _selectedDate,
                               builder: (context, date, _) {
                                 return AddExpenseHelper.buildDateField(
+                                  context: context,
                                   date: date,
                                   onTap: () => _selectDate(context),
                                 );
                               },
                             ),
-                            const SizedBox(height: 24),
-                            Text(AppStrings.invoiceLabel,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
+
+                            // ── Invoice ──
+                            _buildSectionLabel(
+                              icon: Icons.attach_file_rounded,
+                              label: AppStrings.invoiceLabel,
+                            ),
+                            const SizedBox(height: 10),
                             ValueListenableBuilder<String?>(
                               valueListenable: _attachedFile,
                               builder: (context, fileName, _) {
                                 return AddExpenseHelper.buildInvoiceUploader(
+                                  context: context,
                                   fileName: fileName,
                                   onTap: _pickFile,
                                 );
                               },
                             ),
-                            const SizedBox(height: 40),
-                            PrimaryButton(
-                              text: AppStrings.submit,
-                              onPressed: _submitExpense,
+                            const SizedBox(height: 36),
+
+                            BlocBuilder<TransactionBloc, TransactionState>(
+                              builder: (context, state) {
+                                return PrimaryButton(
+                                  text: state is TransactionLoading
+                                      ? "Saving..."
+                                      : AppStrings.submit,
+                                  onPressed: state is TransactionLoading
+                                      ? null
+                                      : _submitExpense,
+                                );
+                              },
                             ),
                             const SizedBox(height: 40),
                           ],

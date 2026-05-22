@@ -40,6 +40,19 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<Either<String, void>> changePassword(String email, String oldPassword, String newPassword) async {
+    try {
+      final success = await remoteDataSource.changePassword(email, oldPassword, newPassword);
+      if (success) {
+        return const Right(null);
+      }
+      return const Left("Incorrect current password or update failed");
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
   Future<Either<String, void>> logout() async {
     try {
       await localDataSource.clearSession();

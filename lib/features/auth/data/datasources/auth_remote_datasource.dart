@@ -4,6 +4,7 @@ import 'package:expense_tracker/services/api_client.dart';
 abstract class IAuthRemoteDataSource {
   Future<User?> login(String email, String password);
   Future<bool> register(String name, String email, String password);
+  Future<bool> changePassword(String email, String oldPassword, String newPassword);
 }
 
 class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
@@ -20,5 +21,10 @@ class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
       password: password,
     );
     return await apiClient.client.auth.register(user);
+  }
+
+  @override
+  Future<bool> changePassword(String email, String oldPassword, String newPassword) async {
+    return await apiClient.client.auth.changePassword(email, oldPassword, newPassword);
   }
 }

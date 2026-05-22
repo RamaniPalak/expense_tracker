@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+
 class ProfileHelper {
   static Widget buildHeader(BuildContext context) {
     return Stack(
@@ -67,7 +69,7 @@ class ProfileHelper {
             ),
           ),
         ),
-        // Profile Image
+        // Profile Profile Image
         Positioned(
           bottom: -50,
           child: Container(
@@ -95,12 +97,15 @@ class ProfileHelper {
   }
 
   static Widget buildMenuItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
-    Color iconColor = AppColors.textSecondary,
+    Color? iconColor,
     Color? iconBgColor,
     VoidCallback? onTap,
   }) {
+    final c = context.appColors;
+    final fallbackIconColor = iconColor ?? c.textSecondary;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -118,12 +123,12 @@ class ProfileHelper {
                 child: Icon(icon, color: iconBgColor, size: 24),
               )
             else
-              Icon(icon, color: iconColor, size: 24),
+              Icon(icon, color: fallbackIconColor, size: 24),
             const SizedBox(width: 16),
             Text(
               title,
               style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  color: c.textPrimary, fontWeight: FontWeight.w500),
             ),
           ],
         ),

@@ -17,13 +17,18 @@ class ApiClient {
     // 2. For Android Emulators: Use 'http://10.0.2.2:8080/'
     // 3. For Physical Devices + Wi-Fi: Use your Computer's Local IP (e.g. 'http://192.168.1.15:8080/')
     
-    const String baseUrl = 'https://expense-tracker-c9h8.onrender.com/'; 
+    // Toggle this flag to true to test with your local backend server
+    const bool useLocalBackend = false; 
+    
+    const String baseUrl = useLocalBackend
+        ? 'http://localhost:8080/' // Note: use 'http://10.0.2.2:8080/' if testing on Android Emulator
+        : 'https://expense-tracker-c9h8.onrender.com/'; 
     
     client = Client(
       baseUrl,
       authenticationKeyManager: FlutterAuthenticationKeyManager(),
-      connectionTimeout: const Duration(seconds: 90),
-      streamingConnectionTimeout: const Duration(seconds: 90),
+      connectionTimeout: const Duration(seconds: 15),
+      streamingConnectionTimeout: const Duration(seconds: 15),
     )..connectivityMonitor = FlutterConnectivityMonitor();
   }
 }

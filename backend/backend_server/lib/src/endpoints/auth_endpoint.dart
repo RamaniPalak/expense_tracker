@@ -28,4 +28,21 @@ class AuthEndpoint extends Endpoint {
 
     return user;
   }
+
+  Future<bool> changePassword(
+      Session session, String email, String oldPassword, String newPassword) async {
+    // Check old password
+    var user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.email.equals(email) & t.password.equals(oldPassword),
+    );
+
+    if (user == null) {
+      return false;
+    }
+
+    user.password = newPassword;
+    await User.db.updateRow(session, user);
+    return true;
+  }
 }

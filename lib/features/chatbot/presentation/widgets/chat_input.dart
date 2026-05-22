@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class ChatInput extends StatelessWidget {
   final TextEditingController controller;
-  final VoidCallback onSend;
+  final VoidCallback? onSend;
 
   const ChatInput({
     super.key,
@@ -13,14 +14,17 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isEnabled = onSend != null;
+    final c = context.appColors;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isEnabled ? c.card : c.inputFill.withAlpha(200),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(20),
+            color: c.shadow.withAlpha(20),
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),
@@ -33,42 +37,51 @@ class ChatInput extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.greyLight.withAlpha(76),
+                  color: isEnabled ? c.inputFill : c.inputFill.withAlpha(120),
                   borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: AppColors.greyLight.withAlpha(127)),
+                  border: Border.all(color: c.border),
                 ),
                 child: TextField(
                   controller: controller,
-                  decoration: const InputDecoration(
+                  enabled: isEnabled,
+                  style: TextStyle(color: c.textPrimary),
+                  decoration: InputDecoration(
                     hintText: 'Type your message...',
-                    // border: BorderSide.none,
-                    hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                   ),
-                  onSubmitted: (_) => onSend(),
+                  onSubmitted: isEnabled ? (_) => onSend!() : null,
                 ),
               ),
             ),
             const SizedBox(width: 12),
             GestureDetector(
               onTap: onSend,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.secondary, AppColors.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              child: Opacity(
+                opacity: isEnabled ? 1.0 : 0.5,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: isEnabled 
+                      ? const LinearGradient(
+                          colors: [AppColors.secondary, AppColors.primary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : const LinearGradient(
+                          colors: [Colors.grey, Colors.blueGrey],
+                        ),
+                    shape: BoxShape.circle,
+                    boxShadow: isEnabled ? [
+                      const BoxShadow(
+                        color: AppColors.primary,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ] : [],
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
                 ),
-                child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
               ),
             ),
           ],

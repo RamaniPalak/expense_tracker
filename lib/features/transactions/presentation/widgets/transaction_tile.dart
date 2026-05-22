@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class TransactionTile extends StatelessWidget {
   final String title;
@@ -53,23 +54,23 @@ class TransactionTile extends StatelessWidget {
   Color _getCategoryColor() {
     switch (category) {
       case AppStrings.catNetflix:
-        return Colors.red;
+        return AppColors.catNetflix;
       case AppStrings.catFood:
-        return Colors.orange;
+        return AppColors.catFood;
       case AppStrings.catTransport:
-        return Colors.purple;
+        return AppColors.catTransport;
       case AppStrings.catShopping:
-        return Colors.pink;
+        return const Color(0xFFFF69B4);
       case AppStrings.catSalary:
         return Colors.blue;
       case AppStrings.catUpwork:
-        return Colors.green;
+        return AppColors.catUpwork;
       case AppStrings.catInterest:
         return Colors.amber;
       case AppStrings.catFreelance:
         return Colors.teal;
       case AppStrings.catOther:
-        return const Color(0xFF90A4AE); // Blue Grey
+        return const Color(0xFF90A4AE);
       default:
         return isIncome ? AppColors.incomeGreen : AppColors.expenseRed;
     }
@@ -77,57 +78,54 @@ class TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
+    final catColor = _getCategoryColor();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: c.card,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: c.shadow,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: onEdit,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.all(16),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Icon Section
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: _getCategoryColor().withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: catColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    _getCategoryIcon(),
-                    color: _getCategoryColor(),
-                    size: 24,
-                  ),
+                  child: Icon(_getCategoryIcon(), color: catColor, size: 26),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
 
                 // Title & Date Section
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
                         style: AppTextStyles.bodyLarge.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: c.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -135,66 +133,62 @@ class TransactionTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         date,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        style: AppTextStyles.bodySmall
+                            .copyWith(fontSize: 13, color: c.textSecondary),
                       ),
                     ],
                   ),
                 ),
 
-                // Amount & Menu Section (Horizontal Row)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${isIncome ? "+" : "-"} ₹ $amount",
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        color: isIncome
-                            ? AppColors.incomeGreen
-                            : AppColors.expenseRed,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (onEdit != null || onDelete != null)
-                      PopupMenuButton<String>(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(Icons.more_vert,
-                            color: AppColors.textSecondary, size: 18),
-                        onSelected: (value) {
-                          if (value == 'edit') onEdit?.call();
-                          if (value == 'delete') onDelete?.call();
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: 18),
-                                SizedBox(width: 8),
-                                Text(AppStrings.edit),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline,
-                                    size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text(AppStrings.delete,
-                                    style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+                // Amount
+                Text(
+                  "${isIncome ? "+" : "-"} ₹$amount",
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
+
+                if (onEdit != null || onDelete != null) ...[
+                  const SizedBox(width: 4),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(Icons.more_vert, color: c.textSecondary, size: 20),
+                    color: c.card,
+                    onSelected: (value) {
+                      if (value == 'edit') onEdit?.call();
+                      if (value == 'delete') onDelete?.call();
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined,
+                                size: 18, color: c.textPrimary),
+                            const SizedBox(width: 8),
+                            Text(AppStrings.edit,
+                                style: TextStyle(color: c.textPrimary)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline,
+                                size: 18, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text(AppStrings.delete,
+                                style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

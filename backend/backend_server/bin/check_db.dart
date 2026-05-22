@@ -15,10 +15,6 @@ void main() async {
     final results = await connection.execute(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
     );
-    print('Tables in database:');
-    for (final row in results) {
-      print('- ${row[0]}');
-    }
   } catch (e) {
     print('Error: $e');
   } finally {

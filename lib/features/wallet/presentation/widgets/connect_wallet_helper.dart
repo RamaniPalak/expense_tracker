@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class ConnectWalletHelper {
   static Widget buildHeader(BuildContext context) {
@@ -56,34 +57,37 @@ class ConnectWalletHelper {
   }
 
   static Widget buildTabSwitcher({
+    required BuildContext context,
     required int selectedTabIndex,
     required Function(int) onTabChanged,
   }) {
+    final c = context.appColors;
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: AppColors.tabBackground,
+        color: c.tabBg,
         borderRadius: BorderRadius.circular(25),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
-          _buildTabItem("Cards", 0, selectedTabIndex, onTabChanged),
-          _buildTabItem("Accounts", 1, selectedTabIndex, onTabChanged),
+          _buildTabItem(context, "Cards", 0, selectedTabIndex, onTabChanged),
+          _buildTabItem(context, "Accounts", 1, selectedTabIndex, onTabChanged),
         ],
       ),
     );
   }
 
-  static Widget _buildTabItem(String title, int index, int selectedTabIndex,
+  static Widget _buildTabItem(BuildContext context, String title, int index, int selectedTabIndex,
       Function(int) onTabChanged) {
     final isSelected = selectedTabIndex == index;
+    final c = context.appColors;
     return Expanded(
       child: GestureDetector(
         onTap: () => onTabChanged(index),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.white : Colors.transparent,
+            color: isSelected ? c.card : Colors.transparent,
             borderRadius: BorderRadius.circular(25),
             boxShadow: isSelected
                 ? [
@@ -100,7 +104,7 @@ class ConnectWalletHelper {
             title,
             style: AppTextStyles.bodyMedium.copyWith(
               color:
-                  isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                  isSelected ? c.textPrimary : c.textSecondary,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -110,12 +114,14 @@ class ConnectWalletHelper {
   }
 
   static Widget buildAccountsTab({
+    required BuildContext context,
     required String selectedAccount,
     required Function(String) onAccountSelected,
   }) {
     return Column(
       children: [
         buildAccountOption(
+          context: context,
           title: "Bank Link",
           subtitle: "Connect your bank\naccount to deposit & fund",
           icon: Icons.account_balance,
@@ -125,6 +131,7 @@ class ConnectWalletHelper {
         ),
         const SizedBox(height: 16),
         buildAccountOption(
+          context: context,
           title: "Microdeposits",
           subtitle: "Connect bank in 5-7 days",
           icon: Icons.attach_money,
@@ -134,6 +141,7 @@ class ConnectWalletHelper {
         ),
         const SizedBox(height: 16),
         buildAccountOption(
+          context: context,
           title: "Paypal",
           subtitle: "Connect your paypal account",
           icon: Icons.payment,
@@ -148,8 +156,8 @@ class ConnectWalletHelper {
           child: ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.white,
-              foregroundColor: AppColors.primary,
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
                 side: const BorderSide(color: AppColors.primary),
@@ -168,6 +176,7 @@ class ConnectWalletHelper {
   }
 
   static Widget buildAccountOption({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -175,22 +184,24 @@ class ConnectWalletHelper {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final c = context.appColors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.selectedAccountBackground
-              : AppColors.white,
+              ? (c.isDark ? AppColors.primary.withOpacity(0.15) : AppColors.selectedAccountBackground)
+              : c.card,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withAlpha(13),
+              color: c.shadow,
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
           ],
+          border: isSelected ? Border.all(color: AppColors.primary, width: 1.5) : null,
         ),
         child: Row(
           children: [
@@ -199,7 +210,7 @@ class ConnectWalletHelper {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? AppColors.white : AppColors.iconBackground,
+                color: isSelected ? c.card : (c.isDark ? const Color(0xFF1E294B) : AppColors.iconBackground),
               ),
               child: Icon(icon,
                   color: isSelected ? AppColors.primary : Colors.grey,
@@ -215,14 +226,17 @@ class ConnectWalletHelper {
                     style: AppTextStyles.bodyLarge.copyWith(
                       color: isSelected
                           ? AppColors.primary
-                          : AppColors.textPrimary,
+                          : c.textPrimary,
                       fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: AppTextStyles.bodySmall.copyWith(fontSize: 12),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -236,7 +250,8 @@ class ConnectWalletHelper {
     );
   }
 
-  static Widget buildCardsTab() {
+  static Widget buildCardsTab(BuildContext context) {
+    final c = context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,26 +326,27 @@ class ConnectWalletHelper {
 
         Text(
           "Add your debit Card",
-          style: AppTextStyles.heading2.copyWith(fontSize: 18),
+          style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
         ),
         const SizedBox(height: 8),
         Text(
           "This card must be connected to a bank account\nunder your name",
-          style: AppTextStyles.bodySmall,
+          style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
         ),
 
         const SizedBox(height: 24),
 
         // Form Fields
-        buildTextField(label: "NAME ON CARD", initialValue: "IRVAN MOSES"),
+        buildTextField(context: context, label: "NAME ON CARD", initialValue: "IRVAN MOSES"),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
                 child: buildTextField(
+                    context: context,
                     label: "DEBIT CARD NUMBER", initialValue: "")),
             const SizedBox(width: 16),
-            Expanded(child: buildTextField(label: "CVC", initialValue: "")),
+            Expanded(child: buildTextField(context: context, label: "CVC", initialValue: "")),
           ],
         ),
         const SizedBox(height: 16),
@@ -338,9 +354,10 @@ class ConnectWalletHelper {
           children: [
             Expanded(
                 child: buildTextField(
+                    context: context,
                     label: "EXPIRATION MM/YY", initialValue: "")),
             const SizedBox(width: 16),
-            Expanded(child: buildTextField(label: "ZIP", initialValue: "")),
+            Expanded(child: buildTextField(context: context, label: "ZIP", initialValue: "")),
           ],
         ),
 
@@ -357,28 +374,29 @@ class ConnectWalletHelper {
     );
   }
 
-  static Widget buildTextField({required String label, String? initialValue}) {
+  static Widget buildTextField({required BuildContext context, required String label, String? initialValue}) {
+    final c = context.appColors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.inputFill,
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextFormField(
         initialValue: initialValue,
         style: AppTextStyles.bodyMedium
-            .copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
+            .copyWith(color: c.textPrimary, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(
+          labelStyle: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: c.textSecondary,
               fontWeight: FontWeight.bold),
           floatingLabelBehavior: FloatingLabelBehavior.always,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary),
+            borderSide: BorderSide(color: c.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),

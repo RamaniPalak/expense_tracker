@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class SuggestionChips extends StatelessWidget {
   final Function(String) onChipTapped;
@@ -17,6 +18,7 @@ class SuggestionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return SizedBox(
       height: 50,
       child: ListView.builder(
@@ -32,7 +34,7 @@ class SuggestionChips extends StatelessWidget {
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
-              backgroundColor: Colors.white.withAlpha(204), // 0.8 * 255
+              backgroundColor: c.card,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(color: AppColors.primary.withAlpha(51)),

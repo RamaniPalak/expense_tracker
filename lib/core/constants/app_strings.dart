@@ -47,12 +47,15 @@ class AppStrings {
   static const String noBudgetSet = "No budget set for this month";
   static const String budgetWarning = "Warning: You have exceeded your monthly limit!";
   static const String setMonthlyBudget = "Set Monthly Budget";
-  static const String budgetDescription = "This overview reflects your recurring monthly limits:";
-  static const String budgetTip = "Setting a budget helps you track your financial health and prevents overspending.";
+  static const String budgetDescription =
+      "This overview reflects your recurring monthly limits:";
+  static const String budgetTip =
+      "Setting a budget helps you track your financial health and prevents overspending.";
 
   // Budget Dialog
   static const String budgetPlanTitle = "Monthly Budget Plan";
-  static const String budgetPlanSub = "Set your total monthly spending target. This goal applies to every month.";
+  static const String budgetPlanSub =
+      "Set your total monthly spending target. This goal applies to every month.";
   static const String monthlyLimit = "Monthly Limit";
   static const String hintLimit = "e.g. 5000";
 
@@ -77,8 +80,32 @@ class AppStrings {
   static const String catFreelance = "Freelance";
   static const String catOther = "Other";
 
+  // New Image Categories
+  static const String catAutomobile = "Automobile / Car";
+  static const String catBills = "Bills / Utilities";
+  static const String catCharges = "Charges / Fees";
+  static const String catEducation = "Education";
+  static const String catEntertainment = "Entertainment";
+  static const String catFoodDining = "Food & Dining";
+  static const String catGifts = "Gifts & Similar";
+  static const String catHealth = "Health & Fitness";
+
+  static const String catBonus = "Bonus";
+  static const String catCommission = "Commission";
+  static const String catInterestNew = "Interest";
+  static const String catInvestments = "Investments";
+  static const String catReceivedOthers = "Received from Others";
+  static const String catRentalIncome = "Rental Income";
+  static const String catSalaryNew = "Salary";
+  static const String catSellingAssets = "Selling Assets";
+
   // Error Messages
   static const String errorInvalidAmount = "Please enter a valid amount";
   static const String errorGeneric = "Something went wrong. Please try again.";
   static const String errorSubmitFailed = "Failed to save transaction. Please try again.";
+
+  // Chatbot
+  static const String geminiApiKey = "AIzaSyCAUzyJhZn2YcVjFlrVmiUD2raFqWYczow";
+  static const String freeLimitReached =
+      "You've reached your free limit of 5 messages. Please upgrade for unlimited AI assistance!";
 }

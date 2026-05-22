@@ -1,36 +1,43 @@
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:expense_tracker/features/transactions/presentation/widgets/add_expense_helper.dart';
 
 class StatisticsHelper {
-  static Widget buildHeader({VoidCallback? onDownload, VoidCallback? onAdjustBudget}) {
+  static Widget buildHeader({
+    required BuildContext context,
+    VoidCallback? onDownload,
+    VoidCallback? onAdjustBudget,
+  }) {
+    final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
+            icon: Icon(Icons.arrow_back_ios, color: c.textPrimary, size: 20),
             onPressed: () {
-              // Navigation handled by parent
+              Navigator.pop(context);
             },
           ),
           Text(
             AppStrings.statistics,
-            style: AppTextStyles.heading2.copyWith(fontSize: 20),
+            style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
           ),
           Row(
             children: [
               if (onAdjustBudget != null)
                 IconButton(
-                  icon: const Icon(Icons.account_balance_wallet_outlined,
-                      color: AppColors.textPrimary, size: 28),
+                  icon: Icon(Icons.account_balance_wallet_outlined,
+                      color: c.textPrimary, size: 28),
                   onPressed: onAdjustBudget,
                 ),
               IconButton(
-                icon: const Icon(Icons.download_outlined,
-                    color: AppColors.textPrimary, size: 28),
+                icon: Icon(Icons.download_outlined,
+                    color: c.textPrimary, size: 28),
                 onPressed: onDownload,
               ),
             ],
@@ -78,29 +85,32 @@ class StatisticsHelper {
   }
 
   static Widget buildTypeDropdown({
+    required BuildContext context,
     required String selectedType,
     required List<String> types,
     required Function(String?) onChanged,
   }) {
+    final c = context.appColors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.greyLight),
+        border: Border.all(color: c.border),
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedType,
-          icon: const Icon(Icons.keyboard_arrow_down,
-              color: AppColors.textPrimary),
+          dropdownColor: c.card,
+          icon: Icon(Icons.keyboard_arrow_down,
+              color: c.textPrimary),
           elevation: 16,
           style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+              AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
           onChanged: onChanged,
           items: types.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value),
+              child: Text(value, style: TextStyle(color: c.textPrimary)),
             );
           }).toList(),
         ),
@@ -108,21 +118,25 @@ class StatisticsHelper {
     );
   }
 
-  static Widget buildSpendingHeader() {
+  static Widget buildSpendingHeader({required BuildContext context}) {
+    final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(AppStrings.topSpending,
-              style: AppTextStyles.heading2.copyWith(fontSize: 18)),
-          const Icon(Icons.import_export, color: AppColors.textSecondary),
+          Text(
+            AppStrings.topSpending,
+            style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
+          ),
+          Icon(Icons.import_export, color: c.textSecondary),
         ],
       ),
     );
   }
 
   static Widget buildSpendingItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String date,
@@ -130,20 +144,22 @@ class StatisticsHelper {
     bool isHighlighted = false,
     double? progress,
   }) {
+    final c = context.appColors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isHighlighted ? AppColors.secondary : AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: isHighlighted
-            ? [
-                BoxShadow(
-                  color: AppColors.secondary.withAlpha(102),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                )
-              ]
-            : [],
+        color: isHighlighted ? AppColors.primary : c.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isHighlighted ? Colors.transparent : c.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: isHighlighted 
+              ? AppColors.primary.withOpacity(0.3) 
+              : c.shadow,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          )
+        ],
       ),
       child: Column(
         children: [
@@ -153,10 +169,10 @@ class StatisticsHelper {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isHighlighted ? Colors.white24 : AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: AppColors.secondary),
+                child: Icon(icon, color: isHighlighted ? Colors.white : AppColors.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -165,19 +181,17 @@ class StatisticsHelper {
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.heading2.copyWith(
+                      style: AppTextStyles.bodyLarge.copyWith(
                         fontSize: 16,
-                        color: isHighlighted
-                            ? AppColors.white
-                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        color: isHighlighted ? Colors.white : c.textPrimary,
                       ),
                     ),
                     Text(
                       date,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: isHighlighted
-                            ? AppColors.white70
-                            : AppColors.textSecondary,
+                        fontSize: 13,
+                        color: isHighlighted ? Colors.white70 : c.textSecondary,
                       ),
                     ),
                   ],
@@ -185,45 +199,44 @@ class StatisticsHelper {
               ),
               Text(
                 amount,
-                style: AppTextStyles.heading2.copyWith(
+                style: AppTextStyles.bodyLarge.copyWith(
                   fontSize: 16,
-                  color: isHighlighted ? AppColors.white : AppColors.expenseRed,
+                  fontWeight: FontWeight.w800,
+                  color: isHighlighted ? Colors.white : AppColors.expenseRed,
                 ),
               ),
             ],
           ),
           if (progress != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: progress.clamp(0.0, 1.0),
-                backgroundColor: AppColors.greyLight,
+                backgroundColor: isHighlighted ? Colors.white24 : c.tabBg,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  progress >= 1.0 ? AppColors.expenseRed : AppColors.primary,
+                  progress >= 1.0 ? Colors.orangeAccent : (isHighlighted ? Colors.white : AppColors.primary),
                 ),
                 minHeight: 8,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "${(progress * 100).toInt()}% ${AppStrings.used}",
                   style: AppTextStyles.bodySmall.copyWith(
-                    fontSize: 10,
-                    color: isHighlighted
-                        ? AppColors.white70
-                        : AppColors.textSecondary,
+                    fontSize: 11,
+                    color: isHighlighted ? Colors.white70 : c.textSecondary,
                   ),
                 ),
                 if (progress >= 1.0)
                   Text(
                     AppStrings.exceeded,
                     style: AppTextStyles.bodySmall.copyWith(
-                      fontSize: 10,
-                      color: AppColors.expenseRed,
+                      fontSize: 11,
+                      color: isHighlighted ? Colors.orangeAccent : AppColors.expenseRed,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -239,6 +252,10 @@ class StatisticsHelper {
     required BuildContext context,
     required double totalBudget,
     required double totalSpent,
+    required String monthYear,
+    required VoidCallback onPreviousMonth,
+    required VoidCallback onNextMonth,
+    bool showNextMonth = true,
     double? availableBalance,
     VoidCallback? onSetBudget,
   }) {
@@ -247,22 +264,18 @@ class StatisticsHelper {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isOverBudget 
-              ? [AppColors.expenseRed, AppColors.secondary] 
-              : [AppColors.primary, AppColors.secondary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        gradient: isOverBudget 
+            ? const LinearGradient(colors: [AppColors.expenseRed, Color(0xFFFF8E8E)]) 
+            : AppColors.cardGradient,
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: (isOverBudget ? AppColors.expenseRed : AppColors.primary)
-                .withAlpha(76),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: (isOverBudget ? AppColors.expenseRed : AppColors.secondary)
+                .withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -272,41 +285,77 @@ class StatisticsHelper {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                AppStrings.monthlyOverview,
-                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                    onPressed: onPreviousMonth,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      monthYear,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (showNextMonth)
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                      onPressed: onNextMonth,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                ],
               ),
               GestureDetector(
                 onTap: () {
+                  final c = context.appColors;
                   showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
+                      backgroundColor: c.card,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       title: Row(
                         children: [
                           const Icon(Icons.info_outline, color: AppColors.primary),
                           const SizedBox(width: 10),
-                          Text(AppStrings.budgetInfo, style: AppTextStyles.heading2),
+                          Text(
+                            AppStrings.budgetInfo, 
+                            style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+                          ),
                         ],
                       ),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppStrings.budgetDescription, style: AppTextStyles.bodyMedium),
+                          Text(
+                            AppStrings.budgetDescription, 
+                            style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
+                          ),
                           const SizedBox(height: 15),
-                          _buildInfoRow(AppStrings.budgetTarget, "₹ ${totalBudget.toStringAsFixed(2)}"),
-                          _buildInfoRow(AppStrings.actualSpent, "₹ ${totalSpent.toStringAsFixed(2)}"),
-                          _buildInfoRow(AppStrings.remaining, "₹ ${(totalBudget - totalSpent).clamp(0, double.infinity).toStringAsFixed(2)}", isBold: true),
-                          const Divider(height: 30),
-                          Text(AppStrings.budgetTip, 
-                            style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic)),
+                          _buildInfoRow(context, AppStrings.budgetTarget, "₹ ${totalBudget.toStringAsFixed(2)}"),
+                          _buildInfoRow(context, AppStrings.actualSpent, "₹ ${totalSpent.toStringAsFixed(2)}"),
+                          _buildInfoRow(context, AppStrings.remaining, "₹ ${(totalBudget - totalSpent).clamp(0, double.infinity).toStringAsFixed(2)}", isBold: true),
+                          Divider(height: 30, color: c.divider),
+                          Text(
+                            AppStrings.budgetTip, 
+                            style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic, color: c.textSecondary),
+                          ),
                         ],
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),
-                          child: Text(AppStrings.gotIt, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
+                          child: Text(
+                            AppStrings.gotIt, 
+                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
@@ -439,19 +488,111 @@ class StatisticsHelper {
     );
   }
 
-  static Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
+  static Widget _buildInfoRow(BuildContext context, String label, String value, {bool isBold = false}) {
+    final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(label, style: TextStyle(color: c.textSecondary)),
           Text(value, style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isBold ? AppColors.primary : Colors.black87,
+            color: isBold ? AppColors.primary : c.textPrimary,
           )),
         ],
       ),
     );
+  }
+
+  static Widget buildSpendingInsightCard({
+    required BuildContext context,
+    required double currentTotal,
+    required double previousTotal,
+    required double difference,
+    required bool isIncrease,
+  }) {
+    if (previousTotal == 0) return const SizedBox.shrink();
+
+    final c = context.appColors;
+    final color = isIncrease ? Colors.redAccent : Colors.green;
+    final icon = isIncrease ? Icons.trending_up : Icons.trending_down;
+    final text = isIncrease ? "Spending increased by" : "Spending decreased by";
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withAlpha(25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withAlpha(25),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: c.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  "${difference.abs().toStringAsFixed(1)}% vs last month",
+                  style: AppTextStyles.heading2.copyWith(
+                    color: color,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "Last Month",
+                style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: c.textSecondary),
+              ),
+              Text(
+                "₹ ${previousTotal.toStringAsFixed(0)}",
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: c.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Color getCategoryColor(String category, {bool isIncome = false}) {
+    return AddExpenseHelper.getCategoryColor(category, isIncome: isIncome);
+  }
+
+  static IconData getCategoryIcon(String category, {bool isIncome = false}) {
+    return AddExpenseHelper.getCategoryIcon(category, isIncome: isIncome);
   }
 }

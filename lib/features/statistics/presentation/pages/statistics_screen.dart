@@ -1,8 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/core/constants/app_colors.dart';
-import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_helper.dart';
+import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_badge.dart';
+import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_pie_chart.dart';
+import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_spending_list.dart';
+import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_breakdown_button.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
 import 'package:expense_tracker/core/utils/report_generator.dart';
@@ -12,6 +14,9 @@ import 'package:expense_tracker/features/transactions/data/models/transaction_mo
 import 'package:intl/intl.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:go_router/go_router.dart';
+import 'package:expense_tracker/routing/app_router.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -41,70 +46,169 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   String selectedTransactionType = AppStrings.expenses;
-  final List<String> transactionTypes = [AppStrings.income, AppStrings.expenses];
+  final List<String> transactionTypes = [
+    AppStrings.income,
+    AppStrings.expenses
+  ];
 
   String selectedTimeFilter = "Month";
   final List<String> timeFilters = ["Month"];
 
   int selectedYear = DateTime.now().year;
+  int selectedMonth = DateTime.now().month;
   final List<int> availableYears = [2024, 2025, 2026];
+
+  void _changeMonth(int offset) {
+    setState(() {
+      selectedMonth += offset;
+      if (selectedMonth > 12) {
+        selectedMonth = 1;
+        selectedYear++;
+      } else if (selectedMonth < 1) {
+        selectedMonth = 12;
+        selectedYear--;
+      }
+    });
+  }
+
+  Map<String, dynamic> _getBenchmarkInsight(
+      List<TransactionModel> allExpenses) {
+    final prevMonthDate = DateTime(selectedYear, selectedMonth - 1);
+    final prevMonth = prevMonthDate.month;
+    final prevYear = prevMonthDate.year;
+
+    final currentTotal = allExpenses
+        .where((e) =>
+            !e.isIncome &&
+            e.date.month == selectedMonth &&
+            e.date.year == selectedYear)
+        .fold(0.0, (sum, e) => sum + e.amount);
+
+    final previousTotal = allExpenses
+        .where((e) =>
+            !e.isIncome && e.date.month == prevMonth && e.date.year == prevYear)
+        .fold(0.0, (sum, e) => sum + e.amount);
+
+    double diff = 0;
+    if (previousTotal > 0) {
+      diff = ((currentTotal - previousTotal) / previousTotal) * 100;
+    }
+
+    return {
+      "current": currentTotal,
+      "previous": previousTotal,
+      "difference": diff,
+      "isIncrease": currentTotal > previousTotal,
+    };
+  }
 
   int touchedIndex = -1;
   int selectedSpendingIndex = -1;
 
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case AppStrings.catNetflix:
-        return const Color(0xFFEF5350); // Soft Vibrant Red
-      case AppStrings.catFood:
-        return const Color(0xFF66BB6A); // Soft Vibrant Green
-      case AppStrings.catTransport:
-        return const Color(0xFF42A5F5); // Soft Vibrant Blue
-      case AppStrings.catShopping:
-        return const Color(0xFFFFA726); // Soft Vibrant Orange
-      case AppStrings.catSalary:
-        return const Color(0xFF26A69A); // Soft Vibrant Teal
-      case AppStrings.catUpwork:
-        return const Color(0xFF9CCC65); // Soft Vibrant Lime
-      case AppStrings.catInterest:
-        return const Color(0xFF26C6DA); // Soft Vibrant Cyan
-      case AppStrings.catFreelance:
-        return const Color(0xFFAB47BC); // Soft Vibrant Purple
-      case AppStrings.catOther:
-        return const Color(0xFF90A4AE); // Blue Grey
-      default:
-        return AppColors.primary.withAlpha(127);
-    }
+  BudgetModel _calculateTotalBudget(List<BudgetModel> allBudgets) {
+    return allBudgets.firstWhere(
+      (b) =>
+          b.category == AppStrings.total &&
+          b.month == selectedMonth &&
+          b.year == selectedYear,
+      orElse: () => BudgetModel(
+        category: AppStrings.total,
+        amount: 0,
+        month: selectedMonth,
+        year: selectedYear,
+        userEmail: _userEmail ?? '',
+      ),
+    );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      // Expense
-      case AppStrings.catNetflix:
-        return Icons.movie;
-      case AppStrings.catFood:
-        return Icons.fastfood;
-      case AppStrings.catTransport:
-        return Icons.directions_car;
-      case AppStrings.catShopping:
-        return Icons.shopping_bag;
-      // Income
-      case AppStrings.catSalary:
-        return Icons.attach_money;
-      case AppStrings.catUpwork:
-        return Icons.work;
-      case AppStrings.catInterest:
-        return Icons.account_balance;
-      case AppStrings.catFreelance:
-        return Icons.computer;
-      case AppStrings.catOther:
-        return Icons.more_horiz;
-      default:
-        return Icons.category;
-    }
+  double _calculateTotalSpent(List<TransactionModel> allExpenses) {
+    return allExpenses
+        .where((e) =>
+            !e.isIncome &&
+            e.date.month == selectedMonth &&
+            e.date.year == selectedYear)
+        .fold(0.0, (sum, e) => sum + e.amount);
   }
 
-  List<TransactionModel> _getFilteredByTime(List<TransactionModel> data, String filter) {
+  double _calculateWalletBalance(List<TransactionModel> allExpenses) {
+    return allExpenses.fold(0.0, (sum, item) {
+      return item.isIncome ? sum + item.amount : sum - item.amount;
+    });
+  }
+
+  List<Map<String, dynamic>> _prepareTopSpendingList(
+    List<TransactionModel> typeFilteredData,
+    bool isIncomeMode,
+  ) {
+    final filteredData =
+        _getFilteredByTime(typeFilteredData, selectedTimeFilter);
+
+    final categoryMap = <String, Map<String, dynamic>>{};
+    for (var e in filteredData) {
+      if (categoryMap.containsKey(e.category)) {
+        categoryMap[e.category]!['amount'] += e.amount;
+        if (e.date.isAfter(categoryMap[e.category]!['latestDate'])) {
+          categoryMap[e.category]!['latestDate'] = e.date;
+        }
+      } else {
+        categoryMap[e.category] = {
+          "title": e.category,
+          "amount": e.amount,
+          "latestDate": e.date,
+          "icon": StatisticsHelper.getCategoryIcon(e.category,
+              isIncome: isIncomeMode),
+        };
+      }
+    }
+
+    final list = categoryMap.values.toList();
+    list.sort(
+        (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+    return list;
+  }
+
+  List<PieChartSectionData> _buildPieSections(
+    List<Map<String, dynamic>> topSpendingList,
+    double totalInFilter,
+    bool isIncomeMode,
+  ) {
+    List<PieChartSectionData> sections = [];
+    for (var i = 0; i < topSpendingList.length; i++) {
+      final item = topSpendingList[i];
+      final isTouched = i == touchedIndex;
+      final fontSize = isTouched ? 16.0 : 0.0;
+      final radius = isTouched ? 50.0 : 40.0;
+      final widgetSize = isTouched ? 35.0 : 30.0;
+
+      sections.add(
+        PieChartSectionData(
+          color: StatisticsHelper.getCategoryColor(item['title'] as String,
+              isIncome: isIncomeMode),
+          value: item['amount'] as double,
+          title:
+              '${((item['amount'] as double) / totalInFilter * 100).toStringAsFixed(0)}%',
+          radius: radius,
+          titleStyle: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          badgeWidget: StatisticsBadge(
+            item['icon'] as IconData,
+            size: widgetSize,
+            borderColor: StatisticsHelper.getCategoryColor(
+                item['title'] as String,
+                isIncome: isIncomeMode),
+          ),
+          badgePositionPercentageOffset: .98,
+        ),
+      );
+    }
+    return sections;
+  }
+
+  List<TransactionModel> _getFilteredByTime(
+      List<TransactionModel> data, String filter) {
     final nowFull = DateTime.now();
     final now = DateTime(nowFull.year, nowFull.month, nowFull.day);
 
@@ -115,7 +219,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           final diff = now.difference(eDate).inDays;
           return diff >= 0 && diff < 28;
         case "Month":
-          return e.date.year == selectedYear;
+          return e.date.year == selectedYear && e.date.month == selectedMonth;
         case "Year":
           final diff = now.year - e.date.year;
           return diff >= 0 && diff < 5;
@@ -127,8 +231,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final nowTime = DateTime.now();
+    final isCurrentMonth =
+        selectedYear == nowTime.year && selectedMonth == nowTime.month;
+    final c = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       body: SafeArea(
         child: ValueListenableBuilder<List<TransactionModel>>(
           valueListenable: sl<DatabaseHelper>().expensesNotifier,
@@ -136,95 +245,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             return ValueListenableBuilder<List<BudgetModel>>(
               valueListenable: sl<DatabaseHelper>().budgetsNotifier,
               builder: (context, allBudgets, _) {
-                final isIncomeMode = selectedTransactionType == AppStrings.income;
-                final typeFilteredData =
-                    allExpenses.where((e) => e.isIncome == isIncomeMode).toList();
+                final isIncomeMode =
+                    selectedTransactionType == AppStrings.income;
+                final typeFilteredData = allExpenses
+                    .where((e) => e.isIncome == isIncomeMode)
+                    .toList();
 
-                final now = DateTime.now();
-                
-                final totalBudgetObj = allBudgets.firstWhere(
-                  (b) => b.category == AppStrings.total,
-                  orElse: () => BudgetModel(
-                    category: AppStrings.total,
-                    amount: 0,
-                    month: now.month,
-                    year: now.year,
-                    userEmail: _userEmail ?? '',
-                  ),
-                );
-                
-                final totalSpentResult = allExpenses
-                    .where((e) => !e.isIncome && e.date.month == now.month && e.date.year == now.year)
-                    .fold(0.0, (sum, e) => sum + e.amount);
+                final totalBudgetObj = _calculateTotalBudget(allBudgets);
+                final totalSpentResult = _calculateTotalSpent(allExpenses);
+                final walletBalance = _calculateWalletBalance(allExpenses);
 
-                final walletBalance = allExpenses.fold(0.0, (sum, item) {
-                  return item.isIncome ? sum + item.amount : sum - item.amount;
-                });
+                final topSpendingList =
+                    _prepareTopSpendingList(typeFilteredData, isIncomeMode);
+                final totalInFilter = topSpendingList.fold(
+                    0.0, (sum, item) => sum + item['amount']);
 
-                final filteredData =
-                    _getFilteredByTime(typeFilteredData, selectedTimeFilter);
-
-                final categoryMap = <String, Map<String, dynamic>>{};
-                for (var e in filteredData) {
-                  if (categoryMap.containsKey(e.category)) {
-                    categoryMap[e.category]!['amount'] += e.amount;
-                    if (e.date.isAfter(categoryMap[e.category]!['latestDate'])) {
-                      categoryMap[e.category]!['latestDate'] = e.date;
-                    }
-                  } else {
-                    categoryMap[e.category] = {
-                      "title": e.category,
-                      "amount": e.amount,
-                      "latestDate": e.date,
-                      "icon": _getCategoryIcon(e.category),
-                    };
-                  }
-                }
-
-                final topSpendingList = categoryMap.values.toList();
-                topSpendingList.sort((a, b) =>
-                    (b['amount'] as double).compareTo(a['amount'] as double));
-
-                final totalInFilter = topSpendingList.fold(0.0, (sum, item) => sum + item['amount']);
-
-                List<PieChartSectionData> pieSections = [];
-                for (var i = 0; i < topSpendingList.length; i++) {
-                  final item = topSpendingList[i];
-                  final isTouched = i == touchedIndex;
-                  final fontSize = isTouched ? 16.0 : 0.0;
-                  final radius = isTouched ? 50.0 : 40.0;
-                  final widgetSize = isTouched ? 35.0 : 30.0;
-
-                  pieSections.add(
-                    PieChartSectionData(
-                      color: _getCategoryColor(item['title'] as String),
-                      value: item['amount'] as double,
-                      title: '${((item['amount'] as double) / totalInFilter * 100).toStringAsFixed(0)}%',
-                      radius: radius,
-                      titleStyle: TextStyle(
-                        fontSize: fontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      badgeWidget: _Badge(
-                        item['icon'] as IconData,
-                        size: widgetSize,
-                        borderColor: _getCategoryColor(item['title'] as String),
-                      ),
-                      badgePositionPercentageOffset: .98,
-                    ),
-                  );
-                }
+                final pieSections = _buildPieSections(
+                    topSpendingList, totalInFilter, isIncomeMode);
 
                 return SingleChildScrollView(
                   child: Column(
                     children: [
                       StatisticsHelper.buildHeader(
+                        context: context,
                         onDownload: () {
+                          final typeFilteredList = _prepareTopSpendingList(
+                              typeFilteredData, isIncomeMode);
                           ReportGenerator.generateStatisticsReport(
                             type: selectedTransactionType,
                             period: selectedTimeFilter,
-                            spendingData: topSpendingList
+                            spendingData: typeFilteredList
                                 .map((e) => {
                                       ...e,
                                       "amount":
@@ -235,154 +285,94 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                 .toList(),
                           );
                         },
-                        onAdjustBudget: () async {
-                          await showDialog(
-                            context: context,
-                            builder: (ctx) => BudgetDialog(userEmail: _userEmail),
-                          );
-                        },
+                        onAdjustBudget: () =>
+                            _showBudgetDialog(context, allBudgets),
                       ),
-
-                      if (!isIncomeMode && selectedTimeFilter == "Month") ...[
+                      if (selectedTimeFilter == "Month") ...[
                         const SizedBox(height: 10),
                         StatisticsHelper.buildMonthlyBudgetCard(
                           context: context,
                           totalBudget: totalBudgetObj.amount,
                           totalSpent: totalSpentResult,
+                          monthYear: DateFormat('MMMM yyyy')
+                              .format(DateTime(selectedYear, selectedMonth)),
+                          onPreviousMonth: () => _changeMonth(-1),
+                          onNextMonth: () => _changeMonth(1),
+                          showNextMonth: !isCurrentMonth,
                           availableBalance: walletBalance,
-                          onSetBudget: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (ctx) => BudgetDialog(userEmail: _userEmail),
-                            );
-                          },
+                          onSetBudget: () =>
+                              _showBudgetDialog(context, allBudgets),
                         ),
                       ],
-
                       const SizedBox(height: 20),
-
+                      if (!isIncomeMode && selectedTimeFilter == "Month") ...[
+                        Builder(builder: (context) {
+                          final insight = _getBenchmarkInsight(allExpenses);
+                          return StatisticsHelper.buildSpendingInsightCard(
+                            context: context,
+                            currentTotal: insight['current'],
+                            previousTotal: insight['previous'],
+                            difference: insight['difference'],
+                            isIncrease: insight['isIncrease'],
+                          );
+                        }),
+                        const SizedBox(height: 20),
+                      ],
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             StatisticsHelper.buildTypeDropdown(
+                              context: context,
                               selectedType: selectedTransactionType,
                               types: transactionTypes,
                               onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedTransactionType = newValue!;
-                                });
+                                if (newValue != null) {
+                                  setState(() {
+                                    selectedTransactionType = newValue;
+                                  });
+                                }
                               },
                             ),
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: SizedBox(
-                          height: 200,
-                          child: Stack(
-                            children: [
-                              PieChart(
-                                PieChartData(
-                                  pieTouchData: PieTouchData(
-                                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                                      setState(() {
-                                        if (!event.isInterestedForInteractions ||
-                                            pieTouchResponse == null ||
-                                            pieTouchResponse.touchedSection == null) {
-                                          touchedIndex = -1;
-                                          selectedSpendingIndex = -1;
-                                          return;
-                                        }
-                                        touchedIndex = pieTouchResponse
-                                            .touchedSection!.touchedSectionIndex;
-                                        selectedSpendingIndex = touchedIndex;
-                                      });
-                                    },
-                                  ),
-                                  borderData: FlBorderData(show: false),
-                                  sectionsSpace: 4,
-                                  centerSpaceRadius: 55,
-                                  sections: pieSections,
-                                ),
-                              ),
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      touchedIndex == -1 ? AppStrings.total : topSpendingList[touchedIndex]['title'],
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      touchedIndex == -1 
-                                        ? "₹ ${totalInFilter.toStringAsFixed(0)}"
-                                        : "₹ ${topSpendingList[touchedIndex]['amount'].toStringAsFixed(0)}",
-                                      style: AppTextStyles.heading1.copyWith(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      StatisticsPieChart(
+                        pieSections: pieSections,
+                        topSpendingList: topSpendingList,
+                        totalInFilter: totalInFilter,
+                        touchedIndex: touchedIndex,
+                        selectedTransactionType: selectedTransactionType,
+                        onSelectionChanged: (index) {
+                          setState(() {
+                            touchedIndex = index;
+                            selectedSpendingIndex = index;
+                          });
+                        },
                       ),
-
                       const SizedBox(height: 30),
-
-                      StatisticsHelper.buildSpendingHeader(),
-
+                      StatisticsHelper.buildSpendingHeader(context: context),
                       const SizedBox(height: 16),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: topSpendingList.isEmpty
-                            ? const Center(
-                                child: Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Text("No data for this period"),
-                              ))
-                            : Column(
-                                children:
-                                    List.generate(topSpendingList.length, (index) {
-                                  final item = topSpendingList[index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedSpendingIndex = index;
-                                        touchedIndex = index;
-                                      });
-                                    },
-                                    child: Column(
-                                      children: [
-                                        StatisticsHelper.buildSpendingItem(
-                                          icon: item['icon'],
-                                          title: item['title'],
-                                          date: DateFormat('MMM dd, yyyy')
-                                              .format(item['latestDate']),
-                                          amount:
-                                              "${isIncomeMode ? '+' : '-'} ₹ ${item['amount'].toStringAsFixed(2)}",
-                                          isHighlighted:
-                                              index == selectedSpendingIndex,
-                                        ),
-                                        const SizedBox(height: 12),
-                                      ],
-                                    ),
-                                  );
-                                }),
-                              ),
+                      StatisticsSpendingList(
+                        topSpendingList: topSpendingList,
+                        isIncomeMode: isIncomeMode,
+                        selectedSpendingIndex: selectedSpendingIndex,
+                        onItemTapped: (index) {
+                          setState(() {
+                            selectedSpendingIndex = index;
+                            touchedIndex = index;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      StatisticsBreakdownButton(
+                        isIncomeMode: isIncomeMode,
+                        onTap: () => context.push(
+                          RoutePaths.categoryBreakdown,
+                          extra: isIncomeMode,
+                        ),
                       ),
                       const SizedBox(height: 30),
                     ],
@@ -395,46 +385,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
     );
   }
-}
 
-class _Badge extends StatelessWidget {
-  const _Badge(
-    this.icon, {
-    required this.size,
-    required this.borderColor,
-  });
-  final IconData icon;
-  final double size;
-  final Color borderColor;
+  Future<void> _showBudgetDialog(
+      BuildContext context, List<BudgetModel> allBudgets) async {
+    final existingBudget = allBudgets
+        .where((b) =>
+            b.category == AppStrings.total &&
+            b.month == selectedMonth &&
+            b.year == selectedYear)
+        .firstOrNull;
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: PieChart.defaultDuration,
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withAlpha(127),
-            offset: const Offset(3, 3),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(size * .15),
-      child: Center(
-        child: Icon(
-          icon,
-          size: size * .5,
-          color: borderColor,
-        ),
+    await showDialog(
+      context: context,
+      builder: (ctx) => BudgetDialog(
+        userEmail: _userEmail,
+        month: selectedMonth,
+        year: selectedYear,
+        initialBudget: existingBudget,
       ),
     );
   }

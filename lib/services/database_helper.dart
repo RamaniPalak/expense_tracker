@@ -3,6 +3,8 @@ import 'package:path/path.dart';
 import 'package:flutter/foundation.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
+import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
+import 'package:expense_tracker/services/notification_service.dart';
 import 'expense_service.dart';
 import 'package:backend_client/backend_client.dart';
 
@@ -13,6 +15,7 @@ class DatabaseHelper {
   // ValueNotifier to notify listeners of database changes
   final ValueNotifier<List<TransactionModel>> expensesNotifier = ValueNotifier([]);
   final ValueNotifier<List<BudgetModel>> budgetsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<BillModel>> billsNotifier = ValueNotifier([]);
 
   DatabaseHelper._init();
 
@@ -28,7 +31,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -50,6 +53,20 @@ CREATE TABLE budgets (
   amount REAL NOT NULL,
   month INTEGER NOT NULL,
   year INTEGER NOT NULL,
+  userEmail TEXT NOT NULL
+)
+''');
+    }
+    if (oldVersion < 5) {
+      await db.execute('''
+CREATE TABLE bills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  amount REAL NOT NULL,
+  dueDate TEXT NOT NULL,
+  category TEXT NOT NULL,
+  isPaid INTEGER NOT NULL,
+  isRecurring INTEGER NOT NULL,
   userEmail TEXT NOT NULL
 )
 ''');
@@ -85,6 +102,19 @@ CREATE TABLE budgets (
   userEmail $textType
   )
 ''');
+
+    await db.execute('''
+CREATE TABLE bills (
+  id $idType,
+  title $textType,
+  amount $realType,
+  dueDate $textType,
+  category $textType,
+  isPaid $intType,
+  isRecurring $intType,
+  userEmail $textType
+  )
+''');
   }
 
   Future<void> insertExpense(TransactionModel expense) async {
@@ -111,11 +141,16 @@ CREATE TABLE budgets (
       {bool syncFromRemote = false}) async {
     if (email == null) return;
 
-    if (syncFromRemote) {
-      await syncWithRemote(email);
-    }
-
+    // 1. Load local data immediately (Instant Load)
     expensesNotifier.value = await getExpenses(email);
+
+    if (syncFromRemote) {
+      // 2. Sync in background to avoid blocking the UI
+      syncWithRemote(email).then((_) async {
+        // 3. Refresh with any new remote data
+        expensesNotifier.value = await getExpenses(email);
+      }).catchError((e) => debugPrint("Background sync error: $e"));
+    }
   }
 
   Future<void> syncWithRemote(String email) async {
@@ -179,8 +214,8 @@ CREATE TABLE budgets (
     // For recurring budgets, we treat category+user as the unique key
     final existing = await db.query(
       'budgets',
-      where: 'category = ? AND userEmail = ?',
-      whereArgs: [budget.category, budget.userEmail],
+      where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
+      whereArgs: [budget.category, budget.userEmail, budget.month, budget.year],
     );
 
     if (existing.isNotEmpty) {
@@ -211,6 +246,77 @@ CREATE TABLE budgets (
   Future<void> refreshBudgets(String? email) async {
     if (email == null) return;
     budgetsNotifier.value = await getBudgets(email);
+  }
+
+  Future<void> deleteBudget(int id, String email) async {
+    final db = await instance.database;
+    await db.delete(
+      'budgets',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await refreshBudgets(email);
+  }
+
+  // Bill Operations
+  Future<void> insertBill(BillModel bill) async {
+    final db = await instance.database;
+    final id = await db.insert('bills', bill.toMap());
+
+    // Schedule notification 1 day before due date at 9 AM
+    final dueDate = bill.dueDate;
+    final reminderDate = DateTime(dueDate.year, dueDate.month, dueDate.day, 9, 0)
+        .subtract(const Duration(days: 1));
+
+    await NotificationService.instance.scheduleBillReminder(
+      id: id,
+      title: "Upcoming Bill: ${bill.title}",
+      body: "Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.",
+      scheduledDate: reminderDate,
+    );
+
+    await refreshBills(bill.userEmail);
+  }
+
+  Future<List<BillModel>> getBills(String? email) async {
+    if (email == null) return [];
+    final db = await instance.database;
+    const orderBy = 'dueDate ASC';
+    final result = await db.query(
+      'bills',
+      where: 'userEmail = ?',
+      whereArgs: [email],
+      orderBy: orderBy,
+    );
+
+    return result.map((json) => BillModel.fromMap(json)).toList();
+  }
+
+  Future<void> refreshBills(String? email) async {
+    if (email == null) return;
+    billsNotifier.value = await getBills(email);
+  }
+
+  Future<void> deleteBill(int id, String? email) async {
+    final db = await instance.database;
+    await db.delete(
+      'bills',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await NotificationService.instance.cancelNotification(id);
+    await refreshBills(email);
+  }
+
+  Future<void> updateBill(BillModel bill) async {
+    final db = await instance.database;
+    await db.update(
+      'bills',
+      bill.toMap(),
+      where: 'id = ?',
+      whereArgs: [bill.id],
+    );
+    await refreshBills(bill.userEmail);
   }
 
   Future<void> close() async {
