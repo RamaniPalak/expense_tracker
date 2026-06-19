@@ -51,106 +51,118 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             painter: BackgroundPainter(),
           ),
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding:
                   const EdgeInsets.symmetric(horizontal: 32.0, vertical: 20),
-              child: Column(
-                children: [
-                   const Spacer(flex: 2),
-                  SizedBox(
-                    height: 400,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      clipBehavior: Clip.none,
-                      children: [
-                        Image.asset(
-                          'assets/images/onboarding_illustration.png',
-                          height: 400,
-                          fit: BoxFit.contain,
-                        ),
-                        Positioned(
-                          left: 35,
-                          top: 25,
-                          child: SlideTransition(
-                            position: _offsetAnimation,
-                            child: Image.asset(
-                              'assets/images/Coint.png',
-                              width: 60,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 35,
-                          top: 60,
-                          child: SlideTransition(
-                            position: _offsetAnimation,
-                            child: Image.asset(
-                              'assets/images/Donut.png',
-                              width: 60,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(flex: 3),
-                  Text(
-                    "Spend Smarter\nSave More",
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.heading1.copyWith(
-                      fontSize: 36,
-                      color: AppColors.primary,
-                      height: 1.2,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      "Simple way to manage your finance\nand save for the future",
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  PrimaryButton(
-                    text: "Get Started",
-                    onPressed: () {
-                      context.go(RoutePaths.login);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom -
+                      40,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
                     children: [
-                      Text(
-                        "Already Have Account? ",
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: Colors.black54,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          context.push(RoutePaths.login);
-                        },
-                        child: Text(
-                          "Log In",
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 340),
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            clipBehavior: Clip.none,
+                            children: [
+                              Image.asset(
+                                'assets/images/onboarding_illustration.png',
+                                fit: BoxFit.contain,
+                              ),
+                              Positioned(
+                                left: 35,
+                                top: 25,
+                                child: SlideTransition(
+                                  position: _offsetAnimation,
+                                  child: Image.asset(
+                                    'assets/images/Coint.png',
+                                    width: 55,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 35,
+                                top: 60,
+                                child: SlideTransition(
+                                  position: _offsetAnimation,
+                                  child: Image.asset(
+                                    'assets/images/Donut.png',
+                                    width: 55,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const Spacer(),
+                      Text(
+                        "Spend Smarter\nSave More",
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.heading1.copyWith(
+                          fontSize: 36,
+                          color: AppColors.primary,
+                          height: 1.2,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "Simple way to manage your finance\nand save for the future",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      PrimaryButton(
+                        text: "Get Started",
+                        onPressed: () {
+                          context.go(RoutePaths.login);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Already Have Account? ",
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: Colors.black54,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              context.push(RoutePaths.login);
+                            },
+                            child: Text(
+                              "Log In",
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                ],
+                ),
               ),
             ),
           ),

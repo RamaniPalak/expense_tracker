@@ -27,8 +27,10 @@ class ApiClient {
     client = Client(
       baseUrl,
       authenticationKeyManager: FlutterAuthenticationKeyManager(),
-      connectionTimeout: const Duration(seconds: 15),
-      streamingConnectionTimeout: const Duration(seconds: 15),
+      // Render free-tier servers cold-start in 30-60s after inactivity.
+      // 60s timeout prevents premature timeout errors on first request.
+      connectionTimeout: const Duration(seconds: 60),
+      streamingConnectionTimeout: const Duration(seconds: 60),
     )..connectivityMonitor = FlutterConnectivityMonitor();
   }
 }

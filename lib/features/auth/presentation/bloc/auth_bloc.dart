@@ -43,9 +43,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await authRepository.register(event.name, event.email, event.password);
-    result.fold(
-      (failure) => emit(AuthFailure(message: failure)),
-      (success) => emit(AuthSuccess(message: "Signup Successful! Please check your email for verification if required.")),
+    await result.fold(
+      (failure) async => emit(AuthFailure(message: failure)),
+      (success) async {
+        // Auto-login after successful signup so the user lands on home directly
+        final loginResult = await authRepository.login(event.email, event.password);
+        loginResult.fold(
+          (failure) => emit(AuthSuccess(message: "Account created! Please log in.")),
+          (success) => emit(Authenticated(email: event.email)),
+        );
+      },
     );
   }
 

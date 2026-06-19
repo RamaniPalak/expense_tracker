@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -12,6 +14,21 @@ class AuthRepositoryImpl implements IAuthRepository {
     required this.localDataSource,
   });
 
+  // Converts low-level network exceptions into user-friendly messages.
+  String _friendlyError(Object e) {
+    if (e is TimeoutException ||
+        e.toString().toLowerCase().contains('timeout') ||
+        e.toString().toLowerCase().contains('timed out')) {
+      return 'Server is waking up, please try again in a moment.';
+    }
+    if (e is SocketException ||
+        e.toString().toLowerCase().contains('socketexception') ||
+        e.toString().toLowerCase().contains('connection refused')) {
+      return 'Cannot reach server. Check your internet connection.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
   @override
   Future<Either<String, void>> login(String email, String password) async {
     try {
@@ -22,7 +39,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       }
       return const Left("Login failed: Invalid credentials");
     } catch (e) {
-      return Left(e.toString());
+      return Left(_friendlyError(e));
     }
   }
 
@@ -31,11 +48,12 @@ class AuthRepositoryImpl implements IAuthRepository {
     try {
       final success = await remoteDataSource.register(name, email, password);
       if (success) {
+        await localDataSource.cacheSession(email, name);
         return const Right(null);
       }
-      return const Left("Registration failed");
+      return const Left("Email already registered");
     } catch (e) {
-      return Left(e.toString());
+      return Left(_friendlyError(e));
     }
   }
 
@@ -48,7 +66,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       }
       return const Left("Incorrect current password or update failed");
     } catch (e) {
-      return Left(e.toString());
+      return Left(_friendlyError(e));
     }
   }
 
