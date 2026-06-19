@@ -45,9 +45,7 @@ class TransactionTile extends StatelessWidget {
       case AppStrings.catOther:
         return Icons.more_horiz;
       default:
-        return isIncome
-            ? Icons.add_circle_outline
-            : Icons.shopping_cart_outlined;
+        return isIncome ? Icons.add_circle_outline : Icons.shopping_cart_outlined;
     }
   }
 
@@ -89,8 +87,8 @@ class TransactionTile extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: c.shadow,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -100,20 +98,20 @@ class TransactionTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           onTap: onEdit,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                // Icon Section
+                // Icon Section (Tighter 44x44 container)
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: catColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(_getCategoryIcon(), color: catColor, size: 26),
+                  child: Icon(_getCategoryIcon(), color: catColor, size: 20),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
 
                 // Title & Date Section
                 Expanded(
@@ -123,18 +121,18 @@ class TransactionTile extends StatelessWidget {
                       Text(
                         title,
                         style: AppTextStyles.bodyLarge.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
                           color: c.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         date,
                         style: AppTextStyles.bodySmall
-                            .copyWith(fontSize: 13, color: c.textSecondary),
+                            .copyWith(fontSize: 12, color: c.textSecondary),
                       ),
                     ],
                   ),
@@ -145,8 +143,8 @@ class TransactionTile extends StatelessWidget {
                   "${isIncome ? "+" : "-"} ₹$amount",
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
@@ -166,11 +164,9 @@ class TransactionTile extends StatelessWidget {
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit_outlined,
-                                size: 18, color: c.textPrimary),
+                            Icon(Icons.edit_outlined, size: 18, color: c.textPrimary),
                             const SizedBox(width: 8),
-                            Text(AppStrings.edit,
-                                style: TextStyle(color: c.textPrimary)),
+                            Text(AppStrings.edit, style: TextStyle(color: c.textPrimary)),
                           ],
                         ),
                       ),
@@ -178,11 +174,9 @@ class TransactionTile extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline,
-                                size: 18, color: Colors.red),
+                            Icon(Icons.delete_outline, size: 18, color: Colors.red),
                             SizedBox(width: 8),
-                            Text(AppStrings.delete,
-                                style: TextStyle(color: Colors.red)),
+                            Text(AppStrings.delete, style: TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),

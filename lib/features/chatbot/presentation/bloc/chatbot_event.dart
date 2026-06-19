@@ -16,3 +16,5 @@ class SendMessageEvent extends ChatbotEvent {
 }
 
 class LoadHistoryEvent extends ChatbotEvent {}
+
+class ResetChatEvent extends ChatbotEvent {}

@@ -21,13 +21,7 @@ class BiometricService {
       final List<BiometricType> availableBiometrics =
           await _auth.getAvailableBiometrics();
 
-      if (Platform.isIOS) {
-        // iOS: Only allow Face ID
-        return availableBiometrics.contains(BiometricType.face);
-      } else {
-        // Android: Allow any biometric (fingerprint, face, etc.)
-        return availableBiometrics.isNotEmpty;
-      }
+      return availableBiometrics.isNotEmpty;
     } on PlatformException {
       return false;
     }
@@ -37,10 +31,23 @@ class BiometricService {
   /// Returns true if authentication succeeded.
   static Future<BiometricResult> authenticate() async {
     try {
+      String reason = 'Authenticate to access your Expense Tracker';
+      try {
+        final List<BiometricType> availableBiometrics =
+            await _auth.getAvailableBiometrics();
+        if (availableBiometrics.contains(BiometricType.face)) {
+          reason = 'Use Face ID to access your Expense Tracker';
+        } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
+          reason = Platform.isIOS
+              ? 'Use Touch ID to access your Expense Tracker'
+              : 'Use your fingerprint to access your Expense Tracker';
+        }
+      } catch (_) {
+        // Fallback to default reason
+      }
+
       final bool authenticated = await _auth.authenticate(
-        localizedReason: Platform.isIOS
-            ? 'Use Face ID to access your Expense Tracker'
-            : 'Use your fingerprint to access your Expense Tracker',
+        localizedReason: reason,
         options: const AuthenticationOptions(
           biometricOnly: false,   // Allow fallback so it doesn't fail on weak biometrics
           stickyAuth: true,       // Keep prompt open if app loses focus

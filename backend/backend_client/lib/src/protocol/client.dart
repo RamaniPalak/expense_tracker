@@ -71,6 +71,13 @@ class EndpointExpenseEntry extends _i1.EndpointRef {
         {'expenseEntry': expenseEntry},
       );
 
+  _i2.Future<_i4.ExpenseEntry> updateExpenseEntry(_i4.ExpenseEntry entry) =>
+      caller.callServerEndpoint<_i4.ExpenseEntry>(
+        'expenseEntry',
+        'updateExpenseEntry',
+        {'entry': entry},
+      );
+
   _i2.Future<bool> deleteExpenseEntry(int id) =>
       caller.callServerEndpoint<bool>(
         'expenseEntry',

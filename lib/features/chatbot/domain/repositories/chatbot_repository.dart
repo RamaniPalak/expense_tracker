@@ -5,4 +5,5 @@ abstract class IChatbotRepository {
   Future<Either<String, ChatMessage>> sendMessage(String text, List<ChatMessage> history);
   Future<int> getMessageCount();
   Future<void> incrementMessageCount();
+  Future<void> resetMessageCount();
 }

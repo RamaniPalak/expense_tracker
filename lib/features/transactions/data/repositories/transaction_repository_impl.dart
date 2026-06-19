@@ -133,6 +133,24 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       // Update local notifier cache
       await databaseHelper.refreshExpenses(transaction.userEmail);
 
+      // Perform remote update in the background — only if this record was
+      // previously synced and we have a valid remote ID.
+      if (transaction.remoteId != null) {
+        final remoteEntry = ExpenseEntry(
+          id: transaction.remoteId,
+          title: transaction.title,
+          amount: transaction.amount,
+          date: transaction.date,
+          category: transaction.category,
+          isIncome: transaction.isIncome,
+          userEmail: transaction.userEmail,
+        );
+
+        remoteService.updateExpense(remoteEntry).catchError(
+          (e) => debugPrint('Background updateExpense remote sync failed: $e'),
+        );
+      }
+
       return const Right(null);
     } catch (e) {
       return Left(e.toString());

@@ -5,14 +5,14 @@ import '../../domain/repositories/chatbot_repository.dart';
 import '../sources/chatbot_remote_data_source.dart';
 import '../../../transactions/domain/repositories/transaction_repository.dart';
 import '../../../wallet/domain/repositories/i_wallet_repository.dart';
-import '../../../../services/auth_service.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 
 class ChatbotRepositoryImpl implements IChatbotRepository {
   final ChatbotRemoteDataSource remoteDataSource;
   final SharedPreferences sharedPreferences;
   final ITransactionRepository transactionRepository;
   final IWalletRepository walletRepository;
-  final AuthService authService;
+  final IAuthRepository authRepository;
 
   static const String _messageCountKey = 'chatbot_message_count';
 
@@ -21,7 +21,7 @@ class ChatbotRepositoryImpl implements IChatbotRepository {
     required this.sharedPreferences,
     required this.transactionRepository,
     required this.walletRepository,
-    required this.authService,
+    required this.authRepository,
   });
 
   @override
@@ -30,33 +30,52 @@ class ChatbotRepositoryImpl implements IChatbotRepository {
     List<ChatMessage> history,
   ) async {
     try {
-      final email = await authService.getUserEmail();
-      
-      // Fetch context
-      final transactionsResult = await transactionRepository.getTransactions(email);
-      final budgetsResult = await walletRepository.getBudgets(email);
+      final email = await authRepository.getUserEmail() ?? '';
 
-      String context = "You are a personal financial assistant. Be concise and helpful.";
-      
+      // Fetch context data in parallel for performance
+      final results = await Future.wait([
+        transactionRepository.getTransactions(email),
+        walletRepository.getBudgets(email),
+      ]);
+
+      final transactionsResult = results[0] as dynamic;
+      final budgetsResult = results[1] as dynamic;
+
+      final buffer = StringBuffer();
+
       transactionsResult.fold(
         (l) => null,
         (r) {
-          final recent = r.take(20).map((e) => "${e.title} (${e.category}): ${e.amount} ${e.isIncome ? 'income' : 'expense'} on ${e.date}").join(", ");
-          context += "\nUser's last 20 transactions: $recent";
+          if ((r as List).isNotEmpty) {
+            final recent = r
+                .take(15)
+                .map((e) =>
+                    '${e.title} (${e.category}): ₹${e.amount} ${e.isIncome ? 'income' : 'expense'} on ${e.date.toIso8601String().split('T')[0]}')
+                .join('\n');
+            buffer.writeln('Recent 15 transactions:\n$recent');
+          }
         },
       );
 
       budgetsResult.fold(
         (l) => null,
         (r) {
-          final budgets = r.map((e) => "${e.category} limit: ${e.amount}").join(", ");
-          context += "\nUser's monthly budget limits: $budgets";
+          if ((r as List).isNotEmpty) {
+            final budgets =
+                r.map((e) => '${e.category} limit: ₹${e.amount}').join(', ');
+            buffer.writeln('Monthly budget limits: $budgets');
+          }
         },
       );
 
-      final response = await remoteDataSource.getAiResponse(text, history, context);
+      final context = buffer.toString().isEmpty
+          ? 'No transaction data available yet.'
+          : buffer.toString().trim();
+
+      final response =
+          await remoteDataSource.getAiResponse(text, history, context);
       await incrementMessageCount();
-      
+
       return Right(response);
     } catch (e) {
       return Left(e.toString());
@@ -70,7 +89,12 @@ class ChatbotRepositoryImpl implements IChatbotRepository {
 
   @override
   Future<void> incrementMessageCount() async {
-    final current = await getMessageCount();
+    final current = sharedPreferences.getInt(_messageCountKey) ?? 0;
     await sharedPreferences.setInt(_messageCountKey, current + 1);
+  }
+
+  @override
+  Future<void> resetMessageCount() async {
+    await sharedPreferences.setInt(_messageCountKey, 0);
   }
 }

@@ -1,4 +1,6 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'dart:convert';
+import 'dart:developer';
+import 'package:http/http.dart' as http;
 import '../models/chat_message_model.dart';
 import '../../domain/entities/chat_message.dart';
 
@@ -7,30 +9,22 @@ abstract class ChatbotRemoteDataSource {
       String text, List<ChatMessage> history, String context);
 }
 
+/// Calls the Gemini REST API directly (no deprecated SDK needed).
+/// Uses gemini-2.0-flash via the Google AI REST endpoint.
 class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
-  final GenerativeModel _model;
+  final String _apiKey;
 
-  ChatbotRemoteDataSourceImpl({required String apiKey})
-      : _model = GenerativeModel(
-          model: 'gemini-2.0-flash',
-          apiKey: apiKey,
-          // AIzaSy key — free tier: 15 RPM / 1500 req/day for gemini-2.0-flash
-          safetySettings: [
-            SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
-            SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.none),
-            SafetySetting(
-                HarmCategory.sexuallyExplicit, HarmBlockThreshold.none),
-            SafetySetting(
-                HarmCategory.dangerousContent, HarmBlockThreshold.none),
-          ],
-        );
+  static const String _model = 'gemini-2.0-flash';
+  static const String _baseUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
 
-  // System-level instructions prepended to every prompt
-  static const String _systemPrompt =
+  static const String _systemInstruction =
       'You are a personal financial assistant for an expense tracker app. '
-      'Be concise and helpful. Focus on budgeting, spending analysis, '
-      'and financial advice. Use the transaction and budget data below '
-      'to give personalized insights.\n\n';
+      'Be concise and friendly. Focus on budgeting, spending analysis, and '
+      'financial advice. Use the user transaction and budget data provided '
+      'to give personalized, practical insights. Keep responses under 200 words.';
+
+  ChatbotRemoteDataSourceImpl({required String apiKey}) : _apiKey = apiKey;
 
   @override
   Future<ChatMessageModel> getAiResponse(
@@ -38,36 +32,96 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
     List<ChatMessage> history,
     String context,
   ) async {
+    final url = Uri.parse('$_baseUrl?key=$_apiKey');
+
+    // Build chat history in Gemini REST format
+    final List<Map<String, dynamic>> contents = [];
+
+    // Inject financial context as the first user turn (model acknowledges it)
+    contents.add({
+      'role': 'user',
+      'parts': [{
+        'text': 'Financial context (for your reference only, do not repeat it):\n$context'
+      }],
+    });
+    contents.add({
+      'role': 'model',
+      'parts': [{
+        'text': 'Understood. I have your financial data and am ready to help.'
+      }],
+    });
+
+    // Append previous conversation turns
+    for (final msg in history) {
+      contents.add({
+        'role': msg.isUser ? 'user' : 'model',
+        'parts': [{'text': msg.text}],
+      });
+    }
+
+    // Append the current user message
+    contents.add({
+      'role': 'user',
+      'parts': [{'text': text}],
+    });
+
+    final body = jsonEncode({
+      'system_instruction': {
+        'parts': [{'text': _systemInstruction}],
+      },
+      'contents': contents,
+      'generationConfig': {
+        'temperature': 0.7,
+        'maxOutputTokens': 512,
+      },
+      'safetySettings': [
+        {'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_NONE'},
+        {'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_NONE'},
+        {'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_NONE'},
+        {'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_NONE'},
+      ],
+    });
+
     try {
-      // Build the history for a ChatSession (using the Codelab pattern)
-      final chatHistory = history.map((msg) {
-        return msg.isUser
-            ? Content.text(msg.text)
-            : Content.model([TextPart(msg.text)]);
-      }).toList();
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 30));
 
-      // Start a stateless chat session with the previous history
-      final chat = _model.startChat(history: chatHistory);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final candidates = data['candidates'] as List?;
+        if (candidates == null || candidates.isEmpty) {
+          throw Exception('No candidates returned from Gemini API');
+        }
+        final content = candidates[0]['content'] as Map<String, dynamic>?;
+        final parts = content?['parts'] as List?;
+        final replyText = parts?.first['text'] as String?;
 
-      // Send the new message with system role + financial context prepended
-      final prompt = '$_systemPrompt Financial context:\n$context\n\nUser: $text';
-      final response = await chat.sendMessage(Content.text(prompt));
+        if (replyText == null || replyText.isEmpty) {
+          throw Exception('Empty text in Gemini API response');
+        }
 
-      if (response.text == null || response.text!.isEmpty) {
-        throw Exception('Empty response from Gemini API');
+        return ChatMessageModel(
+          text: replyText.trim(),
+          isUser: false,
+          time: DateTime.now(),
+        );
+      } else {
+        final errorBody = jsonDecode(response.body);
+        final errorMessage = errorBody['error']?['message'] ?? 'Unknown API error';
+        log('Gemini API Error [${response.statusCode}]: $errorMessage');
+        throw Exception('Gemini API Error (${response.statusCode}): $errorMessage');
       }
-
-      return ChatMessageModel(
-        text: response.text!,
-        isUser: false,
-        time: DateTime.now(),
-      );
-    } on GenerativeAIException catch (e) {
-      print('Gemini API Error: ${e.message}');
-      throw Exception('Gemini Error: ${e.message}');
+    } on http.ClientException catch (e) {
+      log('Network error calling Gemini: $e');
+      throw Exception('Network error. Please check your connection.');
     } catch (e) {
-      print('Unexpected Error: $e');
-      throw Exception('Failed to get AI response: $e');
+      log('Unexpected error in ChatbotRemoteDataSource: $e');
+      rethrow;
     }
   }
 }

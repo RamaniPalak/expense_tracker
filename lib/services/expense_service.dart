@@ -18,12 +18,22 @@ class ExpenseService {
     }
   }
 
+  /// Updates an existing expense on the remote server.
+  Future<ExpenseEntry?> updateExpense(ExpenseEntry entry) async {
+    try {
+      return await apiClient.client.expenseEntry.updateExpenseEntry(entry);
+    } catch (e) {
+      log('Error updating expense: $e');
+      return null;
+    }
+  }
+
   /// Deletes an expense from the remote server.
   Future<bool> deleteExpense(int id) async {
     try {
       return await apiClient.client.expenseEntry.deleteExpenseEntry(id);
     } catch (e) {
-      print('Error deleting expense: $e');
+      log('Error deleting expense: $e');
       return false;
     }
   }
@@ -33,7 +43,7 @@ class ExpenseService {
     try {
       return await apiClient.client.expenseEntry.getExpenseEntries(email);
     } catch (e) {
-      print('Error fetching expenses: $e');
+      log('Error fetching expenses: $e');
       return [];
     }
   }

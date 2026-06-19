@@ -7,6 +7,11 @@ class ExpenseEntryEndpoint extends Endpoint {
     return await ExpenseEntry.db.insertRow(session, expenseEntry);
   }
 
+  Future<ExpenseEntry> updateExpenseEntry(
+      Session session, ExpenseEntry entry) async {
+    return await ExpenseEntry.db.updateRow(session, entry);
+  }
+
   Future<bool> deleteExpenseEntry(Session session, int id) async {
     var result = await ExpenseEntry.db.deleteWhere(
       session,

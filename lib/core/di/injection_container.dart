@@ -66,7 +66,7 @@ Future<void> init() async {
       sharedPreferences: sl(),
       transactionRepository: sl(),
       walletRepository: sl(),
-      authService: sl(),
+      authRepository: sl(),
     ),
   );
   sl.registerLazySingleton<ChatbotRemoteDataSource>(

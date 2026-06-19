@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const StationaryCenterDockedFabLocation(),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
@@ -102,5 +102,27 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class StationaryCenterDockedFabLocation extends FloatingActionButtonLocation {
+  const StationaryCenterDockedFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final modifiedGeometry = ScaffoldPrelayoutGeometry(
+      scaffoldSize: scaffoldGeometry.scaffoldSize,
+      minInsets: scaffoldGeometry.minInsets,
+      minViewPadding: scaffoldGeometry.minViewPadding,
+      textDirection: scaffoldGeometry.textDirection,
+      contentTop: scaffoldGeometry.contentTop,
+      contentBottom: scaffoldGeometry.contentBottom,
+      bottomSheetSize: scaffoldGeometry.bottomSheetSize,
+      snackBarSize: Size.zero,
+      // Ignore SnackBar height to keep FAB stationary
+      materialBannerSize: scaffoldGeometry.materialBannerSize,
+      floatingActionButtonSize: scaffoldGeometry.floatingActionButtonSize,
+    );
+    return FloatingActionButtonLocation.centerDocked.getOffset(modifiedGeometry);
   }
 }
