@@ -4,6 +4,7 @@ import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 import 'package:go_router/go_router.dart';
+import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/common_widgets/primary_button.dart';
@@ -68,14 +69,18 @@ class _SignupScreenState extends State<SignupScreen> {
                 backgroundColor: AppColors.error,
               ),
             );
+          } else if (state is Authenticated) {
+            // Auto-login after signup succeeded — go straight to home
+            context.go(RoutePaths.home);
           } else if (state is AuthSuccess) {
+            // Auto-login failed after signup — account was created, ask user to log in
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: Colors.green,
               ),
             );
-            context.pop();
+            context.go(RoutePaths.login);
           }
         },
         builder: (context, state) {

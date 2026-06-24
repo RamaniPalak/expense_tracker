@@ -77,7 +77,8 @@ class TransactionRepositoryImpl implements ITransactionRepository {
             category: transaction.category,
             isIncome: transaction.isIncome,
             userEmail: transaction.userEmail,
-          );
+           );
+
           await db.update(
             'expenses',
             updatedModel.toMap(),
