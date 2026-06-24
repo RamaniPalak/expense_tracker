@@ -19,8 +19,10 @@ if [ -n "$DATABASE_URL" ]; then
   # dbname = after the /
   DB_NAME=$(echo "$AFTER_AT" | cut -d'/' -f2 | cut -d'?' -f1)
 
-  # password = between first : and @
-  DB_PASS=$(echo "$STRIPPED" | sed 's|[^:]*:\([^@]*\)@.*|\1|')
+  # password = strip everything from @ onwards, then take after first colon
+  # Avoids sed capture groups which fail on Alpine BusyBox
+  BEFORE_AT=$(echo "$STRIPPED" | sed 's|@.*$||')
+  DB_PASS=$(echo "$BEFORE_AT" | cut -d':' -f2-)
 
   echo "Injecting Database: $DB_USER@$DB_HOST/$DB_NAME"
 
