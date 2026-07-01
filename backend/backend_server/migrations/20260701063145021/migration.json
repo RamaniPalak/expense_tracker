@@ -1,0 +1,264 @@
+{
+  "actions": [
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_session_log"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_runtime_settings"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_readwrite_test"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_query_log"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_migrations"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_method"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_message_log"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_log"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_health_metric"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_health_connection_info"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_future_call"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_cloud_storage_direct_upload"
+    },
+    {
+      "type": "deleteTable",
+      "deleteTable": "serverpod_cloud_storage"
+    },
+    {
+      "type": "alterTable",
+      "alterTable": {
+        "name": "user_info",
+        "schema": "public",
+        "addColumns": [
+          {
+            "name": "imagePath",
+            "columnType": 0,
+            "isNullable": true,
+            "dartType": "String?"
+          }
+        ],
+        "deleteColumns": [],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_session_log\" will be dropped.",
+            "table": "serverpod_session_log",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_runtime_settings\" will be dropped.",
+            "table": "serverpod_runtime_settings",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_readwrite_test\" will be dropped.",
+            "table": "serverpod_readwrite_test",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_query_log\" will be dropped.",
+            "table": "serverpod_query_log",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_migrations\" will be dropped.",
+            "table": "serverpod_migrations",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_method\" will be dropped.",
+            "table": "serverpod_method",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_message_log\" will be dropped.",
+            "table": "serverpod_message_log",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_log\" will be dropped.",
+            "table": "serverpod_log",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_health_metric\" will be dropped.",
+            "table": "serverpod_health_metric",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_health_connection_info\" will be dropped.",
+            "table": "serverpod_health_connection_info",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_future_call\" will be dropped.",
+            "table": "serverpod_future_call",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_cloud_storage_direct_upload\" will be dropped.",
+            "table": "serverpod_cloud_storage_direct_upload",
+            "columns": [],
+            "destrucive": true
+          },
+          {
+            "type": "tableDropped",
+            "message": "Table \"serverpod_cloud_storage\" will be dropped.",
+            "table": "serverpod_cloud_storage",
+            "columns": [],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_session_log\" will be dropped.",
+      "table": "serverpod_session_log",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_runtime_settings\" will be dropped.",
+      "table": "serverpod_runtime_settings",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_readwrite_test\" will be dropped.",
+      "table": "serverpod_readwrite_test",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_query_log\" will be dropped.",
+      "table": "serverpod_query_log",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_migrations\" will be dropped.",
+      "table": "serverpod_migrations",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_method\" will be dropped.",
+      "table": "serverpod_method",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_message_log\" will be dropped.",
+      "table": "serverpod_message_log",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_log\" will be dropped.",
+      "table": "serverpod_log",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_health_metric\" will be dropped.",
+      "table": "serverpod_health_metric",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_health_connection_info\" will be dropped.",
+      "table": "serverpod_health_connection_info",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_future_call\" will be dropped.",
+      "table": "serverpod_future_call",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_cloud_storage_direct_upload\" will be dropped.",
+      "table": "serverpod_cloud_storage_direct_upload",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "Table \"serverpod_cloud_storage\" will be dropped.",
+      "table": "serverpod_cloud_storage",
+      "columns": [],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}
