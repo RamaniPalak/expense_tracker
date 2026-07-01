@@ -1,58 +1,6 @@
 {
   "actions": [
     {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_session_log"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_runtime_settings"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_readwrite_test"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_query_log"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_migrations"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_method"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_message_log"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_log"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_health_metric"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_health_connection_info"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_future_call"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_cloud_storage_direct_upload"
-    },
-    {
-      "type": "deleteTable",
-      "deleteTable": "serverpod_cloud_storage"
-    },
-    {
       "type": "alterTable",
       "alterTable": {
         "name": "user_info",

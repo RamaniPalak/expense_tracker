@@ -26,7 +26,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         e.toString().toLowerCase().contains('connection refused')) {
       return 'Cannot reach server. Check your internet connection.';
     }
-    return 'Something went wrong. Please try again.';
+    return 'Something went wrong: ${e.toString()}';
   }
 
   @override

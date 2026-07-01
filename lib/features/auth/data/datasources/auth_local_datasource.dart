@@ -32,11 +32,7 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
 
   @override
   Future<void> clearSession() async {
-    await sharedPreferences.setBool(_isLoggedInKey, false);
-    await sharedPreferences.remove(_userEmailKey);
-    await sharedPreferences.remove(_userNameKey);
-    await sharedPreferences.remove(_userImageKey);
-    await sharedPreferences.remove(_isBiometricEnabledKey);
+    await sharedPreferences.clear();
   }
 
   @override
