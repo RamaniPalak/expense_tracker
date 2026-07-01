@@ -108,6 +108,36 @@ class Endpoints extends _i1.EndpointDispatch {
             params['newPassword'],
           ),
         ),
+        'updateProfile': _i1.MethodConnector(
+          name: 'updateProfile',
+          params: {
+            'email': _i1.ParameterDescription(
+              name: 'email',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'name': _i1.ParameterDescription(
+              name: 'name',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'imagePath': _i1.ParameterDescription(
+              name: 'imagePath',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['auth'] as _i2.AuthEndpoint).updateProfile(
+            session,
+            params['email'],
+            params['name'],
+            params['imagePath'],
+          ),
+        ),
       },
     );
     connectors['expenseEntry'] = _i1.EndpointConnector(
@@ -131,6 +161,25 @@ class Endpoints extends _i1.EndpointDispatch {
                   .addExpenseEntry(
             session,
             params['expenseEntry'],
+          ),
+        ),
+        'updateExpenseEntry': _i1.MethodConnector(
+          name: 'updateExpenseEntry',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i5.ExpenseEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['expenseEntry'] as _i3.ExpenseEntryEndpoint)
+                  .updateExpenseEntry(
+            session,
+            params['entry'],
           ),
         ),
         'deleteExpenseEntry': _i1.MethodConnector(

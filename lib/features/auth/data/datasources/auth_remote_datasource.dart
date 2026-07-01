@@ -5,6 +5,7 @@ abstract class IAuthRemoteDataSource {
   Future<User?> login(String email, String password);
   Future<bool> register(String name, String email, String password);
   Future<bool> changePassword(String email, String oldPassword, String newPassword);
+  Future<User?> updateProfile(String email, String name, String? imagePath);
 }
 
 class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
@@ -26,5 +27,10 @@ class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
   @override
   Future<bool> changePassword(String email, String oldPassword, String newPassword) async {
     return await apiClient.client.auth.changePassword(email, oldPassword, newPassword);
+  }
+
+  @override
+  Future<User?> updateProfile(String email, String name, String? imagePath) async {
+    return await apiClient.client.auth.updateProfile(email, name, imagePath);
   }
 }

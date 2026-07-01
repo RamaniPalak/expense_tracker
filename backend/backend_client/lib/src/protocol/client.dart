@@ -55,6 +55,21 @@ class EndpointAuth extends _i1.EndpointRef {
           'newPassword': newPassword,
         },
       );
+
+  _i2.Future<_i3.User?> updateProfile(
+    String email,
+    String name,
+    String? imagePath,
+  ) =>
+      caller.callServerEndpoint<_i3.User?>(
+        'auth',
+        'updateProfile',
+        {
+          'email': email,
+          'name': name,
+          'imagePath': imagePath,
+        },
+      );
 }
 
 /// {@category Endpoint}

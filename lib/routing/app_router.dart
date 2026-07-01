@@ -15,6 +15,8 @@ import 'package:expense_tracker/features/transactions/presentation/pages/all_tra
 import 'package:expense_tracker/features/wallet/presentation/pages/connect_wallet_screen.dart';
 import 'package:expense_tracker/features/chatbot/presentation/pages/chatbot_screen.dart';
 import 'package:expense_tracker/features/bills/presentation/pages/bills_screen.dart';
+import 'package:expense_tracker/features/bills/presentation/pages/bill_detail_screen.dart';
+import 'package:expense_tracker/features/bills/presentation/pages/add_edit_bill_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/sms_sync_review_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/file_sync_review_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/sync_success_screen.dart';
@@ -118,6 +120,56 @@ class AppRouter {
         path: RoutePaths.bills,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BillsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.billDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final bill = state.extra as dynamic;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: BillDetailScreen(bill: bill),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutQuart,
+                )),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.addEditBill,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final bill = extra?['bill'];
+          final userEmail = extra?['userEmail'] as String? ?? '';
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: AddEditBillScreen(bill: bill, userEmail: userEmail),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutQuart,
+                )),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.smsSyncReview,

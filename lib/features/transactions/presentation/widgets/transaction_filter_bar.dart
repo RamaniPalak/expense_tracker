@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 /// Horizontal scrollable filter chip bar for the Transactions screen.
 class TransactionFilterBar extends StatelessWidget {
@@ -76,21 +77,39 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Color bg;
+    Color textColor;
+    if (isSelected) {
+      if (selectedColor == Colors.black) {
+        bg = isDark ? Colors.white : Colors.black;
+        textColor = isDark ? Colors.black : Colors.white;
+      } else {
+        bg = selectedColor;
+        textColor = Colors.white;
+      }
+    } else {
+      bg = c.tabBg;
+      textColor = c.textSecondary;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? selectedColor : Colors.white,
+          color: bg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? selectedColor : Colors.grey.withAlpha(51),
+            color: isSelected ? bg : c.border,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: selectedColor.withAlpha(60),
+                    color: bg.withAlpha(60),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   )
@@ -100,7 +119,7 @@ class _FilterChip extends StatelessWidget {
         child: Text(
           label,
           style: AppTextStyles.bodySmall.copyWith(
-            color: isSelected ? Colors.white : Colors.black,
+            color: textColor,
             fontWeight: FontWeight.bold,
           ),
         ),

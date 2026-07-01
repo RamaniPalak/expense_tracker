@@ -231,6 +231,41 @@ class _AuthEndpoint {
       }
     });
   }
+
+  _i3.Future<_i4.User?> updateProfile(
+    _i1.TestSessionBuilder sessionBuilder,
+    String email,
+    String name,
+    String? imagePath,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'auth',
+        method: 'updateProfile',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'auth',
+          methodName: 'updateProfile',
+          parameters: _i1.testObjectToJson({
+            'email': email,
+            'name': name,
+            'imagePath': imagePath,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i4.User?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _ExpenseEntryEndpoint {
@@ -259,6 +294,35 @@ class _ExpenseEntryEndpoint {
           endpointPath: 'expenseEntry',
           methodName: 'addExpenseEntry',
           parameters: _i1.testObjectToJson({'expenseEntry': expenseEntry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i5.ExpenseEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i5.ExpenseEntry> updateExpenseEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i5.ExpenseEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'expenseEntry',
+        method: 'updateExpenseEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'expenseEntry',
+          methodName: 'updateExpenseEntry',
+          parameters: _i1.testObjectToJson({'entry': entry}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue = await (_localCallContext.method.call(

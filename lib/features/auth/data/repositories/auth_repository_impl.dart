@@ -35,6 +35,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       final user = await remoteDataSource.login(email, password);
       if (user != null) {
         await localDataSource.cacheSession(user.email, user.name);
+        await localDataSource.updateProfile(user.name, user.imagePath);
         return const Right(null);
       }
       return const Left("Login failed: Invalid credentials");
@@ -103,5 +104,22 @@ class AuthRepositoryImpl implements IAuthRepository {
   @override
   Future<void> setBiometricEnabled(bool value) async {
     await localDataSource.setBiometricEnabled(value);
+  }
+
+  @override
+  Future<void> updateProfile(String name, String? imagePath) async {
+    final email = await localDataSource.getCachedEmail();
+    if (email == null) throw Exception("User not logged in");
+    
+    final updatedUser = await remoteDataSource.updateProfile(email, name, imagePath);
+    if (updatedUser == null) {
+      throw Exception("Failed to sync profile to server.");
+    }
+    await localDataSource.updateProfile(name, imagePath);
+  }
+
+  @override
+  Future<String?> getUserImagePath() async {
+    return await localDataSource.getCachedImagePath();
   }
 }

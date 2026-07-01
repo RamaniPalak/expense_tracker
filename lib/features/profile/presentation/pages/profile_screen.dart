@@ -8,7 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'dart:io';
 import 'package:expense_tracker/features/profile/presentation/widgets/change_password_dialog.dart';
+import 'package:expense_tracker/features/profile/presentation/widgets/edit_profile_dialog.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? _userEmail;
   String? _userName;
+  String? _userImagePath;
 
   @override
   void initState() {
@@ -31,10 +34,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUser() async {
     final email = await sl<IAuthRepository>().getUserEmail();
     final name = await sl<IAuthRepository>().getUserName();
+    final imagePath = await sl<IAuthRepository>().getUserImagePath();
     if (mounted) {
       setState(() {
         _userEmail = email;
         _userName = name;
+        _userImagePath = imagePath;
       });
     }
   }
@@ -269,23 +274,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                                  color: AppColors.white, size: 20),
-                              onPressed: () {
-                                if (context.canPop()) {
-                                  context.pop();
-                                }
-                              },
-                            ),
-                            Text(
-                              "Profile Settings",
-                              style: AppTextStyles.heading2.copyWith(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 38), // Balance notification icon size to keep title centered
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  "Profile Settings",
+                                  style: AppTextStyles.heading2.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                             Container(
@@ -307,26 +307,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          // Circle Avatar Centered at the Bottom of the curve (No edit overlay)
+          // Circle Avatar Centered at the Bottom of the curve (With Edit overlay)
           Positioned(
             bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: c.background,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+            child: GestureDetector(
+              onTap: () async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (ctx) => EditProfileDialog(
+                    initialName: _getDisplayName(),
+                    initialImagePath: _userImagePath,
+                  ),
+                );
+                if (result == true) {
+                  _loadUser(); // Refresh the profile details!
+                }
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: c.background,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 46,
+                      backgroundColor: c.inputFill,
+                      backgroundImage: _userImagePath != null && File(_userImagePath!).existsSync()
+                          ? FileImage(File(_userImagePath!)) as ImageProvider
+                          : const NetworkImage('https://i.pravatar.cc/300?img=5'),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: c.background, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              child: const CircleAvatar(
-                radius: 46,
-                backgroundColor: Colors.white,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/300?img=5'),
               ),
             ),
           ),

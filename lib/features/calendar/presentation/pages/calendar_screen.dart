@@ -288,7 +288,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // Calendar Grid Container
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: _viewMode == "Year" ? 6 : 12,
+                  ),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: _viewMode == "Month"

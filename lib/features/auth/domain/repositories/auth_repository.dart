@@ -10,4 +10,6 @@ abstract class IAuthRepository {
   Future<String?> getUserName();
   Future<bool> isBiometricEnabled();
   Future<void> setBiometricEnabled(bool value);
+  Future<void> updateProfile(String name, String? imagePath);
+  Future<String?> getUserImagePath();
 }

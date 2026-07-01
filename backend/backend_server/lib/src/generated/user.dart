@@ -16,6 +16,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     this.id,
     required this.name,
     required this.email,
+    this.imagePath,
     required this.password,
     this.createdAt,
   });
@@ -24,6 +25,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     required String name,
     required String email,
+    String? imagePath,
     required String password,
     DateTime? createdAt,
   }) = _UserImpl;
@@ -33,6 +35,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       id: jsonSerialization['id'] as int?,
       name: jsonSerialization['name'] as String,
       email: jsonSerialization['email'] as String,
+      imagePath: jsonSerialization['imagePath'] as String?,
       password: jsonSerialization['password'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -51,6 +54,8 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   String email;
 
+  String? imagePath;
+
   String password;
 
   DateTime? createdAt;
@@ -65,6 +70,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     int? id,
     String? name,
     String? email,
+    String? imagePath,
     String? password,
     DateTime? createdAt,
   });
@@ -74,6 +80,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (id != null) 'id': id,
       'name': name,
       'email': email,
+      if (imagePath != null) 'imagePath': imagePath,
       'password': password,
       if (createdAt != null) 'createdAt': createdAt?.toJson(),
     };
@@ -85,6 +92,7 @@ abstract class User implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (id != null) 'id': id,
       'name': name,
       'email': email,
+      if (imagePath != null) 'imagePath': imagePath,
       'password': password,
       if (createdAt != null) 'createdAt': createdAt?.toJson(),
     };
@@ -127,12 +135,14 @@ class _UserImpl extends User {
     int? id,
     required String name,
     required String email,
+    String? imagePath,
     required String password,
     DateTime? createdAt,
   }) : super._(
           id: id,
           name: name,
           email: email,
+          imagePath: imagePath,
           password: password,
           createdAt: createdAt,
         );
@@ -145,6 +155,7 @@ class _UserImpl extends User {
     Object? id = _Undefined,
     String? name,
     String? email,
+    Object? imagePath = _Undefined,
     String? password,
     Object? createdAt = _Undefined,
   }) {
@@ -152,6 +163,7 @@ class _UserImpl extends User {
       id: id is int? ? id : this.id,
       name: name ?? this.name,
       email: email ?? this.email,
+      imagePath: imagePath is String? ? imagePath : this.imagePath,
       password: password ?? this.password,
       createdAt: createdAt is DateTime? ? createdAt : this.createdAt,
     );
@@ -168,6 +180,10 @@ class UserTable extends _i1.Table<int?> {
       'email',
       this,
     );
+    imagePath = _i1.ColumnString(
+      'imagePath',
+      this,
+    );
     password = _i1.ColumnString(
       'password',
       this,
@@ -182,6 +198,8 @@ class UserTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString email;
 
+  late final _i1.ColumnString imagePath;
+
   late final _i1.ColumnString password;
 
   late final _i1.ColumnDateTime createdAt;
@@ -191,6 +209,7 @@ class UserTable extends _i1.Table<int?> {
         id,
         name,
         email,
+        imagePath,
         password,
         createdAt,
       ];

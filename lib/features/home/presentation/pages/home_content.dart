@@ -9,7 +9,6 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/features/transactions/presentation/widgets/transaction_tile.dart';
 import 'package:expense_tracker/services/expense_service.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
-import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/common_widgets/glass_container.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
@@ -341,8 +340,15 @@ class _HomeContentState extends State<HomeContent> {
                         valueListenable: sl<DatabaseHelper>().expensesNotifier,
                         builder: (context, expenses, _) {
                           if (expenses.isEmpty) {
-                            return const Center(
-                                child: Text(AppStrings.noTransactions));
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                child: Text(
+                                  AppStrings.noTransactions,
+                                  style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
+                                ),
+                              ),
+                            );
                           }
                           final displayList = expenses.take(5).toList();
                           return Column(
@@ -379,46 +385,6 @@ class _HomeContentState extends State<HomeContent> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    
-                    // Bill Management Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Upcoming Bills",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: c.textPrimary)),
-                          GestureDetector(
-                            onTap: () => context.push(RoutePaths.bills),
-                            child: Text(AppStrings.seeAll,
-                                style: AppTextStyles.bodySmall
-                                    .copyWith(color: c.textSecondary)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: ValueListenableBuilder<List<BillModel>>(
-                        valueListenable: sl<DatabaseHelper>().billsNotifier,
-                        builder: (context, bills, _) {
-                          final upcoming = bills.where((b) => !b.isPaid).take(2).toList();
-                          if (upcoming.isEmpty) {
-                            return _buildEmptyBillsCard(context);
-                          }
-                          return Column(
-                            children: upcoming.map((bill) {
-                              return _buildBillSummaryTile(context, bill);
-                            }).toList(),
-                          );
-                        },
-                      ),
-                    ),
                     const SizedBox(height: 100),
                   ],
                   ),
@@ -444,82 +410,6 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildEmptyBillsCard(BuildContext context) {
-    final c = context.appColors;
-    return GestureDetector(
-      onTap: () => context.push(RoutePaths.bills),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: c.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: c.border.withAlpha(127)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.add_circle_outline, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text("Add your first bill reminder",
-                style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBillSummaryTile(BuildContext context, BillModel bill) {
-    final c = context.appColors;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(25),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(bill.title,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold, color: c.textPrimary)),
-                Text("Due ${DateFormat('MMM dd').format(bill.dueDate)}",
-                    style: AppTextStyles.bodySmall
-                        .copyWith(fontSize: 12, color: c.textSecondary)),
-              ],
-            ),
-          ),
-          Flexible(
-            child: Text(
-              "₹${bill.amount.toStringAsFixed(0)}",
-              style: AppTextStyles.bodyLarge
-                  .copyWith(fontSize: 16, color: c.textPrimary),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class HeaderClipper extends CustomClipper<Path> {

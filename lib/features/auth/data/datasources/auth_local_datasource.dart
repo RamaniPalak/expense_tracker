@@ -8,6 +8,8 @@ abstract class IAuthLocalDataSource {
   Future<String?> getCachedName();
   Future<bool> isBiometricEnabled();
   Future<void> setBiometricEnabled(bool value);
+  Future<void> updateProfile(String name, String? imagePath);
+  Future<String?> getCachedImagePath();
 }
 
 class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
@@ -18,6 +20,7 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
   static const String _isLoggedInKey = 'isLoggedIn';
   static const String _userEmailKey = 'userEmail';
   static const String _userNameKey = 'userName';
+  static const String _userImageKey = 'userImage';
   static const String _isBiometricEnabledKey = 'isBiometricEnabled';
 
   @override
@@ -32,6 +35,7 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
     await sharedPreferences.setBool(_isLoggedInKey, false);
     await sharedPreferences.remove(_userEmailKey);
     await sharedPreferences.remove(_userNameKey);
+    await sharedPreferences.remove(_userImageKey);
     await sharedPreferences.remove(_isBiometricEnabledKey);
   }
 
@@ -58,5 +62,20 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
   @override
   Future<void> setBiometricEnabled(bool value) async {
     await sharedPreferences.setBool(_isBiometricEnabledKey, value);
+  }
+
+  @override
+  Future<void> updateProfile(String name, String? imagePath) async {
+    await sharedPreferences.setString(_userNameKey, name);
+    if (imagePath != null) {
+      await sharedPreferences.setString(_userImageKey, imagePath);
+    } else {
+      await sharedPreferences.remove(_userImageKey);
+    }
+  }
+
+  @override
+  Future<String?> getCachedImagePath() async {
+    return sharedPreferences.getString(_userImageKey);
   }
 }

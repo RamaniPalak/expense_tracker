@@ -8,6 +8,7 @@ import 'package:expense_tracker/features/auth/domain/repositories/auth_repositor
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:expense_tracker/routing/app_router.dart';
 
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
@@ -75,7 +76,7 @@ class _BillsScreenState extends State<BillsScreen> {
               const SizedBox(height: 8),
               Text(
                 "Bill Management",
-                style: AppTextStyles.heading1.copyWith(color: Colors.white),
+                style: AppTextStyles.heading1.copyWith(color: Colors.white,fontSize: 22),
               ),
               Text(
                 "Never miss a payment again",
@@ -116,20 +117,30 @@ class _BillsScreenState extends State<BillsScreen> {
           );
         }
 
-        final upcoming = bills.where((b) => !b.isPaid).toList();
-        final paid = bills.where((b) => b.isPaid).toList();
+        final upcoming = bills.where((b) => !b.isPaid).toList()
+          ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+        final paid = bills.where((b) => b.isPaid).toList()
+          ..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return SliverList(
           delegate: SliverChildListDelegate([
             if (upcoming.isNotEmpty) ...[
               _buildSectionHeader(context, "Upcoming Payments"),
-              ...upcoming.map((bill) =>
-                  _BillCard(bill: bill, onMarkPaid: () => _markAsPaid(bill))),
+              ...upcoming.map((bill) => _BillCard(
+                  bill: bill,
+                  onMarkPaid: () => _markAsPaid(bill),
+                  onTap: () => context.push(RoutePaths.billDetail, extra: bill),
+                )),
             ],
             if (paid.isNotEmpty) ...[
               const SizedBox(height: 24),
               _buildSectionHeader(context, "Recently Paid"),
-              ...paid.map((bill) => _BillCard(bill: bill, isPaid: true)),
+              ...paid.map((bill) => _BillCard(
+                    bill: bill,
+                    isPaid: true,
+                    onTap: () =>
+                        context.push(RoutePaths.billDetail, extra: bill),
+                  )),
             ],
             const SizedBox(height: 80),
           ]),
@@ -170,18 +181,29 @@ class _BillsScreenState extends State<BillsScreen> {
 
     // 3. Recurring Logic: Schedule next month's bill if enabled
     if (bill.isRecurring) {
+      // Use Duration-based addition to safely handle month overflow (e.g. Jan 31 + 1 month)
+      final currentDue = bill.dueDate;
+      final nextMonth = DateTime(currentDue.year, currentDue.month + 1, 1);
+      final lastDayOfNextMonth = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
       final nextDueDate = DateTime(
-        bill.dueDate.year,
-        bill.dueDate.month + 1,
-        bill.dueDate.day,
+        nextMonth.year,
+        nextMonth.month,
+        currentDue.day.clamp(1, lastDayOfNextMonth),
       );
 
-      final nextBill = bill.copyWith(
-        id: null,
-        dueDate: nextDueDate,
-        isPaid: false,
-      );
-      await sl<DatabaseHelper>().insertBill(nextBill);
+      if (bill.endDate == null || nextDueDate.isBefore(bill.endDate!) || nextDueDate.isAtSameMomentAs(bill.endDate!)) {
+        final nextBill = BillModel(
+          title: bill.title,
+          amount: bill.amount,
+          dueDate: nextDueDate,
+          endDate: bill.endDate,
+          category: bill.category,
+          isPaid: false,
+          isRecurring: bill.isRecurring,
+          userEmail: bill.userEmail,
+        );
+        await sl<DatabaseHelper>().insertBill(nextBill);
+      }
     }
 
     if (mounted) {
@@ -194,13 +216,14 @@ class _BillsScreenState extends State<BillsScreen> {
     }
   }
 
-  void _showAddBillDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AddBillSheet(userEmail: _userEmail ?? ''),
+  Future<void> _showAddBillDialog(BuildContext context) async {
+    final result = await context.push(
+      RoutePaths.addEditBill,
+      extra: {'userEmail': _userEmail ?? ''},
     );
+    if (result == true && mounted) {
+      _loadData();
+    }
   }
 }
 
@@ -208,16 +231,28 @@ class _BillCard extends StatelessWidget {
   final BillModel bill;
   final bool isPaid;
   final VoidCallback? onMarkPaid;
+  final VoidCallback? onTap;
 
-  const _BillCard({required this.bill, this.isPaid = false, this.onMarkPaid});
+  const _BillCard({
+    required this.bill,
+    this.isPaid = false,
+    this.onMarkPaid,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final diff = bill.dueDate.difference(DateTime.now()).inDays;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDay = DateTime(bill.dueDate.year, bill.dueDate.month, bill.dueDate.day);
+    final diff = dueDay.difference(today).inDays;
+    final isOverdue = !isPaid && diff < 0;
     final isUrgent = !isPaid && diff <= 3;
 
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -261,9 +296,13 @@ class _BillCard extends StatelessWidget {
                 Text(
                   isPaid
                       ? "Paid on ${DateFormat('MMM dd').format(bill.dueDate)}"
-                      : "Due in $diff days",
+                      : isOverdue
+                          ? "Overdue by ${diff.abs()} day${diff.abs() == 1 ? '' : 's'}"
+                          : diff == 0
+                              ? "Due today"
+                              : "Due in $diff day${diff == 1 ? '' : 's'}",
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: isUrgent && !isPaid
+                    color: (isOverdue || (isUrgent && !isPaid))
                         ? Colors.red
                         : c.textSecondary,
                   ),
@@ -278,6 +317,7 @@ class _BillCard extends StatelessWidget {
                 "₹ ${bill.amount.toStringAsFixed(0)}",
                 style: AppTextStyles.heading2.copyWith(
                   color: isPaid ? Colors.green : c.textPrimary,
+                  fontSize: 18
                 ),
               ),
               if (!isPaid)
@@ -294,147 +334,8 @@ class _BillCard extends StatelessWidget {
           ),
         ],
       ),
+      ),  // GestureDetector
     );
   }
 }
 
-class _AddBillSheet extends StatefulWidget {
-  final String userEmail;
-  const _AddBillSheet({required this.userEmail});
-
-  @override
-  State<_AddBillSheet> createState() => _AddBillSheetState();
-}
-
-class _AddBillSheetState extends State<_AddBillSheet> {
-  final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 7));
-  final String _selectedCategory = 'Utility';
-  bool _isRecurring = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.appColors;
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        top: 24,
-        left: 24,
-        right: 24,
-      ),
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "Add New Bill",
-            style: AppTextStyles.heading1.copyWith(color: c.textPrimary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _titleController,
-            style: TextStyle(color: c.textPrimary),
-            decoration: InputDecoration(
-              hintText: "Bill Name (e.g. Netflix)",
-              hintStyle: TextStyle(color: c.textSecondary),
-              filled: true,
-              fillColor: c.inputFill,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            style: TextStyle(color: c.textPrimary),
-            decoration: InputDecoration(
-              hintText: "Amount",
-              hintStyle: TextStyle(color: c.textSecondary),
-              prefixText: "₹ ",
-              prefixStyle: TextStyle(color: c.textPrimary),
-              filled: true,
-              fillColor: c.inputFill,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            title: Text(
-              "Due Date",
-              style: TextStyle(color: c.textPrimary),
-            ),
-            subtitle: Text(
-              DateFormat('MMM dd, yyyy').format(_selectedDate),
-              style: TextStyle(color: c.textSecondary),
-            ),
-            trailing: Icon(
-              Icons.calendar_month,
-              color: c.textSecondary,
-            ),
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
-              );
-              if (picked != null) setState(() => _selectedDate = picked);
-            },
-          ),
-          SwitchListTile(
-            title: Text(
-              "Recurring Monthly",
-              style: TextStyle(color: c.textPrimary),
-            ),
-            subtitle: Text(
-              "Automatically schedules next month's bill",
-              style: TextStyle(color: c.textSecondary),
-            ),
-            value: _isRecurring,
-            activeColor: AppColors.primary,
-            onChanged: (val) => setState(() => _isRecurring = val),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _saveBill,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-            ),
-            child: const Text("Add Bill Reminder"),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  void _saveBill() async {
-    if (_titleController.text.isEmpty || _amountController.text.isEmpty) return;
-
-    final bill = BillModel(
-      title: _titleController.text,
-      amount: double.tryParse(_amountController.text) ?? 0,
-      dueDate: _selectedDate,
-      category: _selectedCategory,
-      isRecurring: _isRecurring,
-      userEmail: widget.userEmail,
-    );
-
-    await sl<DatabaseHelper>().insertBill(bill);
-    if (mounted) Navigator.pop(context);
-  }
-}

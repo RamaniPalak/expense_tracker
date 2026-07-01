@@ -31,7 +31,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -64,12 +64,16 @@ CREATE TABLE bills (
   title TEXT NOT NULL,
   amount REAL NOT NULL,
   dueDate TEXT NOT NULL,
+  endDate TEXT,
   category TEXT NOT NULL,
   isPaid INTEGER NOT NULL,
   isRecurring INTEGER NOT NULL,
   userEmail TEXT NOT NULL
 )
 ''');
+    }
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE bills ADD COLUMN endDate TEXT');
     }
   }
 
@@ -109,6 +113,7 @@ CREATE TABLE bills (
   title $textType,
   amount $realType,
   dueDate $textType,
+  endDate TEXT,
   category $textType,
   isPaid $intType,
   isRecurring $intType,

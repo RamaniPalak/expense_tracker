@@ -3,6 +3,7 @@ table: user_info
 fields:
   name: String
   email: String
+  imagePath: String?
   password: String
   createdAt: DateTime?
 indexes:

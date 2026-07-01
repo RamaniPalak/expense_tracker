@@ -45,4 +45,22 @@ class AuthEndpoint extends Endpoint {
     await User.db.updateRow(session, user);
     return true;
   }
+
+  Future<User?> updateProfile(
+      Session session, String email, String name, String? imagePath) async {
+    var user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.email.equals(email),
+    );
+
+    if (user == null) {
+      return null;
+    }
+
+    user.name = name;
+    user.imagePath = imagePath;
+    
+    await User.db.updateRow(session, user);
+    return user;
+  }
 }

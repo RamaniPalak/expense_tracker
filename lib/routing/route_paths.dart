@@ -18,4 +18,6 @@ class RoutePaths {
   static const String fileSyncReview = '/sync/file';
   static const String syncSuccess = '/sync/success';
   static const String categoryBreakdown = '/category-breakdown';
+  static const String billDetail = '/bill-detail';
+  static const String addEditBill = '/add-edit-bill';
 }

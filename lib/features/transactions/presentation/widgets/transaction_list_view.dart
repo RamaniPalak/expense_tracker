@@ -10,6 +10,7 @@ import 'package:expense_tracker/features/transactions/presentation/bloc/transact
 import 'package:expense_tracker/features/transactions/presentation/bloc/transaction_state.dart';
 import 'package:expense_tracker/features/transactions/presentation/widgets/transaction_tile.dart';
 import 'package:expense_tracker/routing/app_router.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 /// Displays the grouped, filtered transaction list.
 /// Delegates grouping/filtering to the parent via [transactions].
@@ -93,25 +94,30 @@ class _MonthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
       child: Row(
         children: [
           Text(
             monthYear,
-            style: AppTextStyles.heading2.copyWith(fontSize: 16),
+            style: AppTextStyles.heading2.copyWith(
+              fontSize: 16,
+              color: c.textPrimary,
+            ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.tabBackground,
+              color: c.tabBg,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               '$count',
               style: AppTextStyles.bodySmall.copyWith(
                 fontSize: 12,
+                color: c.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -172,6 +178,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -179,14 +186,14 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.receipt_long_outlined,
             size: 64,
-            color: AppColors.textSecondary.withAlpha(80),
+            color: c.textSecondary.withAlpha(80),
           ),
           const SizedBox(height: 12),
           Text(
             hasActiveFilters
                 ? 'No transactions match your filters'
                 : 'No transactions yet',
-            style: AppTextStyles.bodySmall,
+            style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
           ),
           if (hasActiveFilters) ...[
             const SizedBox(height: 12),
@@ -195,7 +202,7 @@ class _EmptyState extends StatelessWidget {
               child: Text(
                 'Clear Filters',
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.primary,
+                  color: c.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -239,7 +246,12 @@ class TransactionBlocListView extends StatelessWidget {
           );
         }
         if (state is TransactionFailure) {
-          return Center(child: Text(state.message));
+          return Center(
+            child: Text(
+              state.message,
+              style: TextStyle(color: context.appColors.textPrimary),
+            ),
+          );
         }
         if (state is TransactionLoaded) {
           final filtered = applyFilters(state.transactions);

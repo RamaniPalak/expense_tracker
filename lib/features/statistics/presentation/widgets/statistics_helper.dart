@@ -12,22 +12,23 @@ class StatisticsHelper {
     VoidCallback? onAdjustBudget,
   }) {
     final c = context.appColors;
+    final double rightWidth = (onAdjustBudget != null ? 2 : 1) * 48.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: c.textPrimary, size: 20),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          Text(
-            AppStrings.statistics,
-            style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+          SizedBox(width: rightWidth),
+          Expanded(
+            child: Center(
+              child: Text(
+                AppStrings.statistics,
+                style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+              ),
+            ),
           ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (onAdjustBudget != null)
                 IconButton(
