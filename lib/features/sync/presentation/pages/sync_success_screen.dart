@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/routing/app_router.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class SyncSuccessScreen extends StatefulWidget {
   final int importedCount;
@@ -48,8 +49,9 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -99,13 +101,13 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                   children: [
                     Text(
                       '${widget.importedCount} Transactions Imported!',
-                      style: AppTextStyles.heading2.copyWith(fontSize: 22),
+                      style: AppTextStyles.heading2.copyWith(fontSize: 22, color: c.textPrimary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Your transactions have been saved successfully.',
-                      style: AppTextStyles.bodySmall,
+                      style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -120,11 +122,11 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: c.surface,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withAlpha(12),
+                        color: c.shadow,
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -143,7 +145,7 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                       Container(
                         width: 1,
                         height: 50,
-                        color: AppColors.greyLight,
+                        color: c.divider,
                       ),
                       Expanded(
                         child: _BreakdownTile(
@@ -169,7 +171,7 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                     context.go(RoutePaths.allTransactions);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: c.primary,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
@@ -189,7 +191,7 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                 child: Text(
                   'Back to Home',
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.primary,
+                    color: c.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -217,6 +219,7 @@ class _BreakdownTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Column(
       children: [
         Container(
@@ -237,7 +240,7 @@ class _BreakdownTile extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(label, style: AppTextStyles.bodySmall),
+        Text(label, style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
       ],
     );
   }

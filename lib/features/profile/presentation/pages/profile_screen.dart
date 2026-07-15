@@ -12,6 +12,9 @@ import 'dart:io';
 import 'package:expense_tracker/features/profile/presentation/widgets/change_password_dialog.dart';
 import 'package:expense_tracker/features/profile/presentation/widgets/edit_profile_dialog.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -96,6 +99,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return "User";
   }
 
+  /// Returns the correct [ImageProvider] for the profile avatar.
+  /// - If the cached path is a remote URL (Cloudinary), use [CachedNetworkImageProvider].
+  /// - If it's a valid local file, use [FileImage] (legacy fallback).
+  /// - Otherwise, fall back to a default network avatar.
+  ImageProvider _buildAvatarImage() {
+    if (_userImagePath != null && _userImagePath!.isNotEmpty) {
+      if (_userImagePath!.startsWith('http')) {
+        return CachedNetworkImageProvider(_userImagePath!);
+      }
+      final file = File(_userImagePath!);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    return const CachedNetworkImageProvider('https://i.pravatar.cc/300?img=5');
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -163,11 +183,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: "Monthly Budgeting",
                             subtitle: "Track your monthly spending limits",
                             color: AppColors.incomeGreen,
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) => BudgetDialog(userEmail: _userEmail),
-                              );
+                            onTap: () async {
+                              final now = DateTime.now();
+                              final allBudgets = await sl<DatabaseHelper>().getBudgets(_userEmail);
+                              final existingBudget = allBudgets
+                                  .where((b) =>
+                                      b.category == AppStrings.total &&
+                                      b.month == now.month &&
+                                      b.year == now.year)
+                                  .firstOrNull;
+
+                              if (context.mounted) {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => BudgetDialog(
+                                    userEmail: _userEmail,
+                                    month: now.month,
+                                    year: now.year,
+                                    initialBudget: existingBudget,
+                                  ),
+                                );
+                              }
                             },
                           ),
                           _buildDivider(),
@@ -325,25 +361,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: Stack(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: c.background,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
+                  _AnimatedGradientRing(
+                    ringWidth: 3.5,
+                    radius: 46,
+                    backgroundColor: c.background,
                     child: CircleAvatar(
                       radius: 46,
                       backgroundColor: c.inputFill,
-                      backgroundImage: _userImagePath != null && File(_userImagePath!).existsSync()
-                          ? FileImage(File(_userImagePath!)) as ImageProvider
-                          : const NetworkImage('https://i.pravatar.cc/300?img=5'),
+                      backgroundImage: _buildAvatarImage(),
                     ),
                   ),
                   Positioned(
@@ -535,6 +560,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
       thickness: 1,
       color: c.divider.withOpacity(0.5),
       indent: 64,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Animated gradient ring that wraps the profile avatar
+// ─────────────────────────────────────────────────────────────────────────────
+class _AnimatedGradientRing extends StatefulWidget {
+  final Widget child;
+  final double radius;
+  final double ringWidth;
+  final Color backgroundColor;
+
+  const _AnimatedGradientRing({
+    required this.child,
+    required this.radius,
+    required this.ringWidth,
+    required this.backgroundColor,
+  });
+
+  @override
+  State<_AnimatedGradientRing> createState() => _AnimatedGradientRingState();
+}
+
+class _AnimatedGradientRingState extends State<_AnimatedGradientRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(); // Continuously rotate
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalSize = (widget.radius + widget.ringWidth + 3) * 2;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return Container(
+          width: totalSize,
+          height: totalSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: SweepGradient(
+              startAngle: 0,
+              endAngle: 3.14159 * 2,
+              transform: GradientRotation(_controller.value * 3.14159 * 2),
+              colors: const [
+                Color(0xFF429690), // teal (primary)
+                Color(0xFF80CBC4), // light mint
+                Color(0xFFFFD700), // warm gold shimmer
+                Color(0xFFFFFFFF), // bright white flash
+                Color(0xFF2A7C76), // deep teal (secondary)
+                Color(0xFF429690), // loop back to teal
+              ],
+              stops: const [0.0, 0.2, 0.45, 0.6, 0.8, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF429690).withOpacity(0.45),
+                blurRadius: 14,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              width: totalSize - (widget.ringWidth * 2),
+              height: totalSize - (widget.ringWidth * 2),
+              decoration: BoxDecoration(
+                color: widget.backgroundColor,
+                shape: BoxShape.circle,
+              ),
+              child: Center(child: widget.child),
+            ),
+          ),
+        );
+      },
     );
   }
 }

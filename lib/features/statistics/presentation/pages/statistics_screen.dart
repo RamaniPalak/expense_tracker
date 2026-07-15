@@ -1,7 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_helper.dart';
-import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_badge.dart';
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_pie_chart.dart';
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_spending_list.dart';
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_breakdown_button.dart';
@@ -37,6 +36,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadUserAndData();
   }
 
@@ -59,10 +61,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   String selectedTransactionType = AppStrings.expenses;
-  final List<String> transactionTypes = [
-    AppStrings.income,
-    AppStrings.expenses
-  ];
+  final List<String> transactionTypes = [AppStrings.income, AppStrings.expenses];
 
   String selectedTimeFilter = "Month";
   final List<String> timeFilters = ["Month"];
@@ -84,22 +83,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     });
   }
 
-  Map<String, dynamic> _getBenchmarkInsight(
-      List<TransactionModel> allExpenses) {
+  Map<String, dynamic> _getBenchmarkInsight(List<TransactionModel> allExpenses) {
     final prevMonthDate = DateTime(selectedYear, selectedMonth - 1);
     final prevMonth = prevMonthDate.month;
     final prevYear = prevMonthDate.year;
 
     final currentTotal = allExpenses
         .where((e) =>
-            !e.isIncome &&
-            e.date.month == selectedMonth &&
-            e.date.year == selectedYear)
+            !e.isIncome && e.date.month == selectedMonth && e.date.year == selectedYear)
         .fold(0.0, (sum, e) => sum + e.amount);
 
     final previousTotal = allExpenses
-        .where((e) =>
-            !e.isIncome && e.date.month == prevMonth && e.date.year == prevYear)
+        .where((e) => !e.isIncome && e.date.month == prevMonth && e.date.year == prevYear)
         .fold(0.0, (sum, e) => sum + e.amount);
 
     double diff = 0;
@@ -137,9 +132,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   double _calculateTotalSpent(List<TransactionModel> allExpenses) {
     return allExpenses
         .where((e) =>
-            !e.isIncome &&
-            e.date.month == selectedMonth &&
-            e.date.year == selectedYear)
+            !e.isIncome && e.date.month == selectedMonth && e.date.year == selectedYear)
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
@@ -153,8 +146,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     List<TransactionModel> typeFilteredData,
     bool isIncomeMode,
   ) {
-    final filteredData =
-        _getFilteredByTime(typeFilteredData, selectedTimeFilter);
+    final filteredData = _getFilteredByTime(typeFilteredData, selectedTimeFilter);
 
     final categoryMap = <String, Map<String, dynamic>>{};
     for (var e in filteredData) {
@@ -168,15 +160,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           "title": e.category,
           "amount": e.amount,
           "latestDate": e.date,
-          "icon": StatisticsHelper.getCategoryIcon(e.category,
-              isIncome: isIncomeMode),
+          "icon": StatisticsHelper.getCategoryIcon(e.category, isIncome: isIncomeMode),
         };
       }
     }
 
     final list = categoryMap.values.toList();
-    list.sort(
-        (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+    list.sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
     return list;
   }
 
@@ -189,39 +179,22 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     for (var i = 0; i < topSpendingList.length; i++) {
       final item = topSpendingList[i];
       final isTouched = i == touchedIndex;
-      final fontSize = isTouched ? 16.0 : 0.0;
-      final radius = isTouched ? 50.0 : 40.0;
-      final widgetSize = isTouched ? 35.0 : 30.0;
+      final radius = isTouched ? 32.0 : 24.0;
 
       sections.add(
         PieChartSectionData(
           color: StatisticsHelper.getCategoryColor(item['title'] as String,
               isIncome: isIncomeMode),
           value: item['amount'] as double,
-          title:
-              '${((item['amount'] as double) / totalInFilter * 100).toStringAsFixed(0)}%',
+          title: '',
           radius: radius,
-          titleStyle: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          badgeWidget: StatisticsBadge(
-            item['icon'] as IconData,
-            size: widgetSize,
-            borderColor: StatisticsHelper.getCategoryColor(
-                item['title'] as String,
-                isIncome: isIncomeMode),
-          ),
-          badgePositionPercentageOffset: .98,
         ),
       );
     }
     return sections;
   }
 
-  List<TransactionModel> _getFilteredByTime(
-      List<TransactionModel> data, String filter) {
+  List<TransactionModel> _getFilteredByTime(List<TransactionModel> data, String filter) {
     final nowFull = DateTime.now();
     final now = DateTime(nowFull.year, nowFull.month, nowFull.day);
 
@@ -245,8 +218,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   @override
   Widget build(BuildContext context) {
     final nowTime = DateTime.now();
-    final isCurrentMonth =
-        selectedYear == nowTime.year && selectedMonth == nowTime.month;
+    final isCurrentMonth = selectedYear == nowTime.year && selectedMonth == nowTime.month;
     final c = context.appColors;
 
     return Scaffold(
@@ -256,18 +228,48 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           children: [
             // ── Tab Bar Header ──────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+              padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        AppStrings.statistics,
-                        style: AppTextStyles.heading2
-                            .copyWith(fontSize: 20, color: c.textPrimary),
-                      ),
+                  Text(
+                    AppStrings.statistics,
+                    style: AppTextStyles.heading2.copyWith(
+                      fontSize: 22,
+                      color: c.textPrimary,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const Spacer(),
+                  if (_tabController.index == 0) ...[
+                    IconButton(
+                      icon: Icon(
+                        Icons.download_outlined,
+                        color: c.textPrimary,
+                        size: 26,
+                      ),
+                      onPressed: () {
+                        final isIncomeMode = selectedTransactionType == AppStrings.income;
+                        final allExpenses = sl<DatabaseHelper>().expensesNotifier.value;
+                        final typeFilteredData =
+                            allExpenses.where((e) => e.isIncome == isIncomeMode).toList();
+                        final typeFilteredList =
+                            _prepareTopSpendingList(typeFilteredData, isIncomeMode);
+                        ReportGenerator.generateStatisticsReport(
+                          type: selectedTransactionType,
+                          period: selectedTimeFilter,
+                          spendingData: typeFilteredList
+                              .map((e) => {
+                                    ...e,
+                                    "amount":
+                                        "${isIncomeMode ? '+' : '-'} ₹ ${e['amount'].toStringAsFixed(2)}",
+                                    "date": DateFormat('MMM dd, yyyy')
+                                        .format(e['latestDate'] as DateTime),
+                                  })
+                              .toList(),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -289,8 +291,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 dividerColor: Colors.transparent,
                 labelColor: Colors.white,
                 unselectedLabelColor: c.textSecondary,
-                labelStyle: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14),
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 tabs: const [
                   Tab(text: "Analytics"),
                   Tab(text: "Bills"),
@@ -316,15 +317,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               .where((e) => e.isIncome == isIncomeMode)
                               .toList();
 
-                          final totalBudgetObj =
-                              _calculateTotalBudget(allBudgets);
-                          final totalSpentResult =
-                              _calculateTotalSpent(allExpenses);
-                          final walletBalance =
-                              _calculateWalletBalance(allExpenses);
+                          final totalBudgetObj = _calculateTotalBudget(allBudgets);
+                          final totalSpentResult = _calculateTotalSpent(allExpenses);
+                          final walletBalance = _calculateWalletBalance(allExpenses);
 
-                          final topSpendingList = _prepareTopSpendingList(
-                              typeFilteredData, isIncomeMode);
+                          final topSpendingList =
+                              _prepareTopSpendingList(typeFilteredData, isIncomeMode);
                           final totalInFilter = topSpendingList.fold(
                               0.0, (sum, item) => sum + item['amount']);
 
@@ -334,79 +332,27 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           return SingleChildScrollView(
                             child: Column(
                               children: [
-                                // Action icons row
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 4),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                            Icons
-                                                .account_balance_wallet_outlined,
-                                            color: c.textPrimary,
-                                            size: 26),
-                                        onPressed: () => _showBudgetDialog(
-                                            context, allBudgets),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                            Icons.download_outlined,
-                                            color: c.textPrimary,
-                                            size: 26),
-                                        onPressed: () {
-                                          final typeFilteredList =
-                                              _prepareTopSpendingList(
-                                                  typeFilteredData,
-                                                  isIncomeMode);
-                                          ReportGenerator
-                                              .generateStatisticsReport(
-                                            type: selectedTransactionType,
-                                            period: selectedTimeFilter,
-                                            spendingData: typeFilteredList
-                                                .map((e) => {
-                                                      ...e,
-                                                      "amount":
-                                                          "${isIncomeMode ? '+' : '-'} ₹ ${e['amount'].toStringAsFixed(2)}",
-                                                      "date": DateFormat(
-                                                              'MMM dd, yyyy')
-                                                          .format(e[
-                                                                  'latestDate']
-                                                              as DateTime),
-                                                    })
-                                                .toList(),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
                                 if (selectedTimeFilter == "Month") ...[
                                   const SizedBox(height: 10),
                                   StatisticsHelper.buildMonthlyBudgetCard(
                                     context: context,
                                     totalBudget: totalBudgetObj.amount,
                                     totalSpent: totalSpentResult,
-                                    monthYear: DateFormat('MMMM yyyy').format(
-                                        DateTime(
-                                            selectedYear, selectedMonth)),
+                                    monthYear: DateFormat('MMMM yyyy')
+                                        .format(DateTime(selectedYear, selectedMonth)),
                                     onPreviousMonth: () => _changeMonth(-1),
                                     onNextMonth: () => _changeMonth(1),
                                     showNextMonth: !isCurrentMonth,
                                     availableBalance: walletBalance,
-                                    onSetBudget: () => _showBudgetDialog(
-                                        context, allBudgets),
+                                    onSetBudget: () =>
+                                        _showBudgetDialog(context, allBudgets),
                                   ),
                                 ],
                                 const SizedBox(height: 20),
-                                if (!isIncomeMode &&
-                                    selectedTimeFilter == "Month") ...[
+                                if (!isIncomeMode && selectedTimeFilter == "Month") ...[
                                   Builder(builder: (context) {
-                                    final insight =
-                                        _getBenchmarkInsight(allExpenses);
-                                    return StatisticsHelper
-                                        .buildSpendingInsightCard(
+                                    final insight = _getBenchmarkInsight(allExpenses);
+                                    return StatisticsHelper.buildSpendingInsightCard(
                                       context: context,
                                       currentTotal: insight['current'],
                                       previousTotal: insight['previous'],
@@ -417,8 +363,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                   const SizedBox(height: 20),
                                 ],
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
@@ -429,8 +374,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                         onChanged: (String? newValue) {
                                           if (newValue != null) {
                                             setState(() {
-                                              selectedTransactionType =
-                                                  newValue;
+                                              selectedTransactionType = newValue;
                                             });
                                           }
                                         },
@@ -444,8 +388,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                   topSpendingList: topSpendingList,
                                   totalInFilter: totalInFilter,
                                   touchedIndex: touchedIndex,
-                                  selectedTransactionType:
-                                      selectedTransactionType,
+                                  selectedTransactionType: selectedTransactionType,
                                   onSelectionChanged: (index) {
                                     setState(() {
                                       touchedIndex = index;
@@ -454,8 +397,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                   },
                                 ),
                                 const SizedBox(height: 30),
-                                StatisticsHelper.buildSpendingHeader(
-                                    context: context),
+                                StatisticsHelper.buildSpendingHeader(context: context),
                                 const SizedBox(height: 16),
                                 StatisticsSpendingList(
                                   topSpendingList: topSpendingList,
@@ -476,13 +418,63 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                     extra: isIncomeMode,
                                   ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  child: ExpansionTile(
+                                    title: const Text(
+                                      "DB Debug Panel",
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                    children: [
+                                      Text("Active Email: $_userEmail",
+                                          style: TextStyle(
+                                              color: c.textSecondary, fontSize: 12)),
+                                      Text(
+                                          "Current Month: $selectedMonth / $selectedYear",
+                                          style: TextStyle(
+                                              color: c.textSecondary, fontSize: 12)),
+                                      const SizedBox(height: 8),
+                                      FutureBuilder<List<BudgetModel>>(
+                                        future:
+                                            sl<DatabaseHelper>().getBudgets(_userEmail),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData)
+                                            return const Text("Loading...");
+                                          final list = snapshot.data!;
+                                          if (list.isEmpty)
+                                            return const Text("No budgets stored",
+                                                style: TextStyle(
+                                                    fontSize: 12, color: Colors.amber));
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: list
+                                                .map((b) => Padding(
+                                                      padding: const EdgeInsets.symmetric(
+                                                          vertical: 2.0),
+                                                      child: Text(
+                                                        "• ${b.category}: ₹${b.amount} (${b.month}/${b.year}) [id:${b.id}]",
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: c.textPrimary),
+                                                      ),
+                                                    ))
+                                                .toList(),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const SizedBox(height: 30),
                               ],
                             ),
                           );
                         },
-                        );
-                      },
+                      );
+                    },
                   ),
 
                   // ── Tab 2: Upcoming Bills ────────────────────────
@@ -535,20 +527,15 @@ class _UpcomingBillsTab extends StatelessWidget {
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
 
-        final upcoming = bills
-            .where((b) => !b.isPaid)
-            .toList()
+        final upcoming = bills.where((b) => !b.isPaid).toList()
           ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
-        final paid = bills
-            .where((b) => b.isPaid)
-            .toList()
+        final paid = bills.where((b) => b.isPaid).toList()
           ..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         final overdueCount = upcoming
             .where((b) =>
-                DateTime(b.dueDate.year, b.dueDate.month, b.dueDate.day)
-                    .isBefore(today))
+                DateTime(b.dueDate.year, b.dueDate.month, b.dueDate.day).isBefore(today))
             .length;
 
         final totalDue = upcoming.fold(0.0, (sum, b) => sum + b.amount);
@@ -588,8 +575,8 @@ class _UpcomingBillsTab extends StatelessWidget {
                         children: [
                           Text(
                             "${upcoming.length} Upcoming Bill${upcoming.length == 1 ? '' : 's'}",
-                            style: AppTextStyles.bodyMedium.copyWith(
-                                color: Colors.white70, fontSize: 12),
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: Colors.white70, fontSize: 12),
                           ),
                           Text(
                             "₹ ${totalDue.toStringAsFixed(0)}",
@@ -601,8 +588,7 @@ class _UpcomingBillsTab extends StatelessWidget {
                     ),
                     if (overdueCount > 0)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
@@ -638,8 +624,8 @@ class _UpcomingBillsTab extends StatelessWidget {
                               size: 64, color: Colors.green.withOpacity(0.6)),
                           const SizedBox(height: 16),
                           Text("All caught up!",
-                              style: AppTextStyles.heading2
-                                  .copyWith(color: c.textPrimary)),
+                              style:
+                                  AppTextStyles.heading2.copyWith(color: c.textPrimary)),
                           const SizedBox(height: 8),
                           Text("No upcoming bills",
                               style: AppTextStyles.bodySmall
@@ -678,7 +664,8 @@ class _UpcomingBillsTab extends StatelessWidget {
                           SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
-                                return _buildBillCard(context, upcoming[index], today, false);
+                                return _buildBillCard(
+                                    context, upcoming[index], today, false);
                               },
                               childCount: upcoming.length,
                             ),
@@ -733,22 +720,23 @@ class _UpcomingBillsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildBillCard(BuildContext context, BillModel bill, DateTime today, bool isPaid) {
+  Widget _buildBillCard(
+      BuildContext context, BillModel bill, DateTime today, bool isPaid) {
     final c = context.appColors;
     final dueDay = DateTime(bill.dueDate.year, bill.dueDate.month, bill.dueDate.day);
     final diff = dueDay.difference(today).inDays;
     final isOverdue = !isPaid && diff < 0;
     final isUrgent = !isPaid && diff <= 3;
 
-    Color statusColor = isPaid 
-        ? Colors.green 
+    Color statusColor = isPaid
+        ? Colors.green
         : isOverdue
             ? Colors.red
             : isUrgent
                 ? Colors.orange
                 : AppColors.primary;
 
-    String dueLabel = isPaid 
+    String dueLabel = isPaid
         ? "Paid"
         : isOverdue
             ? "Overdue by ${diff.abs()} day${diff.abs() == 1 ? '' : 's'}"
@@ -786,10 +774,11 @@ class _UpcomingBillsTab extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isPaid ? Icons.check_circle
-                : isOverdue
-                    ? Icons.warning_amber_rounded
-                    : Icons.calendar_today,
+                isPaid
+                    ? Icons.check_circle
+                    : isOverdue
+                        ? Icons.warning_amber_rounded
+                        : Icons.calendar_today,
                 color: statusColor,
                 size: 20,
               ),
@@ -809,24 +798,24 @@ class _UpcomingBillsTab extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(isPaid ? Icons.check : Icons.schedule, size: 12, color: statusColor),
+                      Icon(isPaid ? Icons.check : Icons.schedule,
+                          size: 12, color: statusColor),
                       const SizedBox(width: 4),
                       Text(
                         dueLabel,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: statusColor,
                           fontSize: 12,
-                          fontWeight: isOverdue || isUrgent
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                          fontWeight:
+                              isOverdue || isUrgent ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                     ],
                   ),
                   Text(
                     DateFormat('MMM dd, yyyy').format(bill.dueDate),
-                    style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 11, color: c.textSecondary),
+                    style: AppTextStyles.bodySmall
+                        .copyWith(fontSize: 11, color: c.textSecondary),
                   ),
                 ],
               ),
@@ -846,13 +835,12 @@ class _UpcomingBillsTab extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.repeat,
-                          size: 11, color: c.textSecondary),
+                      Icon(Icons.repeat, size: 11, color: c.textSecondary),
                       const SizedBox(width: 2),
                       Text(
                         "Monthly",
-                        style: AppTextStyles.bodySmall.copyWith(
-                            fontSize: 11, color: c.textSecondary),
+                        style: AppTextStyles.bodySmall
+                            .copyWith(fontSize: 11, color: c.textSecondary),
                       ),
                     ],
                   ),

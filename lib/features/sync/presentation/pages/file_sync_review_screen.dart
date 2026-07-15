@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/routing/app_router.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class FileSyncReviewScreen extends StatefulWidget {
   const FileSyncReviewScreen({super.key});
@@ -28,18 +28,19 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
+          icon: Icon(Icons.arrow_back_ios, size: 20, color: c.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Import File',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20),
+          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
       ),
@@ -54,19 +55,19 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.payButtonBackground,
+                color: c.tabBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withAlpha(60)),
+                border: Border.all(color: c.primary.withAlpha(60)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                  Icon(Icons.info_outline, color: c.primary, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Supported formats: PDF bank statements and CSV transaction exports.',
                       style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.secondary),
+                          .copyWith(color: c.textSecondary),
                     ),
                   ),
                 ],
@@ -84,18 +85,18 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 48),
                 decoration: BoxDecoration(
                   color: _fileLoaded
-                      ? AppColors.selectedAccountBackground
-                      : Colors.white,
+                      ? c.tabBg
+                      : c.surface,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color:
-                        _fileLoaded ? AppColors.primary : AppColors.greyLight,
+                        _fileLoaded ? c.primary : c.border,
                     width: _fileLoaded ? 2 : 1.5,
                     style: BorderStyle.solid,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(10),
+                      color: c.shadow,
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -109,35 +110,35 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
                         width: 48,
                         height: 48,
                         child: CircularProgressIndicator(
-                          color: AppColors.primary,
+                          color: c.primary,
                           strokeWidth: 3,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text('Analyzing file...',
                           style: AppTextStyles.bodyMedium
-                              .copyWith(color: AppColors.primary)),
+                              .copyWith(color: c.primary)),
                     ] else if (_fileLoaded) ...[
                       Container(
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: AppColors.incomeGreen.withAlpha(30),
+                          color: c.incomeGreen.withAlpha(30),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.check_circle_outline,
-                            color: AppColors.incomeGreen, size: 40),
+                            color: c.incomeGreen, size: 40),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'File Ready!',
                         style: AppTextStyles.bodyLarge
-                            .copyWith(color: AppColors.primary),
+                            .copyWith(color: c.primary),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         _fileName!,
-                        style: AppTextStyles.bodySmall,
+                        style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
@@ -149,9 +150,9 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
                         child: Text(
                           'Choose a different file',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primary,
+                            color: c.primary,
                             decoration: TextDecoration.underline,
-                            decorationColor: AppColors.primary,
+                            decorationColor: c.primary,
                           ),
                         ),
                       ),
@@ -160,24 +161,24 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          color: AppColors.tabBackground,
+                          color: c.tabBg,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Icon(
                           Icons.upload_file_outlined,
-                          color: AppColors.primary,
+                          color: c.primary,
                           size: 36,
                         ),
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Tap to upload your file',
-                        style: AppTextStyles.bodyLarge.copyWith(fontSize: 16),
+                        style: AppTextStyles.bodyLarge.copyWith(fontSize: 16, color: c.textPrimary),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'PDF or CSV, max 10 MB',
-                        style: AppTextStyles.bodySmall,
+                        style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                       ),
                     ],
                   ],
@@ -190,20 +191,20 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
             // Supported banks section
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('Works with', style: AppTextStyles.bodySmall),
+              child: Text('Works with', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                _BankChip(name: 'HDFC', color: const Color(0xFF004C8F)),
+                const _BankChip(name: 'HDFC', color: Color(0xFF004C8F)),
                 const SizedBox(width: 10),
-                _BankChip(name: 'SBI', color: const Color(0xFF1A3F6F)),
+                const _BankChip(name: 'SBI', color: Color(0xFF1A3F6F)),
                 const SizedBox(width: 10),
-                _BankChip(name: 'ICICI', color: const Color(0xFFB04C4C)),
+                const _BankChip(name: 'ICICI', color: Color(0xFFB04C4C)),
                 const SizedBox(width: 10),
-                _BankChip(name: 'Axis', color: const Color(0xFF921C21)),
+                const _BankChip(name: 'Axis', color: Color(0xFF921C21)),
                 const SizedBox(width: 10),
-                _BankChip(name: '+ more', color: AppColors.textSecondary),
+                _BankChip(name: '+ more', color: c.textSecondary),
               ],
             ),
 
@@ -218,8 +219,8 @@ class _FileSyncReviewScreenState extends State<FileSyncReviewScreen> {
                     ? () => context.push(RoutePaths.syncSuccess, extra: 8)
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  disabledBackgroundColor: AppColors.greyLight,
+                  backgroundColor: c.primary,
+                  disabledBackgroundColor: c.divider,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                   elevation: 0,

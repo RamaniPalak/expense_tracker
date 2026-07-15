@@ -6,4 +6,5 @@ abstract class IChatbotRepository {
   Future<int> getMessageCount();
   Future<void> incrementMessageCount();
   Future<void> resetMessageCount();
+  Future<List<String>> getDynamicSuggestions();
 }

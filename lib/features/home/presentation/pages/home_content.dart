@@ -23,6 +23,7 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   String? _userEmail;
+  String? _userName;
 
   @override
   void initState() {
@@ -30,16 +31,44 @@ class _HomeContentState extends State<HomeContent> {
     _loadUserAndData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload name every time this tab becomes active (e.g., after profile edit)
+    _reloadUserName();
+  }
+
+  Future<void> _reloadUserName() async {
+    final name = await sl<IAuthRepository>().getUserName();
+    if (mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
+  }
+
   Future<void> _loadUserAndData() async {
     final email = await sl<IAuthRepository>().getUserEmail();
+    final name = await sl<IAuthRepository>().getUserName();
     if (mounted) {
       setState(() {
         _userEmail = email;
+        _userName = name;
       });
       // Initial sync from remote on load
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
     }
+  }
+
+  /// Returns the best display name: saved name → email prefix → fallback.
+  String _getDisplayName() {
+    if (_userName != null && _userName!.isNotEmpty) return _userName!;
+    if (_userEmail != null && _userEmail!.isNotEmpty) {
+      final part = _userEmail!.split('@')[0];
+      if (part.isNotEmpty) return part[0].toUpperCase() + part.substring(1);
+    }
+    return 'User';
   }
 
   @override
@@ -105,7 +134,7 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _userEmail?.split('@')[0] ?? "User",
+                                _getDisplayName(),
                                 style: AppTextStyles.heading2.copyWith(
                                     color: Colors.white, fontSize: 20),
                               ),

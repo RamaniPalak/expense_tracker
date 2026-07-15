@@ -42,7 +42,7 @@ class _BillsScreenState extends State<BillsScreen> {
       backgroundColor: c.background,
       body: CustomScrollView(
         slivers: [
-          _buildHeader(context),
+          const _BillsHeader(),
           _buildBillsList(),
         ],
       ),
@@ -54,67 +54,12 @@ class _BillsScreenState extends State<BillsScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 200,
-      pinned: true,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, AppColors.secondary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
-              const Icon(Icons.receipt_long, color: Colors.white, size: 48),
-              const SizedBox(height: 8),
-              Text(
-                "Bill Management",
-                style: AppTextStyles.heading1.copyWith(color: Colors.white,fontSize: 22),
-              ),
-              Text(
-                "Never miss a payment again",
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
-              ),
-            ],
-          ),
-        ),
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-        onPressed: () => context.pop(),
-      ),
-    );
-  }
-
   Widget _buildBillsList() {
-    final c = context.appColors;
     return ValueListenableBuilder<List<BillModel>>(
       valueListenable: sl<DatabaseHelper>().billsNotifier,
       builder: (context, bills, _) {
         if (bills.isEmpty) {
-          return SliverFillRemaining(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.notifications_off_outlined,
-                      size: 64, color: c.textSecondary.withAlpha(50)),
-                  const SizedBox(height: 16),
-                  Text(
-                    "No upcoming bills", 
-                    style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return const _BillsEmptyState();
         }
 
         final upcoming = bills.where((b) => !b.isPaid).toList()
@@ -125,42 +70,26 @@ class _BillsScreenState extends State<BillsScreen> {
         return SliverList(
           delegate: SliverChildListDelegate([
             if (upcoming.isNotEmpty) ...[
-              _buildSectionHeader(context, "Upcoming Payments"),
+              const _BillsSectionHeader(title: "Upcoming Payments"),
               ...upcoming.map((bill) => _BillCard(
-                  bill: bill,
-                  onMarkPaid: () => _markAsPaid(bill),
-                  onTap: () => context.push(RoutePaths.billDetail, extra: bill),
-                )),
+                    bill: bill,
+                    onMarkPaid: () => _markAsPaid(bill),
+                    onTap: () => context.push(RoutePaths.billDetail, extra: bill),
+                  )),
             ],
             if (paid.isNotEmpty) ...[
               const SizedBox(height: 24),
-              _buildSectionHeader(context, "Recently Paid"),
+              const _BillsSectionHeader(title: "Recently Paid"),
               ...paid.map((bill) => _BillCard(
                     bill: bill,
                     isPaid: true,
-                    onTap: () =>
-                        context.push(RoutePaths.billDetail, extra: bill),
+                    onTap: () => context.push(RoutePaths.billDetail, extra: bill),
                   )),
             ],
             const SizedBox(height: 80),
           ]),
         );
       },
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    final c = context.appColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Text(
-        title,
-        style: AppTextStyles.bodySmall.copyWith(
-          fontWeight: FontWeight.bold,
-          color: c.textSecondary,
-          letterSpacing: 1.2,
-        ),
-      ),
     );
   }
 
@@ -191,7 +120,9 @@ class _BillsScreenState extends State<BillsScreen> {
         currentDue.day.clamp(1, lastDayOfNextMonth),
       );
 
-      if (bill.endDate == null || nextDueDate.isBefore(bill.endDate!) || nextDueDate.isAtSameMomentAs(bill.endDate!)) {
+      if (bill.endDate == null ||
+          nextDueDate.isBefore(bill.endDate!) ||
+          nextDueDate.isAtSameMomentAs(bill.endDate!)) {
         final nextBill = BillModel(
           title: bill.title,
           amount: bill.amount,
@@ -227,6 +158,101 @@ class _BillsScreenState extends State<BillsScreen> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Private Reusable Stateless Widgets
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BillsHeader extends StatelessWidget {
+  const _BillsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 200,
+      pinned: true,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              const Icon(Icons.receipt_long, color: Colors.white, size: 48),
+              const SizedBox(height: 8),
+              Text(
+                "Bill Management",
+                style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 22),
+              ),
+              Text(
+                "Never miss a payment again",
+                style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+              ),
+            ],
+          ),
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+        onPressed: () => context.pop(),
+      ),
+    );
+  }
+}
+
+class _BillsSectionHeader extends StatelessWidget {
+  final String title;
+
+  const _BillsSectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      child: Text(
+        title,
+        style: AppTextStyles.bodySmall.copyWith(
+          fontWeight: FontWeight.bold,
+          color: c.textSecondary,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _BillsEmptyState extends StatelessWidget {
+  const _BillsEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return SliverFillRemaining(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.notifications_off_outlined,
+                size: 64, color: c.textSecondary.withAlpha(50)),
+            const SizedBox(height: 16),
+            Text(
+              "No upcoming bills",
+              style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _BillCard extends StatelessWidget {
   final BillModel bill;
   final bool isPaid;
@@ -253,89 +279,85 @@ class _BillCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: (isPaid
-                      ? Colors.green
-                      : (isUrgent ? Colors.red : AppColors.primary))
-                  .withAlpha(25),
-              shape: BoxShape.circle,
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(
-              isPaid ? Icons.check_circle : Icons.calendar_today,
-              color: isPaid
-                  ? Colors.green
-                  : (isUrgent ? Colors.red : AppColors.primary),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color:
+                    (isPaid ? Colors.green : (isUrgent ? Colors.red : AppColors.primary))
+                        .withAlpha(25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isPaid ? Icons.check_circle : Icons.calendar_today,
+                color:
+                    isPaid ? Colors.green : (isUrgent ? Colors.red : AppColors.primary),
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    bill.title,
+                    style: AppTextStyles.heading2
+                        .copyWith(fontSize: 16, color: c.textPrimary),
+                  ),
+                  Text(
+                    isPaid
+                        ? "Paid on ${DateFormat('MMM dd').format(bill.dueDate)}"
+                        : isOverdue
+                            ? "Overdue by ${diff.abs()} day${diff.abs() == 1 ? '' : 's'}"
+                            : diff == 0
+                                ? "Due today"
+                                : "Due in $diff day${diff == 1 ? '' : 's'}",
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: (isOverdue || (isUrgent && !isPaid))
+                          ? Colors.red
+                          : c.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  bill.title,
-                  style: AppTextStyles.heading2.copyWith(fontSize: 16, color: c.textPrimary),
+                  "₹ ${bill.amount.toStringAsFixed(0)}",
+                  style: AppTextStyles.heading2.copyWith(
+                      color: isPaid ? Colors.green : c.textPrimary, fontSize: 18),
                 ),
-                Text(
-                  isPaid
-                      ? "Paid on ${DateFormat('MMM dd').format(bill.dueDate)}"
-                      : isOverdue
-                          ? "Overdue by ${diff.abs()} day${diff.abs() == 1 ? '' : 's'}"
-                          : diff == 0
-                              ? "Due today"
-                              : "Due in $diff day${diff == 1 ? '' : 's'}",
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: (isOverdue || (isUrgent && !isPaid))
-                        ? Colors.red
-                        : c.textSecondary,
+                if (!isPaid)
+                  TextButton(
+                    onPressed: onMarkPaid,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text("Pay Now"),
                   ),
-                ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "₹ ${bill.amount.toStringAsFixed(0)}",
-                style: AppTextStyles.heading2.copyWith(
-                  color: isPaid ? Colors.green : c.textPrimary,
-                  fontSize: 18
-                ),
-              ),
-              if (!isPaid)
-                TextButton(
-                  onPressed: onMarkPaid,
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(50, 30),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text("Pay Now"),
-                ),
-            ],
-          ),
-        ],
-      ),
-      ),  // GestureDetector
+          ],
+        ),
+      ), // GestureDetector
     );
   }
 }
-

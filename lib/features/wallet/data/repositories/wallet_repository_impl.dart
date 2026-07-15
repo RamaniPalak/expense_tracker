@@ -15,11 +15,11 @@ class WalletRepositoryImpl implements IWalletRepository {
       final model = BudgetModel.fromEntity(budget);
       final db = await databaseHelper.database;
 
-      // Category + userEmail as unique key for budgets
+      // Category + userEmail + month + year as unique key for budgets
       final existing = await db.query(
         'budgets',
-        where: 'category = ? AND userEmail = ?',
-        whereArgs: [model.category, model.userEmail],
+        where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
+        whereArgs: [model.category, model.userEmail, model.month, model.year],
       );
 
       if (existing.isNotEmpty) {

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/routing/app_router.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class SyncOptionsSheet extends StatelessWidget {
   const SyncOptionsSheet({super.key});
@@ -18,10 +19,11 @@ class SyncOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
       child: Column(
@@ -34,7 +36,7 @@ class SyncOptionsSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.greyLight,
+                color: c.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -42,11 +44,14 @@ class SyncOptionsSheet extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Title
-          Text('Sync Transactions', style: AppTextStyles.heading2),
+          Text(
+            'Sync Transactions',
+            style: AppTextStyles.heading2.copyWith(color: c.textPrimary),
+          ),
           const SizedBox(height: 4),
           Text(
             'Choose how you want to import your transactions.',
-            style: AppTextStyles.bodySmall,
+            style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
           ),
           const SizedBox(height: 28),
 
@@ -60,7 +65,7 @@ class SyncOptionsSheet extends StatelessWidget {
                   subtitle: 'Auto-read bank messages',
                   badge: 'Android',
                   badgeColor: AppColors.incomeGreen,
-                  gradientColors: [
+                  gradientColors: const [
                     AppColors.primary,
                     AppColors.secondary,
                   ],
@@ -78,9 +83,9 @@ class SyncOptionsSheet extends StatelessWidget {
                   subtitle: 'Upload PDF or CSV file',
                   badge: 'All Devices',
                   badgeColor: const Color(0xFF5B8DEF),
-                  gradientColors: [
-                    const Color(0xFF5B8DEF),
-                    const Color(0xFF3B6CD4),
+                  gradientColors: const [
+                    Color(0xFF5B8DEF),
+                    Color(0xFF3B6CD4),
                   ],
                   onTap: () {
                     Navigator.pop(context);
@@ -99,7 +104,10 @@ class SyncOptionsSheet extends StatelessWidget {
               const Expanded(child: Divider()),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('or', style: AppTextStyles.bodySmall),
+                child: Text(
+                  'or',
+                  style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                ),
               ),
               const Expanded(child: Divider()),
             ],

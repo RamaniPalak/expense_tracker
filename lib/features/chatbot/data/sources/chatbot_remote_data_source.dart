@@ -14,9 +14,8 @@ abstract class ChatbotRemoteDataSource {
 class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
   final String _apiKey;
 
-  static const String _model = 'gemini-2.0-flash';
-  static const String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
+  static const String _primaryModel = 'gemini-flash-latest';
+  static const String _fallbackModel = 'gemini-flash-lite-latest';
 
   static const String _systemInstruction =
       'You are a personal financial assistant for an expense tracker app. '
@@ -32,7 +31,29 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
     List<ChatMessage> history,
     String context,
   ) async {
-    final url = Uri.parse('$_baseUrl?key=$_apiKey');
+    try {
+      // Try with the primary model first
+      return await _callApi(text, history, context, _primaryModel);
+    } catch (e) {
+      log('Primary model ($_primaryModel) failed: $e. Attempting fallback...');
+      try {
+        // Fallback to gemini-flash-lite-latest if primary fails
+        return await _callApi(text, history, context, _fallbackModel);
+      } catch (fallbackError) {
+        log('Fallback model ($_fallbackModel) also failed: $fallbackError');
+        rethrow; // If both fail, pass the error up
+      }
+    }
+  }
+
+  Future<ChatMessageModel> _callApi(
+    String text,
+    List<ChatMessage> history,
+    String context,
+    String modelName,
+  ) async {
+    final url = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent?key=$_apiKey');
 
     // Build chat history in Gemini REST format
     final List<Map<String, dynamic>> contents = [];
@@ -82,46 +103,58 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
       ],
     });
 
-    try {
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: body,
-          )
-          .timeout(const Duration(seconds: 30));
+    final response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: body,
+        )
+        .timeout(const Duration(seconds: 30));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final candidates = data['candidates'] as List?;
-        if (candidates == null || candidates.isEmpty) {
-          throw Exception('No candidates returned from Gemini API');
-        }
-        final content = candidates[0]['content'] as Map<String, dynamic>?;
-        final parts = content?['parts'] as List?;
-        final replyText = parts?.first['text'] as String?;
-
-        if (replyText == null || replyText.isEmpty) {
-          throw Exception('Empty text in Gemini API response');
-        }
-
-        return ChatMessageModel(
-          text: replyText.trim(),
-          isUser: false,
-          time: DateTime.now(),
-        );
-      } else {
-        final errorBody = jsonDecode(response.body);
-        final errorMessage = errorBody['error']?['message'] ?? 'Unknown API error';
-        log('Gemini API Error [${response.statusCode}]: $errorMessage');
-        throw Exception('Gemini API Error (${response.statusCode}): $errorMessage');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final candidates = data['candidates'] as List?;
+      if (candidates == null || candidates.isEmpty) {
+        throw Exception('No response from the AI. Please try again.');
       }
-    } on http.ClientException catch (e) {
-      log('Network error calling Gemini: $e');
-      throw Exception('Network error. Please check your connection.');
-    } catch (e) {
-      log('Unexpected error in ChatbotRemoteDataSource: $e');
-      rethrow;
+      final content = candidates[0]['content'] as Map<String, dynamic>?;
+      final parts = content?['parts'] as List?;
+      final replyText = parts?.first['text'] as String?;
+
+      if (replyText == null || replyText.isEmpty) {
+        throw Exception('The AI returned an empty response. Please try again.');
+      }
+
+      return ChatMessageModel(
+        text: replyText.trim(),
+        isUser: false,
+        time: DateTime.now(),
+      );
+    } else {
+      // Parse specific API error codes into friendly messages
+      String friendlyMessage;
+      try {
+        final errorBody = jsonDecode(response.body);
+        final apiMessage = errorBody['error']?['message'] as String? ?? '';
+        log('Gemini API Error [$modelName - ${response.statusCode}]: $apiMessage');
+
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          friendlyMessage = 'API key is invalid or has been revoked. Please check your configuration.';
+        } else if (response.statusCode == 429) {
+          friendlyMessage = 'AI quota exceeded. Please try again in a few minutes.';
+        } else if (response.statusCode == 503) {
+          friendlyMessage = 'The AI model is currently overloaded. Please try again shortly.';
+        } else if (response.statusCode == 400) {
+          friendlyMessage = 'Bad request: $apiMessage';
+        } else if (response.statusCode >= 500) {
+          friendlyMessage = 'Gemini AI service is temporarily unavailable. Try again later.';
+        } else {
+          friendlyMessage = 'AI error (${response.statusCode}): $apiMessage';
+        }
+      } catch (_) {
+        friendlyMessage = 'AI error (${response.statusCode}). Please try again.';
+      }
+      throw Exception(friendlyMessage);
     }
   }
 }

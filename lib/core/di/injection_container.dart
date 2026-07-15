@@ -24,42 +24,46 @@ import 'package:expense_tracker/core/constants/app_strings.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
-  // External
+  // ── External / Platform ────────────────────────────────────────────────────
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
 
-  // Features - Wallet
-  sl.registerLazySingleton<IWalletRepository>(
-    () => WalletRepositoryImpl(
-      databaseHelper: sl(),
-    ),
+  // ── Core Services (must be first — repositories depend on these) ──────────
+  sl.registerLazySingleton(() => DatabaseHelper.instance);
+  sl.registerLazySingleton(() => AuthService());
+  sl.registerLazySingleton(() => ExpenseService());
+
+  // ── Auth DataSources ───────────────────────────────────────────────────────
+  sl.registerLazySingleton<IAuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
+  sl.registerLazySingleton<IAuthLocalDataSource>(
+      () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
+
+  // ── Chatbot DataSource ─────────────────────────────────────────────────────
+  sl.registerLazySingleton<ChatbotRemoteDataSource>(
+    () => ChatbotRemoteDataSourceImpl(apiKey: AppStrings.geminiApiKey),
+  );
+  sl.registerLazySingleton<ReceiptOcrDataSource>(
+    () => ReceiptOcrDataSourceImpl(),
   );
 
-  // Features - Transactions
-  sl.registerLazySingleton<ITransactionRepository>(
-    () => TransactionRepositoryImpl(
-      databaseHelper: sl(),
-      remoteService: sl(),
-    ),
-  );
-
-  // Features - Auth
+  // ── Repositories ───────────────────────────────────────────────────────────
   sl.registerLazySingleton<IAuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl(),
       localDataSource: sl(),
     ),
   );
-  sl.registerLazySingleton<IAuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
-  sl.registerLazySingleton<IAuthLocalDataSource>(
-      () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
-
-  sl.registerFactory(() => AuthBloc(authRepository: sl()));
-  sl.registerFactory(() => TransactionBloc(transactionRepository: sl()));
-  sl.registerFactory(() => BudgetBloc(walletRepository: sl()));
-  sl.registerFactory(() => ChatbotBloc(repository: sl()));
-
-  // Features - Chatbot
+  sl.registerLazySingleton<IWalletRepository>(
+    () => WalletRepositoryImpl(
+      databaseHelper: sl(),
+    ),
+  );
+  sl.registerLazySingleton<ITransactionRepository>(
+    () => TransactionRepositoryImpl(
+      databaseHelper: sl(),
+      remoteService: sl(),
+    ),
+  );
   sl.registerLazySingleton<IChatbotRepository>(
     () => ChatbotRepositoryImpl(
       remoteDataSource: sl(),
@@ -69,15 +73,10 @@ Future<void> init() async {
       authRepository: sl(),
     ),
   );
-  sl.registerLazySingleton<ChatbotRemoteDataSource>(
-    () => ChatbotRemoteDataSourceImpl(apiKey: AppStrings.geminiApiKey),
-  );
-  sl.registerLazySingleton<ReceiptOcrDataSource>(
-    () => ReceiptOcrDataSourceImpl(),
-  );
 
-  // Core / Services (Legacy support)
-  sl.registerLazySingleton(() => DatabaseHelper.instance);
-  sl.registerLazySingleton(() => AuthService());
-  sl.registerLazySingleton(() => ExpenseService());
+  // ── BLoCs (factories — new instance each time) ────────────────────────────
+  sl.registerFactory(() => AuthBloc(authRepository: sl()));
+  sl.registerFactory(() => TransactionBloc(transactionRepository: sl()));
+  sl.registerFactory(() => BudgetBloc(walletRepository: sl()));
+  sl.registerFactory(() => ChatbotBloc(repository: sl()));
 }

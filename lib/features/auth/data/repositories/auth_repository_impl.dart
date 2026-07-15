@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../datasources/auth_local_datasource.dart';
+import 'package:expense_tracker/services/cloudinary_service.dart';
 
 class AuthRepositoryImpl implements IAuthRepository {
   final IAuthRemoteDataSource remoteDataSource;
@@ -110,12 +111,18 @@ class AuthRepositoryImpl implements IAuthRepository {
   Future<void> updateProfile(String name, String? imagePath) async {
     final email = await localDataSource.getCachedEmail();
     if (email == null) throw Exception("User not logged in");
-    
-    final updatedUser = await remoteDataSource.updateProfile(email, name, imagePath);
+
+    // If imagePath is a local file path (not already a remote URL), upload to Cloudinary
+    String? finalImagePath = imagePath;
+    if (imagePath != null && !imagePath.startsWith('http')) {
+      finalImagePath = await CloudinaryService.uploadImage(File(imagePath));
+    }
+
+    final updatedUser = await remoteDataSource.updateProfile(email, name, finalImagePath);
     if (updatedUser == null) {
       throw Exception("Failed to sync profile to server.");
     }
-    await localDataSource.updateProfile(name, imagePath);
+    await localDataSource.updateProfile(name, finalImagePath);
   }
 
   @override

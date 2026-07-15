@@ -75,7 +75,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
           child: BlocConsumer<ChatbotBloc, ChatbotState>(
-            listener: (context, state) {
+  listener: (context, state) {
               if (state.status == ChatStatus.success ||
                   state.status == ChatStatus.loading) {
                 _scrollToBottom();
@@ -85,6 +85,15 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   SnackBar(
                     content: Text(state.errorMessage ?? AppStrings.errorGeneric),
                     backgroundColor: Colors.red,
+                  ),
+                );
+              }
+              if (state.status == ChatStatus.limitReached) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(AppStrings.freeLimitReached),
+                    backgroundColor: Colors.orange.shade700,
+                    duration: const Duration(seconds: 4),
                   ),
                 );
               }
@@ -118,12 +127,19 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     ),
                   ),
                   if (isLoading) _buildTypingIndicator(),
-                  if (!isLoading)
-                    SuggestionChips(onChipTapped: (text) => _handleSend(context, text)),
+                  if (!isLoading && state.status != ChatStatus.limitReached)
+                    SuggestionChips(
+                      suggestions: state.suggestions,
+                      onChipTapped: (text) => _handleSend(context, text),
+                    ),
+                  if (state.status == ChatStatus.limitReached)
+                    _buildLimitReachedBanner(context),
                   const SizedBox(height: 12),
                   ChatInput(
                     controller: _controller,
-                    onSend: isLoading ? null : () => _handleSend(context),
+                    onSend: (isLoading || state.status == ChatStatus.limitReached)
+                        ? null
+                        : () => _handleSend(context),
                   ),
                 ],
               );
@@ -220,6 +236,49 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               '$count msgs',
               style: AppTextStyles.bodySmall
                   .copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLimitReachedBanner(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.orange.shade700, Colors.deepOrange.shade500],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              AppStrings.freeLimitReached,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<ChatbotBloc>().add(ResetChatEvent());
+            },
+            child: const Text(
+              'Reset',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

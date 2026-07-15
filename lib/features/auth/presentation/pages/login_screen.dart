@@ -112,19 +112,19 @@ class _LoginScreenState extends State<LoginScreen>
     return Scaffold(
       backgroundColor: c.background,
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
+        listener: (authContext, authState) {
+          if (authState is AuthFailure) {
+            ScaffoldMessenger.of(authContext).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(authState.message),
                 backgroundColor: AppColors.error,
               ),
             );
-          } else if (state is Authenticated) {
+          } else if (authState is Authenticated) {
             _onAuthenticated();
           }
         },
-        builder: (context, state) {
+        builder: (authContext, authState) {
           return SafeArea(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -162,99 +162,16 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                           const SizedBox(height: 48),
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            style: AppTextStyles.bodyMedium
-                                .copyWith(color: c.textPrimary),
-                            decoration: _inputDecoration(
-                              context: context,
-                              hint: "Email Address",
-                              icon: Icons.email_outlined,
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              final emailRegex = RegExp(
-                                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-                              if (!emailRegex.hasMatch(value)) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
+                          _EmailInputField(controller: _emailController),
                           const SizedBox(height: 20),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _isPasswordVisible,
-                            builder: (context, isVisible, _) {
-                              return TextFormField(
-                                controller: _passwordController,
-                                obscureText: !isVisible,
-                                style: AppTextStyles.bodyMedium
-                                    .copyWith(color: c.textPrimary),
-                                decoration: _inputDecoration(
-                                  context: context,
-                                  hint: "Password",
-                                  icon: Icons.lock_outline,
-                                ).copyWith(
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      isVisible
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
-                                      color: c.textSecondary,
-                                    ),
-                                    onPressed: () {
-                                      _isPasswordVisible.value = !isVisible;
-                                    },
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
-                                  }
-                                  return null;
-                                },
-                              );
-                            },
+                          _PasswordInputField(
+                            controller: _passwordController,
+                            isPasswordVisible: _isPasswordVisible,
                           ),
                           const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _canUseBiometric,
-                            builder: (context, canUse, _) {
-                              if (!canUse) return const SizedBox.shrink();
-                              return ValueListenableBuilder<bool>(
-                                valueListenable: _enableBiometric,
-                                builder: (context, isEnabled, _) {
-                                  return Row(
-                                    children: [
-                                      Checkbox(
-                                        value: isEnabled,
-                                        activeColor: AppColors.primary,
-                                        checkColor: Colors.white,
-                                        side: BorderSide(color: c.border),
-                                        onChanged: (val) {
-                                          _enableBiometric.value = val ?? false;
-                                        },
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          "Enable login with Fingerprint/Face ID",
-                                          style:
-                                              AppTextStyles.bodySmall.copyWith(
-                                            color: c.textSecondary,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
+                          _BiometricToggle(
+                            canUseBiometric: _canUseBiometric,
+                            enableBiometric: _enableBiometric,
                           ),
                           Align(
                             alignment: Alignment.centerRight,
@@ -269,33 +186,14 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                           const SizedBox(height: 32),
-                          state is AuthLoading
+                          authState is AuthLoading
                               ? const Center(child: CircularProgressIndicator())
                               : PrimaryButton(
                                   text: "Login",
                                   onPressed: _handleLogin,
                                 ),
                           const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Don't have an account? ",
-                                  style: AppTextStyles.bodySmall
-                                      .copyWith(color: c.textSecondary)),
-                              GestureDetector(
-                                onTap: () {
-                                  context.push(RoutePaths.signup);
-                                },
-                                child: Text(
-                                  "Sign Up",
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          const _SignUpPrompt(),
                         ],
                       ),
                     ),
@@ -308,39 +206,202 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
+}
 
-  InputDecoration _inputDecoration(
-      {required BuildContext context,
-      required String hint,
-      required IconData icon}) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Private Reusable Stateless Widgets
+// ─────────────────────────────────────────────────────────────────────────────
+
+InputDecoration _buildInputDecoration({
+  required BuildContext context,
+  required String hint,
+  required IconData icon,
+}) {
+  final c = context.appColors;
+  return InputDecoration(
+    hintText: hint,
+    hintStyle: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+    prefixIcon: Icon(icon, color: c.textSecondary),
+    filled: true,
+    fillColor: c.inputFill,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: c.border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: c.border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.error),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.error, width: 2),
+    ),
+  );
+}
+
+class _EmailInputField extends StatelessWidget {
+  final TextEditingController controller;
+
+  const _EmailInputField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.appColors;
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
-      prefixIcon: Icon(icon, color: c.textSecondary),
-      filled: true,
-      fillColor: c.inputFill,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.emailAddress,
+      style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+      decoration: _buildInputDecoration(
+        context: context,
+        hint: "Email Address",
+        icon: Icons.email_outlined,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
-      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your email';
+        }
+        final emailRegex = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+        if (!emailRegex.hasMatch(value)) {
+          return 'Please enter a valid email';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class _PasswordInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueNotifier<bool> isPasswordVisible;
+
+  const _PasswordInputField({
+    required this.controller,
+    required this.isPasswordVisible,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return ValueListenableBuilder<bool>(
+      valueListenable: isPasswordVisible,
+      builder: (context, isVisible, _) {
+        return TextFormField(
+          controller: controller,
+          obscureText: !isVisible,
+          style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+          decoration: _buildInputDecoration(
+            context: context,
+            hint: "Password",
+            icon: Icons.lock_outline,
+          ).copyWith(
+            suffixIcon: IconButton(
+              icon: Icon(
+                isVisible ? Icons.visibility : Icons.visibility_off,
+                color: c.textSecondary,
+              ),
+              onPressed: () {
+                isPasswordVisible.value = !isVisible;
+              },
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your password';
+            }
+            if (value.length < 6) {
+              return 'Password must be at least 6 characters';
+            }
+            return null;
+          },
+        );
+      },
+    );
+  }
+}
+
+class _BiometricToggle extends StatelessWidget {
+  final ValueNotifier<bool> canUseBiometric;
+  final ValueNotifier<bool> enableBiometric;
+
+  const _BiometricToggle({
+    required this.canUseBiometric,
+    required this.enableBiometric,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return ValueListenableBuilder<bool>(
+      valueListenable: canUseBiometric,
+      builder: (context, canUse, _) {
+        if (!canUse) return const SizedBox.shrink();
+        return ValueListenableBuilder<bool>(
+          valueListenable: enableBiometric,
+          builder: (context, isEnabled, _) {
+            return Row(
+              children: [
+                Checkbox(
+                  value: isEnabled,
+                  activeColor: AppColors.primary,
+                  checkColor: Colors.white,
+                  side: BorderSide(color: c.border),
+                  onChanged: (val) {
+                    enableBiometric.value = val ?? false;
+                  },
+                ),
+                Expanded(
+                  child: Text(
+                    "Enable login with Fingerprint/Face ID",
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _SignUpPrompt extends StatelessWidget {
+  const _SignUpPrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "Don't have an account? ",
+          style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+        ),
+        GestureDetector(
+          onTap: () {
+            context.push(RoutePaths.signup);
+          },
+          child: Text(
+            "Sign Up",
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

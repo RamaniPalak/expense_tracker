@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
@@ -87,7 +88,7 @@ class ProfileHelper {
             child: const CircleAvatar(
               radius: 50,
               backgroundColor: AppColors.white,
-              backgroundImage: NetworkImage(
+              backgroundImage: CachedNetworkImageProvider(
                   'https://i.pravatar.cc/300?img=5'), // Placeholder
             ),
           ),

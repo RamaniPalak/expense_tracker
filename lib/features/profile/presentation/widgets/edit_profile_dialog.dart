@@ -44,20 +44,23 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
+      // imageQuality (0–100) compresses the JPEG before it's returned.
+      // Combined with maxWidth/maxHeight, a typical 3–5 MB photo is
+      // reduced to ~100–200 KB — much faster to upload to Cloudinary.
       final XFile? pickedFile = await picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 800,
         maxHeight: 800,
+        imageQuality: 72,
       );
 
       if (pickedFile != null) {
-        // Copy image to app's document directory to make it permanent
+        // Copy compressed image to app's document directory for a stable path
         final directory = await getApplicationDocumentsDirectory();
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(pickedFile.path)}';
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_profile.jpg';
         final savedImagePath = p.join(directory.path, fileName);
-        
-        final File newImage = File(pickedFile.path);
-        await newImage.copy(savedImagePath);
+
+        await File(pickedFile.path).copy(savedImagePath);
 
         setState(() {
           _selectedImagePath = savedImagePath;
@@ -101,6 +104,27 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     }
   }
 
+  /// Builds the profile image widget for the dialog preview.
+  /// - Cloudinary/remote URL → [Image.network]
+  /// - Local file (freshly picked) → [Image.file]
+  /// - No image → placeholder icon
+  Widget _buildDialogImage(dynamic c) {
+    if (_selectedImagePath != null && _selectedImagePath!.isNotEmpty) {
+      if (_selectedImagePath!.startsWith('http')) {
+        return Image.network(
+          _selectedImagePath!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Icon(Icons.person, size: 50, color: c.textSecondary),
+        );
+      }
+      final file = File(_selectedImagePath!);
+      if (file.existsSync()) {
+        return Image.file(file, fit: BoxFit.cover);
+      }
+    }
+    return Icon(Icons.person, size: 50, color: c.textSecondary);
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
@@ -139,16 +163,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                       ],
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _selectedImagePath != null && File(_selectedImagePath!).existsSync()
-                        ? Image.file(
-                            File(_selectedImagePath!),
-                            fit: BoxFit.cover,
-                          )
-                        : Icon(
-                            Icons.person,
-                            size: 50,
-                            color: c.textSecondary,
-                          ),
+                    child: _buildDialogImage(c),
                   ),
                   Positioned(
                     bottom: 0,
@@ -224,10 +239,20 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                       elevation: 0,
                     ),
                     child: _isLoading 
-                        ? const SizedBox(
-                            width: 20, 
-                            height: 20, 
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(
+                                width: 18, 
+                                height: 18, 
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                "Uploading...",
+                                style: TextStyle(color: Colors.white, fontSize: 11),
+                              ),
+                            ],
                           )
                         : const Text(
                             "Save",

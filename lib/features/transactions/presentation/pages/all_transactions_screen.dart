@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
 import 'package:expense_tracker/features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'package:expense_tracker/features/transactions/presentation/bloc/transaction_event.dart';
+import 'package:expense_tracker/features/transactions/presentation/bloc/transaction_state.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
@@ -12,6 +13,7 @@ import 'package:expense_tracker/features/sync/presentation/pages/sync_options_sh
 import 'package:expense_tracker/features/transactions/presentation/widgets/transaction_filter_bar.dart';
 import 'package:expense_tracker/features/transactions/presentation/widgets/transaction_list_view.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+import 'package:expense_tracker/core/utils/report_generator.dart';
 
 class AllTransactionsScreen extends StatefulWidget {
   const AllTransactionsScreen({super.key});
@@ -119,6 +121,52 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
       elevation: 0,
       centerTitle: true,
       actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.cardGradientStart.withAlpha(90),
+                AppColors.cardGradientEnd,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withAlpha(80),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.download_rounded, color: Colors.white, size: 22),
+            tooltip: 'Export PDF',
+            onPressed: () {
+              final state = context.read<TransactionBloc>().state;
+              if (state is TransactionLoaded) {
+                final filtered = _applyFilters(state.transactions);
+                if (filtered.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No transactions to export.')),
+                  );
+                  return;
+                }
+                ReportGenerator.generateTransactionsReport(
+                  transactions: filtered,
+                  searchQuery: _searchQuery,
+                  activeFilters: _activeFilters,
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Transactions are still loading...')),
+                );
+              }
+            },
+          ),
+        ),
         Container(
           margin: const EdgeInsets.only(right: 12),
           decoration: BoxDecoration(

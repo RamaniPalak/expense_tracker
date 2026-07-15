@@ -105,7 +105,7 @@ class AppStrings {
   static const String errorSubmitFailed = "Failed to save transaction. Please try again.";
 
   // Chatbot
-  static const String geminiApiKey = "AIzaSyCAUzyJhZn2YcVjFlrVmiUD2raFqWYczow";
+  static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
   static const String freeLimitReached =
       "You've reached your free limit of 5 messages. Please upgrade for unlimited AI assistance!";
 }

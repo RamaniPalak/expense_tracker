@@ -13,6 +13,7 @@ import 'package:expense_tracker/features/transactions/data/models/transaction_mo
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class SmsSyncReviewScreen extends StatefulWidget {
   const SmsSyncReviewScreen({super.key});
@@ -180,19 +181,20 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   Widget build(BuildContext context) {
     final filtered = _filtered;
     final allSelected = filtered.isNotEmpty && filtered.every((t) => t.selected);
+    final c = context.appColors;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
+          icon: Icon(Icons.arrow_back_ios, size: 20, color: c.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Bank SMS',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20),
+          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
       ),
@@ -201,9 +203,10 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   }
 
   Widget _buildBody(List<ParsedSmsTransaction> filtered, bool allSelected) {
+    final c = context.appColors;
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
+      return Center(
+        child: CircularProgressIndicator(color: c.primary),
       );
     }
 
@@ -248,32 +251,40 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Text(
-                      'Parsed from bank alerts in SMS history',
+                      'Select which transactions you want to import',
                       style: TextStyle(color: Colors.white70, fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _toggleAll(!allSelected),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(51),
-                    borderRadius: BorderRadius.circular(20),
+              Container(
+                width: 1,
+                height: 32,
+                color: Colors.white.withAlpha(51),
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              Row(
+                children: [
+                  const Text(
+                    'All',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
                   ),
-                  child: Text(
-                    allSelected ? 'Deselect All' : 'Select All',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: allSelected,
+                      activeColor: Colors.white,
+                      checkColor: AppColors.primary,
+                      side: const BorderSide(color: Colors.white, width: 2),
+                      onChanged: _toggleAll,
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -294,17 +305,17 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.white,
+                    color: isSelected ? c.primary : c.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primary
-                          : AppColors.greyLight,
+                          ? c.primary
+                          : c.border,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                                color: AppColors.primary.withAlpha(60),
+                                color: c.primary.withAlpha(60),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3))
                           ]
@@ -314,7 +325,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                     f,
                     style: AppTextStyles.bodySmall.copyWith(
                       color:
-                          isSelected ? Colors.white : AppColors.textPrimary,
+                          isSelected ? Colors.white : c.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -338,17 +349,17 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: t.selected
-                      ? AppColors.selectedAccountBackground
-                      : Colors.white,
+                      ? c.primary.withAlpha(20)
+                      : c.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: t.selected
-                        ? AppColors.primary.withAlpha(100)
-                        : AppColors.greyLight,
+                        ? c.primary.withAlpha(100)
+                        : c.border,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(10),
+                      color: c.shadow,
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -361,11 +372,11 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                   title: Text(
                     t.merchant,
                     style: AppTextStyles.bodyMedium
-                        .copyWith(fontWeight: FontWeight.w600),
+                        .copyWith(fontWeight: FontWeight.w600, color: c.textPrimary),
                   ),
                   subtitle: Text(
                     '${t.bank} • ${t.category} • ${DateFormat('MMM dd, yyyy').format(t.date)}',
-                    style: AppTextStyles.bodySmall.copyWith(fontSize: 12),
+                    style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: c.textSecondary),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -388,13 +399,13 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                           height: 24,
                           decoration: BoxDecoration(
                             color: t.selected
-                                ? AppColors.primary
+                                ? c.primary
                                 : Colors.transparent,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: t.selected
-                                      ? AppColors.primary
-                                      : Colors.grey.shade400,
+                                      ? c.primary
+                                      : c.border,
                               width: 2,
                             ),
                           ),
@@ -416,10 +427,10 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
         Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: c.surface,
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withAlpha(15),
+                  color: c.shadow,
                   blurRadius: 16,
                   offset: const Offset(0, -4))
             ],
@@ -430,8 +441,8 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             child: ElevatedButton(
               onPressed: _selectedCount == 0 ? null : _importSelected,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.greyLight,
+                backgroundColor: c.primary,
+                disabledBackgroundColor: c.divider,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
@@ -450,6 +461,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   }
 
   Widget _buildPermissionWarning() {
+    final c = context.appColors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -458,8 +470,8 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.orange.withAlpha(25),
+              decoration: const BoxDecoration(
+                color: Color(0x40FF9800),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -471,13 +483,13 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             const SizedBox(height: 24),
             Text(
               "SMS Access Required",
-              style: AppTextStyles.heading1.copyWith(fontSize: 22),
+              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               "This app scans your local SMS inbox to identify banking alerts and securely sync your transactions. Please grant SMS permissions.",
-              style: TextStyle(color: Colors.black54, fontSize: 14, height: 1.4),
+              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -492,7 +504,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: c.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -507,6 +519,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   }
 
   Widget _buildEmptyState() {
+    final c = context.appColors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -516,35 +529,35 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(25),
+                color: c.primary.withAlpha(25),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.mark_email_read_outlined,
                 size: 64,
-                color: AppColors.primary,
+                color: c.primary,
               ),
             ),
             const SizedBox(height: 24),
             Text(
               "No Transactions Found",
-              style: AppTextStyles.heading1.copyWith(fontSize: 22),
+              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               "We searched your last 100 inbox SMS messages but couldn't find any transaction alerts from supported banks (SBI, HDFC, ICICI, etc.).",
-              style: TextStyle(color: Colors.black54, fontSize: 14, height: 1.4),
+              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             TextButton.icon(
               onPressed: _fetchSms,
-              icon: const Icon(Icons.refresh, color: AppColors.primary),
-              label: const Text(
+              icon: Icon(Icons.refresh, color: c.primary),
+              label: Text(
                 "Refresh Inbox Scan",
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: c.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),

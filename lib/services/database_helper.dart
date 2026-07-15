@@ -216,7 +216,8 @@ CREATE TABLE bills (
   // Budget Operations
   Future<void> upsertBudget(BudgetModel budget) async {
     final db = await instance.database;
-    // For recurring budgets, we treat category+user as the unique key
+    debugPrint('DatabaseHelper: Upserting budget - Category: ${budget.category}, Amount: ${budget.amount}, Month: ${budget.month}/${budget.year}, Email: ${budget.userEmail}');
+    
     final existing = await db.query(
       'budgets',
       where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
@@ -224,6 +225,7 @@ CREATE TABLE bills (
     );
 
     if (existing.isNotEmpty) {
+      debugPrint('DatabaseHelper: Found existing budget row with ID: ${existing.first['id']}. Updating...');
       await db.update(
         'budgets',
         budget.toMap()..remove('id'),
@@ -231,7 +233,9 @@ CREATE TABLE bills (
         whereArgs: [existing.first['id']],
       );
     } else {
-      await db.insert('budgets', budget.toMap());
+      debugPrint('DatabaseHelper: No existing budget row. Inserting new row...');
+      final newId = await db.insert('budgets', budget.toMap());
+      debugPrint('DatabaseHelper: Inserted new budget row with ID: $newId');
     }
     await refreshBudgets(budget.userEmail);
   }
@@ -250,7 +254,12 @@ CREATE TABLE bills (
 
   Future<void> refreshBudgets(String? email) async {
     if (email == null) return;
-    budgetsNotifier.value = await getBudgets(email);
+    final budgets = await getBudgets(email);
+    debugPrint('DatabaseHelper: Loaded ${budgets.length} budgets for $email');
+    for (var b in budgets) {
+      debugPrint('  Budget - Category: ${b.category}, Amount: ${b.amount}, Month: ${b.month}/${b.year}, ID: ${b.id}');
+    }
+    budgetsNotifier.value = budgets;
   }
 
   Future<void> deleteBudget(int id, String email) async {
