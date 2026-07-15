@@ -49,3 +49,6 @@ app.*.map.json
 
 # Serverpod
 **/bin/server
+
+# Local Secrets
+secrets.json
