@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class IAuthLocalDataSource {
+  Future<bool> hasSeenOnboarding();
+  Future<void> setSeenOnboarding();
   Future<void> cacheSession(String email, String name);
   Future<void> clearSession();
   Future<bool> isLoggedIn();
@@ -22,6 +24,17 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
   static const String _userNameKey = 'userName';
   static const String _userImageKey = 'userImage';
   static const String _isBiometricEnabledKey = 'isBiometricEnabled';
+  static const String _hasSeenOnboardingKey = 'hasSeenOnboarding';
+
+  @override
+  Future<bool> hasSeenOnboarding() async {
+    return sharedPreferences.getBool(_hasSeenOnboardingKey) ?? false;
+  }
+
+  @override
+  Future<void> setSeenOnboarding() async {
+    await sharedPreferences.setBool(_hasSeenOnboardingKey, true);
+  }
 
   @override
   Future<void> cacheSession(String email, String name) async {
@@ -32,7 +45,11 @@ class AuthLocalDataSourceImpl implements IAuthLocalDataSource {
 
   @override
   Future<void> clearSession() async {
-    await sharedPreferences.clear();
+    await sharedPreferences.remove(_isLoggedInKey);
+    await sharedPreferences.remove(_userEmailKey);
+    await sharedPreferences.remove(_userNameKey);
+    await sharedPreferences.remove(_userImageKey);
+    await sharedPreferences.remove(_isBiometricEnabledKey);
   }
 
   @override

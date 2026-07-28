@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "expense_tracker",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file=secrets.json"
+      ]
+    },
+    {
+      "name": "expense_tracker (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "args": [
+        "--dart-define-from-file=secrets.json"
+      ]
+    },
+    {
+      "name": "expense_tracker (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--dart-define-from-file=secrets.json"
+      ]
+    }
+  ]
+}

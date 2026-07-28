@@ -54,8 +54,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       setState(() {
         _userEmail = email;
       });
-      sl<DatabaseHelper>().refreshExpenses(_userEmail);
-      sl<DatabaseHelper>().refreshBudgets(_userEmail);
+      sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
+      sl<DatabaseHelper>().refreshBudgets(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
     }
   }

@@ -40,6 +40,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
   final ValueNotifier<bool> _isIncomeVal = ValueNotifier<bool>(false);
   bool _isScanning = false;
 
+  // Holds the merchant name returned by AI scan (displayed in the success snackbar)
+  String? _scannedMerchantName;
+
+  // Holds the confidence score (0.0–1.0) from the last scan for UI feedback
+  double? _lastScanConfidence;
+
   String? _userEmail;
 
   Future<void> _loadUserEmail() async {
@@ -57,7 +63,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 85,
+      imageQuality: 80,
     );
 
     if (image != null) {
@@ -65,22 +71,80 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
       try {
         final result = await sl<ReceiptOcrDataSource>().scanReceipt(image.path);
 
+        // ── Auto-fill amount ──────────────────────────────────────────────────
         _amountController.text = "₹ ${result.amount.toStringAsFixed(2)}";
+
+        // ── Auto-fill date ────────────────────────────────────────────────────
         _selectedDate.value = result.date;
-        
-        // Ensure the category exists in our list
-        final exists = _currentCategories.any((c) => c['name'] == result.category);
-        if (exists) {
-          _selectedCategoryVal.value = result.category;
+
+        // ── Auto-switch income/expense tab ────────────────────────────────────
+        if (_isIncomeVal.value != result.isIncome) {
+          _isIncomeVal.value = result.isIncome;
+          // Reset category to first item of the new list
+          final newList = result.isIncome
+              ? AddExpenseHelper.incomeCategories
+              : AddExpenseHelper.expenseCategories;
+          _selectedCategoryVal.value = newList[0]['name'];
         }
 
+        // ── Auto-fill category (Smart Domain-Aware Matching) ───────────────────
+        _selectedCategoryVal.value = _mapCategoryNameToAvailable(
+          result.category,
+          _currentCategories,
+        );
+
+        // ── Store merchant name & confidence ──────────────────────────────────
+        _scannedMerchantName =
+            result.title.isNotEmpty ? result.title : null;
+        _lastScanConfidence = result.confidence;
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Receipt scanned successfully!"),
-              backgroundColor: Colors.green,
-            ),
-          );
+          // ── Low-confidence warning ──────────────────────────────────────────
+          if (result.confidence < 0.75) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Low confidence (${(result.confidence * 100).toInt()}%) "
+                        "— please review the filled fields.",
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.orange.shade700,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          } else {
+            // ── Success snackbar with merchant name ───────────────────────────
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline,
+                        color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _scannedMerchantName != null
+                            ? "Scanned: $_scannedMerchantName • ₹${result.amount.toStringAsFixed(2)}"
+                            : "Receipt scanned successfully!",
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green.shade600,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -328,6 +392,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                               context: context,
                               isScanning: _isScanning,
                               onTap: _scanReceipt,
+                              scannedMerchant: _scannedMerchantName,
+                              confidence: _lastScanConfidence,
                             ),
                             const SizedBox(height: 28),
 
@@ -483,5 +549,77 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         ),
       ),
     );
+  }
+
+  String _mapCategoryNameToAvailable(
+      String aiCategory, List<Map<String, dynamic>> categories) {
+    if (categories.isEmpty) return aiCategory;
+    final targetLower = aiCategory.toLowerCase();
+
+    // 1. Exact match
+    for (final c in categories) {
+      if (c['name'] == aiCategory) return c['name'] as String;
+    }
+
+    // 2. Transport / Travel / Ticket / Train / IRCTC mappings → "Automobile / Car"
+    if (targetLower.contains('train') ||
+        targetLower.contains('bus') ||
+        targetLower.contains('ticket') ||
+        targetLower.contains('travel') ||
+        targetLower.contains('flight') ||
+        targetLower.contains('irctc') ||
+        targetLower.contains('gsrtc') ||
+        targetLower.contains('cab') ||
+        targetLower.contains('transport') ||
+        targetLower.contains('auto')) {
+      final autoCat = categories.firstWhere(
+        (c) => (c['name'] as String).contains('Automobile'),
+        orElse: () => <String, dynamic>{},
+      );
+      if (autoCat.isNotEmpty) return autoCat['name'] as String;
+    }
+
+    // 3. Bills / Utilities mapping → "Bills / Utilities"
+    if (targetLower.contains('bill') ||
+        targetLower.contains('utility') ||
+        targetLower.contains('power') ||
+        targetLower.contains('electricity') ||
+        targetLower.contains('water') ||
+        targetLower.contains('recharge')) {
+      final billCat = categories.firstWhere(
+        (c) => (c['name'] as String).contains('Bills'),
+        orElse: () => <String, dynamic>{},
+      );
+      if (billCat.isNotEmpty) return billCat['name'] as String;
+    }
+
+    // 4. Food / Dining mapping → "Food & Dining"
+    if (targetLower.contains('food') ||
+        targetLower.contains('dining') ||
+        targetLower.contains('restaurant') ||
+        targetLower.contains('cafe') ||
+        targetLower.contains('coffee')) {
+      final foodCat = categories.firstWhere(
+        (c) => (c['name'] as String).contains('Food'),
+        orElse: () => <String, dynamic>{},
+      );
+      if (foodCat.isNotEmpty) return foodCat['name'] as String;
+    }
+
+    // 5. Substring keyword matching
+    for (final c in categories) {
+      final catName = (c['name'] as String).toLowerCase();
+      if (catName.contains(targetLower) ||
+          targetLower.contains(catName.split(' ')[0])) {
+        return c['name'] as String;
+      }
+    }
+
+    // 6. Default fallback: prefer "Other" if present, otherwise first item
+    final otherCat = categories.firstWhere(
+      (c) => c['name'] == AppStrings.catOther,
+      orElse: () => categories.first,
+    );
+    return otherCat['name'] as String;
   }
 }

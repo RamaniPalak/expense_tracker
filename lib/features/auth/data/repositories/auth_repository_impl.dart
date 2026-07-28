@@ -31,6 +31,16 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<bool> hasSeenOnboarding() async {
+    return await localDataSource.hasSeenOnboarding();
+  }
+
+  @override
+  Future<void> setSeenOnboarding() async {
+    await localDataSource.setSeenOnboarding();
+  }
+
+  @override
   Future<Either<String, void>> login(String email, String password) async {
     try {
       final user = await remoteDataSource.login(email, password);

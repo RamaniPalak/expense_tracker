@@ -181,24 +181,33 @@ class ChatbotRepositoryImpl implements IChatbotRepository {
         suggestions.add('Show my $mostActiveCategory spending');
       }
 
-      // 5. Default fallbacks to ensure we always have good chips
-      if (suggestions.length < 3) {
-        suggestions.add('Analyze my spending');
-      }
-      if (suggestions.length < 4) {
-        suggestions.add('Monthly summary');
-      }
-      if (suggestions.length < 5) {
-        suggestions.add('Saving tips');
-      }
-    } catch (e) {
-      // Fallback defaults on any error
-      return [
+      // 5. Shuffled fallbacks to ensure chips always rotate and feel fresh
+      final allFallbacks = [
         'Analyze my spending',
         'Monthly summary',
         'Saving tips',
         'Budget health',
+        'Top expense categories',
+        'Financial health check',
+        'Get budget advice',
       ];
+      allFallbacks.shuffle();
+
+      for (final fallback in allFallbacks) {
+        if (suggestions.length >= 5) break;
+        suggestions.add(fallback);
+      }
+    } catch (e) {
+      // Fallback defaults on any error
+      final list = [
+        'Analyze my spending',
+        'Monthly summary',
+        'Saving tips',
+        'Budget health',
+        'Financial health check',
+      ];
+      list.shuffle();
+      return list;
     }
 
     // Return unique set of up to 5 items

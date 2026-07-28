@@ -3,6 +3,11 @@ auth:
   - login:
   - changePassword:
   - updateProfile:
+budgetEntry:
+  - addBudgetEntry:
+  - updateBudgetEntry:
+  - deleteBudgetEntry:
+  - getBudgetEntries:
 expenseEntry:
   - addExpenseEntry:
   - updateExpenseEntry:

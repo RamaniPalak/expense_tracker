@@ -15,7 +15,8 @@ import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:backend_server/src/generated/user.dart' as _i4;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i5;
+import 'package:backend_server/src/generated/budget_entry.dart' as _i5;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i6;
 import 'package:backend_server/src/generated/protocol.dart';
 import 'package:backend_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -104,6 +105,8 @@ void withServerpod(
 class TestEndpoints {
   late final _AuthEndpoint auth;
 
+  late final _BudgetEntryEndpoint budgetEntry;
+
   late final _ExpenseEntryEndpoint expenseEntry;
 }
 
@@ -115,6 +118,10 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.EndpointDispatch endpoints,
   ) {
     auth = _AuthEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    budgetEntry = _BudgetEntryEndpoint(
       endpoints,
       serializationManager,
     );
@@ -268,6 +275,133 @@ class _AuthEndpoint {
   }
 }
 
+class _BudgetEntryEndpoint {
+  _BudgetEntryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i5.BudgetEntry> addBudgetEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i5.BudgetEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'addBudgetEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'addBudgetEntry',
+          parameters: _i1.testObjectToJson({'entry': entry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i5.BudgetEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i5.BudgetEntry> updateBudgetEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i5.BudgetEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'updateBudgetEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'updateBudgetEntry',
+          parameters: _i1.testObjectToJson({'entry': entry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i5.BudgetEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteBudgetEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    int id,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'deleteBudgetEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'deleteBudgetEntry',
+          parameters: _i1.testObjectToJson({'id': id}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i5.BudgetEntry>> getBudgetEntries(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'getBudgetEntries',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'getBudgetEntries',
+          parameters: _i1.testObjectToJson({'userEmail': userEmail}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<List<_i5.BudgetEntry>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _ExpenseEntryEndpoint {
   _ExpenseEntryEndpoint(
     this._endpointDispatch,
@@ -278,9 +412,9 @@ class _ExpenseEntryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i5.ExpenseEntry> addExpenseEntry(
+  _i3.Future<_i6.ExpenseEntry> addExpenseEntry(
     _i1.TestSessionBuilder sessionBuilder,
-    _i5.ExpenseEntry expenseEntry,
+    _i6.ExpenseEntry expenseEntry,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -299,7 +433,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<_i5.ExpenseEntry>);
+        ) as _i3.Future<_i6.ExpenseEntry>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -307,9 +441,9 @@ class _ExpenseEntryEndpoint {
     });
   }
 
-  _i3.Future<_i5.ExpenseEntry> updateExpenseEntry(
+  _i3.Future<_i6.ExpenseEntry> updateExpenseEntry(
     _i1.TestSessionBuilder sessionBuilder,
-    _i5.ExpenseEntry entry,
+    _i6.ExpenseEntry entry,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -328,7 +462,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<_i5.ExpenseEntry>);
+        ) as _i3.Future<_i6.ExpenseEntry>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -365,7 +499,7 @@ class _ExpenseEntryEndpoint {
     });
   }
 
-  _i3.Future<List<_i5.ExpenseEntry>> getExpenseEntries(
+  _i3.Future<List<_i6.ExpenseEntry>> getExpenseEntries(
     _i1.TestSessionBuilder sessionBuilder,
     String userEmail,
   ) async {
@@ -386,7 +520,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<List<_i5.ExpenseEntry>>);
+        ) as _i3.Future<List<_i6.ExpenseEntry>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

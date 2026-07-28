@@ -64,6 +64,13 @@ class AddExpenseHelper {
       "iconColor": const Color(0xFF8B5CF6),
       "icon": Icons.fitness_center_rounded,
     },
+    {
+      "name": AppStrings.catOther,
+      "emoji": "🧩",
+      "color": const Color(0xFFF1F5F9),
+      "iconColor": const Color(0xFF64748B),
+      "icon": Icons.category_rounded,
+    },
   ];
 
   static final List<Map<String, dynamic>> incomeCategories = [
@@ -123,6 +130,13 @@ class AddExpenseHelper {
       "iconColor": const Color(0xFF0EA5E9),
       "icon": Icons.monetization_on_rounded,
     },
+    {
+      "name": AppStrings.catOther,
+      "emoji": "🧩",
+      "color": const Color(0xFFF1F5F9),
+      "iconColor": const Color(0xFF64748B),
+      "icon": Icons.category_rounded,
+    },
   ];
 
   static String getCategoryEmoji(String category) {
@@ -159,6 +173,8 @@ class AddExpenseHelper {
         return "💼";
       case AppStrings.catSellingAssets:
         return "💰";
+      case AppStrings.catOther:
+        return "🧩";
       case "Netflix":
         return "🎬";
       case "Food":
@@ -210,6 +226,8 @@ class AddExpenseHelper {
         return const Color(0xFF22C55E);
       case AppStrings.catSellingAssets:
         return const Color(0xFF0EA5E9);
+      case AppStrings.catOther:
+        return const Color(0xFF64748B);
       case "Netflix":
         return const Color(0xFFFF4B4B);
       case "Food":
@@ -261,6 +279,8 @@ class AddExpenseHelper {
         return const Color(0xFFDCFCE7);
       case AppStrings.catSellingAssets:
         return const Color(0xFFE0F2FE);
+      case AppStrings.catOther:
+        return const Color(0xFFF1F5F9);
       case "Netflix":
         return const Color(0xFFFFEAEA);
       case "Food":
@@ -530,117 +550,208 @@ class AddExpenseHelper {
     required BuildContext context,
     required bool isScanning,
     required VoidCallback onTap,
+    String? scannedMerchant,
+    double? confidence,
   }) {
     final c = context.appColors;
-    return GestureDetector(
-      onTap: isScanning ? null : onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: c.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isScanning ? AppColors.primary : c.border,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: c.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+    final bool hasResult = scannedMerchant != null && !isScanning;
+    final bool isLowConfidence = hasResult && (confidence ?? 1.0) < 0.75;
+
+    // Border color reflects scan state
+    final Color borderColor = isScanning
+        ? AppColors.primary
+        : hasResult
+            ? (isLowConfidence ? Colors.orange.shade400 : Colors.green.shade400)
+            : c.border;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: isScanning ? null : onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: c.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Icon container with dynamic theme support
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: isScanning
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.document_scanner_rounded,
-                      color: AppColors.primary,
-                      size: 22,
-                    ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        isScanning ? "Scanning Receipt..." : "Scan Receipt",
-                        style: TextStyle(
-                          color: c.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          "AI",
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
+            child: Row(
+              children: [
+                // Icon / state indicator
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: hasResult
+                        ? (isLowConfidence
+                            ? Colors.orange.withOpacity(0.12)
+                            : Colors.green.withOpacity(0.12))
+                        : AppColors.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: isScanning
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(AppColors.primary),
                           ),
+                        )
+                      : Icon(
+                          hasResult
+                              ? (isLowConfidence
+                                  ? Icons.warning_amber_rounded
+                                  : Icons.check_circle_outline_rounded)
+                              : Icons.document_scanner_rounded,
+                          color: hasResult
+                              ? (isLowConfidence
+                                  ? Colors.orange.shade600
+                                  : Colors.green.shade600)
+                              : AppColors.primary,
+                          size: 22,
+                        ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            isScanning
+                                ? "Analysing Receipt..."
+                                : hasResult
+                                    ? "Receipt Scanned"
+                                    : "Scan Receipt",
+                            style: TextStyle(
+                              color: c.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              "AI",
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isScanning
+                            ? "Gemini is reading your receipt..."
+                            : hasResult
+                                ? "Tap to re-scan with a different photo"
+                                : "Auto-fill amount, date & category with photo",
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 11,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    isScanning
-                        ? "AI is extracting your data..."
-                        : "Auto-fill amount & date with photo",
-                    style: TextStyle(
+                ),
+                if (!isScanning)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: c.tabBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      hasResult
+                          ? Icons.refresh_rounded
+                          : Icons.camera_alt_rounded,
                       color: c.textSecondary,
-                      fontSize: 11,
+                      size: 18,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        // ── Detected result chip ─────────────────────────────────────────────
+        if (hasResult) ...[
+          const SizedBox(height: 8),
+          AnimatedOpacity(
+            opacity: hasResult ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isLowConfidence
+                    ? Colors.orange.withOpacity(0.1)
+                    : Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isLowConfidence
+                      ? Colors.orange.withOpacity(0.3)
+                      : Colors.green.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isLowConfidence
+                        ? Icons.info_outline_rounded
+                        : Icons.auto_awesome_rounded,
+                    size: 13,
+                    color: isLowConfidence
+                        ? Colors.orange.shade700
+                        : Colors.green.shade700,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      isLowConfidence
+                          ? "Low confidence — please verify the fields above"
+                          : "Detected: $scannedMerchant",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isLowConfidence
+                            ? Colors.orange.shade700
+                            : Colors.green.shade700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
-            if (!isScanning)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: c.tabBg,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.camera_alt_rounded,
-                  color: c.textSecondary,
-                  size: 18,
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+        ],
+      ],
     );
   }
+
 
   static Widget buildDropdownField({
     required BuildContext context,

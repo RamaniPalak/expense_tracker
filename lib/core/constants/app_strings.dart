@@ -108,4 +108,13 @@ class AppStrings {
   static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
   static const String freeLimitReached =
       "You've reached your free limit of 5 messages. Please upgrade for unlimited AI assistance!";
+
+  // Genkit receipt scanning service
+  // For Android emulator (local dev): http://10.0.2.2:3001
+  // For physical device on local network: http://<your-machine-ip>:3001
+  // For production: https://your-deployed-genkit-service-url
+  static const String genkitServiceUrl = String.fromEnvironment(
+    'GENKIT_URL',
+    defaultValue: 'http://10.0.2.2:3001',
+  );
 }

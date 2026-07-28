@@ -1,0 +1,8 @@
+class: BudgetEntry
+table: budget_entry
+fields:
+  category: String
+  amount: double
+  month: int
+  year: int
+  userEmail: String

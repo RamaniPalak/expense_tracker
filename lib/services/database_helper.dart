@@ -6,6 +6,7 @@ import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
 import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
 import 'package:expense_tracker/services/notification_service.dart';
 import 'expense_service.dart';
+import 'budget_service.dart';
 import 'package:backend_client/backend_client.dart';
 
 class DatabaseHelper {
@@ -31,7 +32,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -75,6 +76,9 @@ CREATE TABLE bills (
     if (oldVersion < 6) {
       await db.execute('ALTER TABLE bills ADD COLUMN endDate TEXT');
     }
+    if (oldVersion < 7) {
+      await db.execute('ALTER TABLE budgets ADD COLUMN remoteId INTEGER');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -99,6 +103,7 @@ CREATE TABLE expenses (
     await db.execute('''
 CREATE TABLE budgets (
   id $idType,
+  remoteId INTEGER,
   category $textType,
   amount $realType,
   month $intType,
@@ -224,26 +229,62 @@ CREATE TABLE bills (
       whereArgs: [budget.category, budget.userEmail, budget.month, budget.year],
     );
 
+    int? localId;
+    int? currentRemoteId = budget.remoteId;
+
     if (existing.isNotEmpty) {
-      debugPrint('DatabaseHelper: Found existing budget row with ID: ${existing.first['id']}. Updating...');
+      localId = existing.first['id'] as int;
+      currentRemoteId = currentRemoteId ?? existing.first['remoteId'] as int?;
+      debugPrint('DatabaseHelper: Found existing budget row with ID: $localId. Updating...');
       await db.update(
         'budgets',
         budget.toMap()..remove('id'),
         where: 'id = ?',
-        whereArgs: [existing.first['id']],
+        whereArgs: [localId],
       );
     } else {
       debugPrint('DatabaseHelper: No existing budget row. Inserting new row...');
-      final newId = await db.insert('budgets', budget.toMap());
-      debugPrint('DatabaseHelper: Inserted new budget row with ID: $newId');
+      localId = await db.insert('budgets', budget.toMap());
+      debugPrint('DatabaseHelper: Inserted new budget row with ID: $localId');
     }
+
     await refreshBudgets(budget.userEmail);
+
+    // Sync to remote in background
+    final remoteEntry = BudgetEntry(
+      id: currentRemoteId,
+      category: budget.category,
+      amount: budget.amount,
+      month: budget.month,
+      year: budget.year,
+      userEmail: budget.userEmail,
+    );
+
+    if (currentRemoteId != null) {
+      BudgetService().updateBudget(remoteEntry).catchError((e) {
+        debugPrint("Background update budget remote failed: $e");
+        return null;
+      });
+    } else {
+      BudgetService().addBudget(remoteEntry).then((savedRemote) async {
+        if (savedRemote != null && savedRemote.id != null) {
+          await db.update(
+            'budgets',
+            {'remoteId': savedRemote.id},
+            where: 'id = ?',
+            whereArgs: [localId],
+          );
+          await refreshBudgets(budget.userEmail);
+        }
+      }).catchError((e) {
+        debugPrint("Background add budget remote failed: $e");
+      });
+    }
   }
 
   Future<List<BudgetModel>> getBudgets(String? email) async {
     if (email == null) return [];
     final db = await instance.database;
-    // Get all budgets for this user (each category has one master budget)
     final result = await db.query(
       'budgets',
       where: 'userEmail = ?',
@@ -252,24 +293,103 @@ CREATE TABLE bills (
     return result.map((json) => BudgetModel.fromMap(json)).toList();
   }
 
-  Future<void> refreshBudgets(String? email) async {
+  Future<void> refreshBudgets(String? email, {bool syncFromRemote = false}) async {
     if (email == null) return;
+    
+    // 1. Load local data immediately (Instant Load)
     final budgets = await getBudgets(email);
     debugPrint('DatabaseHelper: Loaded ${budgets.length} budgets for $email');
     for (var b in budgets) {
-      debugPrint('  Budget - Category: ${b.category}, Amount: ${b.amount}, Month: ${b.month}/${b.year}, ID: ${b.id}');
+      debugPrint('  Budget - Category: ${b.category}, Amount: ${b.amount}, Month: ${b.month}/${b.year}, ID: ${b.id}, RemoteID: ${b.remoteId}');
     }
     budgetsNotifier.value = budgets;
+
+    if (syncFromRemote) {
+      // 2. Sync in background to avoid blocking the UI
+      syncBudgetsWithRemote(email).then((_) async {
+        // 3. Refresh with any new remote data
+        budgetsNotifier.value = await getBudgets(email);
+      }).catchError((e) => debugPrint("Background budget sync error: $e"));
+    }
+  }
+
+  Future<void> syncBudgetsWithRemote(String email) async {
+    try {
+      final remoteEntries = await BudgetService().getBudgets(email);
+      final db = await instance.database;
+
+      for (BudgetEntry entry in remoteEntries) {
+        if (entry.id == null) continue;
+
+        // Check if this remote entry already exists locally (by remoteId or matching key)
+        final existing = await db.query(
+          'budgets',
+          where: 'remoteId = ? OR (category = ? AND userEmail = ? AND month = ? AND year = ?)',
+          whereArgs: [entry.id, entry.category, entry.userEmail, entry.month, entry.year],
+        );
+
+        if (existing.isEmpty) {
+          final budget = BudgetModel(
+            remoteId: entry.id,
+            category: entry.category,
+            amount: entry.amount,
+            month: entry.month,
+            year: entry.year,
+            userEmail: entry.userEmail,
+          );
+          await db.insert('budgets', budget.toMap());
+        } else {
+          final localId = existing.first['id'] as int;
+          final budget = BudgetModel(
+            id: localId,
+            remoteId: entry.id,
+            category: entry.category,
+            amount: entry.amount,
+            month: entry.month,
+            year: entry.year,
+            userEmail: entry.userEmail,
+          );
+          await db.update(
+            'budgets',
+            budget.toMap(),
+            where: 'id = ?',
+            whereArgs: [localId],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Budget Sync failed: $e');
+    }
   }
 
   Future<void> deleteBudget(int id, String email) async {
     final db = await instance.database;
+    
+    final existing = await db.query(
+      'budgets',
+      columns: ['remoteId'],
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    
+    int? remoteId;
+    if (existing.isNotEmpty) {
+      remoteId = existing.first['remoteId'] as int?;
+    }
+
     await db.delete(
       'budgets',
       where: 'id = ?',
       whereArgs: [id],
     );
     await refreshBudgets(email);
+
+    if (remoteId != null) {
+      BudgetService().deleteBudget(remoteId).catchError((e) {
+        debugPrint("Background delete budget remote failed: $e");
+        return false;
+      });
+    }
   }
 
   // Bill Operations
@@ -278,14 +398,17 @@ CREATE TABLE bills (
     final id = await db.insert('bills', bill.toMap());
 
     // Schedule notification 1 day before due date at 9 AM
+    // NotificationService.scheduleBillReminder internally checks the
+    // bill-reminder toggle and skips if disabled, so no extra guard needed.
     final dueDate = bill.dueDate;
-    final reminderDate = DateTime(dueDate.year, dueDate.month, dueDate.day, 9, 0)
-        .subtract(const Duration(days: 1));
+    final reminderDate = DateTime(
+      dueDate.year, dueDate.month, dueDate.day, 9, 0,
+    ).subtract(const Duration(days: 1));
 
     await NotificationService.instance.scheduleBillReminder(
       id: id,
-      title: "Upcoming Bill: ${bill.title}",
-      body: "Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.",
+      title: 'Upcoming Bill: ${bill.title}',
+      body: 'Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.',
       scheduledDate: reminderDate,
     );
 
@@ -330,6 +453,29 @@ CREATE TABLE bills (
       where: 'id = ?',
       whereArgs: [bill.id],
     );
+
+    // Reschedule the bill reminder after an edit.
+    // Cancel the old one first (safe even if it never existed).
+    if (bill.id != null) {
+      await NotificationService.instance.cancelNotification(bill.id!);
+
+      // Only reschedule if the bill is still unpaid
+      if (!bill.isPaid) {
+        final dueDate = bill.dueDate;
+        final reminderDate = DateTime(
+          dueDate.year, dueDate.month, dueDate.day, 9, 0,
+        ).subtract(const Duration(days: 1));
+
+        await NotificationService.instance.scheduleBillReminder(
+          id: bill.id!,
+          title: 'Upcoming Bill: ${bill.title}',
+          body:
+              'Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.',
+          scheduledDate: reminderDate,
+        );
+      }
+    }
+
     await refreshBills(bill.userEmail);
   }
 

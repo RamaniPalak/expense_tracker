@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 
 abstract class IAuthRepository {
+  Future<bool> hasSeenOnboarding();
+  Future<void> setSeenOnboarding();
   Future<Either<String, void>> login(String email, String password);
   Future<Either<String, void>> register(String name, String email, String password);
   Future<Either<String, void>> changePassword(String email, String oldPassword, String newPassword);

@@ -3,6 +3,7 @@ import '../../domain/entities/budget_entity.dart';
 class BudgetModel extends BudgetEntity {
   const BudgetModel({
     super.id,
+    super.remoteId,
     required super.category,
     required super.amount,
     required super.month,
@@ -13,6 +14,7 @@ class BudgetModel extends BudgetEntity {
   factory BudgetModel.fromEntity(BudgetEntity entity) {
     return BudgetModel(
       id: entity.id,
+      remoteId: entity.remoteId,
       category: entity.category,
       amount: entity.amount,
       month: entity.month,
@@ -24,6 +26,7 @@ class BudgetModel extends BudgetEntity {
   factory BudgetModel.fromMap(Map<String, dynamic> map) {
     return BudgetModel(
       id: map['id'] as int?,
+      remoteId: map['remoteId'] as int?,
       category: map['category'] as String,
       amount: (map['amount'] as num).toDouble(),
       month: map['month'] as int,
@@ -35,6 +38,7 @@ class BudgetModel extends BudgetEntity {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'remoteId': remoteId,
       'category': category,
       'amount': amount,
       'month': month,

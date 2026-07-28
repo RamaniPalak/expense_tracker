@@ -11,9 +11,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
-import '../endpoints/transaction_endpoint.dart' as _i3;
-import 'package:backend_server/src/generated/user.dart' as _i4;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i5;
+import '../endpoints/budget_endpoint.dart' as _i3;
+import '../endpoints/transaction_endpoint.dart' as _i4;
+import 'package:backend_server/src/generated/user.dart' as _i5;
+import 'package:backend_server/src/generated/budget_entry.dart' as _i6;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i7;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -25,7 +27,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'auth',
           null,
         ),
-      'expenseEntry': _i3.ExpenseEntryEndpoint()
+      'budgetEntry': _i3.BudgetEntryEndpoint()
+        ..initialize(
+          server,
+          'budgetEntry',
+          null,
+        ),
+      'expenseEntry': _i4.ExpenseEntryEndpoint()
         ..initialize(
           server,
           'expenseEntry',
@@ -41,7 +49,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i4.User>(),
+              type: _i1.getType<_i5.User>(),
               nullable: false,
             )
           },
@@ -140,6 +148,88 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['budgetEntry'] = _i1.EndpointConnector(
+      name: 'budgetEntry',
+      endpoint: endpoints['budgetEntry']!,
+      methodConnectors: {
+        'addBudgetEntry': _i1.MethodConnector(
+          name: 'addBudgetEntry',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i6.BudgetEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .addBudgetEntry(
+            session,
+            params['entry'],
+          ),
+        ),
+        'updateBudgetEntry': _i1.MethodConnector(
+          name: 'updateBudgetEntry',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i6.BudgetEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .updateBudgetEntry(
+            session,
+            params['entry'],
+          ),
+        ),
+        'deleteBudgetEntry': _i1.MethodConnector(
+          name: 'deleteBudgetEntry',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .deleteBudgetEntry(
+            session,
+            params['id'],
+          ),
+        ),
+        'getBudgetEntries': _i1.MethodConnector(
+          name: 'getBudgetEntries',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .getBudgetEntries(
+            session,
+            params['userEmail'],
+          ),
+        ),
+      },
+    );
     connectors['expenseEntry'] = _i1.EndpointConnector(
       name: 'expenseEntry',
       endpoint: endpoints['expenseEntry']!,
@@ -149,7 +239,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'expenseEntry': _i1.ParameterDescription(
               name: 'expenseEntry',
-              type: _i1.getType<_i5.ExpenseEntry>(),
+              type: _i1.getType<_i7.ExpenseEntry>(),
               nullable: false,
             )
           },
@@ -157,7 +247,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i3.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
                   .addExpenseEntry(
             session,
             params['expenseEntry'],
@@ -168,7 +258,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'entry': _i1.ParameterDescription(
               name: 'entry',
-              type: _i1.getType<_i5.ExpenseEntry>(),
+              type: _i1.getType<_i7.ExpenseEntry>(),
               nullable: false,
             )
           },
@@ -176,7 +266,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i3.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
                   .updateExpenseEntry(
             session,
             params['entry'],
@@ -195,7 +285,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i3.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
                   .deleteExpenseEntry(
             session,
             params['id'],
@@ -214,7 +304,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i3.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
                   .getExpenseEntries(
             session,
             params['userEmail'],

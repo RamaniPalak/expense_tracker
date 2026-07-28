@@ -56,6 +56,7 @@ class ChatbotBloc extends Bloc<ChatbotEvent, ChatbotState> {
     emit(state.copyWith(
       messages: [...state.messages, newUserMessage],
       status: ChatStatus.loading,
+      suggestions: state.suggestions.where((s) => s != event.text).toList(),
     ));
 
     final result = await repository.sendMessage(event.text, history);
@@ -74,7 +75,7 @@ class ChatbotBloc extends Bloc<ChatbotEvent, ChatbotState> {
               : ChatStatus.success,
           messages: [...state.messages, message],
           messageCount: newCount,
-          suggestions: suggestions,
+          suggestions: suggestions.where((s) => s != event.text).toList(),
         ));
       },
     );

@@ -10,9 +10,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'expense_entry.dart' as _i2;
-import 'user.dart' as _i3;
-import 'package:backend_client/src/protocol/expense_entry.dart' as _i4;
+import 'budget_entry.dart' as _i2;
+import 'expense_entry.dart' as _i3;
+import 'user.dart' as _i4;
+import 'package:backend_client/src/protocol/budget_entry.dart' as _i5;
+import 'package:backend_client/src/protocol/expense_entry.dart' as _i6;
+export 'budget_entry.dart';
 export 'expense_entry.dart';
 export 'user.dart';
 export 'client.dart';
@@ -30,21 +33,31 @@ class Protocol extends _i1.SerializationManager {
     Type? t,
   ]) {
     t ??= T;
-    if (t == _i2.ExpenseEntry) {
-      return _i2.ExpenseEntry.fromJson(data) as T;
+    if (t == _i2.BudgetEntry) {
+      return _i2.BudgetEntry.fromJson(data) as T;
     }
-    if (t == _i3.User) {
-      return _i3.User.fromJson(data) as T;
+    if (t == _i3.ExpenseEntry) {
+      return _i3.ExpenseEntry.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.ExpenseEntry?>()) {
-      return (data != null ? _i2.ExpenseEntry.fromJson(data) : null) as T;
+    if (t == _i4.User) {
+      return _i4.User.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i3.User?>()) {
-      return (data != null ? _i3.User.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i2.BudgetEntry?>()) {
+      return (data != null ? _i2.BudgetEntry.fromJson(data) : null) as T;
     }
-    if (t == List<_i4.ExpenseEntry>) {
+    if (t == _i1.getType<_i3.ExpenseEntry?>()) {
+      return (data != null ? _i3.ExpenseEntry.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i4.User?>()) {
+      return (data != null ? _i4.User.fromJson(data) : null) as T;
+    }
+    if (t == List<_i5.BudgetEntry>) {
+      return (data as List).map((e) => deserialize<_i5.BudgetEntry>(e)).toList()
+          as T;
+    }
+    if (t == List<_i6.ExpenseEntry>) {
       return (data as List)
-          .map((e) => deserialize<_i4.ExpenseEntry>(e))
+          .map((e) => deserialize<_i6.ExpenseEntry>(e))
           .toList() as T;
     }
     return super.deserialize<T>(data, t);
@@ -54,10 +67,13 @@ class Protocol extends _i1.SerializationManager {
   String? getClassNameForObject(Object? data) {
     String? className = super.getClassNameForObject(data);
     if (className != null) return className;
-    if (data is _i2.ExpenseEntry) {
+    if (data is _i2.BudgetEntry) {
+      return 'BudgetEntry';
+    }
+    if (data is _i3.ExpenseEntry) {
       return 'ExpenseEntry';
     }
-    if (data is _i3.User) {
+    if (data is _i4.User) {
       return 'User';
     }
     return null;
@@ -69,11 +85,14 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'BudgetEntry') {
+      return deserialize<_i2.BudgetEntry>(data['data']);
+    }
     if (dataClassName == 'ExpenseEntry') {
-      return deserialize<_i2.ExpenseEntry>(data['data']);
+      return deserialize<_i3.ExpenseEntry>(data['data']);
     }
     if (dataClassName == 'User') {
-      return deserialize<_i3.User>(data['data']);
+      return deserialize<_i4.User>(data['data']);
     }
     return super.deserializeByClassName(data);
   }

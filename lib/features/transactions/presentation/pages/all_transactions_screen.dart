@@ -121,76 +121,98 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
       elevation: 0,
       centerTitle: true,
       actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.cardGradientStart.withAlpha(90),
-                AppColors.cardGradientEnd,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(80),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+        Center(
+          child: Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.cardGradientStart.withAlpha(90),
+                  AppColors.cardGradientEnd,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.download_rounded, color: Colors.white, size: 22),
-            tooltip: 'Export PDF',
-            onPressed: () {
-              final state = context.read<TransactionBloc>().state;
-              if (state is TransactionLoaded) {
-                final filtered = _applyFilters(state.transactions);
-                if (filtered.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No transactions to export.')),
-                  );
-                  return;
-                }
-                ReportGenerator.generateTransactionsReport(
-                  transactions: filtered,
-                  searchQuery: _searchQuery,
-                  activeFilters: _activeFilters,
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Transactions are still loading...')),
-                );
-              }
-            },
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(50),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  final state = context.read<TransactionBloc>().state;
+                  if (state is TransactionLoaded) {
+                    final filtered = _applyFilters(state.transactions);
+                    if (filtered.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No transactions to export.')),
+                      );
+                      return;
+                    }
+                    ReportGenerator.generateTransactionsReport(
+                      transactions: filtered,
+                      searchQuery: _searchQuery,
+                      activeFilters: _activeFilters,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Transactions are still loading...')),
+                    );
+                  }
+                },
+                child: const Tooltip(
+                  message: 'Export PDF',
+                  child: Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(Icons.download_rounded, color: Colors.white, size: 16),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.only(right: 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.cardGradientStart.withAlpha(90),
-                AppColors.cardGradientEnd,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(80),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+        Center(
+          child: Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.cardGradientStart.withAlpha(90),
+                  AppColors.cardGradientEnd,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.sync_rounded, color: Colors.white, size: 22),
-            tooltip: 'Sync Transactions',
-            onPressed: () => SyncOptionsSheet.show(context),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(50),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => SyncOptionsSheet.show(context),
+                child: const Tooltip(
+                  message: 'Sync Transactions',
+                  child: Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(Icons.sync_rounded, color: Colors.white, size: 16),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],

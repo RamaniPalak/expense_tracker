@@ -48,7 +48,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
       setState(() {
         _userEmail = email;
       });
-      sl<DatabaseHelper>().refreshBudgets(_userEmail);
+      sl<DatabaseHelper>().refreshBudgets(_userEmail, syncFromRemote: true);
     }
   }
 

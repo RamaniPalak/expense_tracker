@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/services/auth_service.dart';
 import 'package:expense_tracker/services/expense_service.dart';
+import 'package:expense_tracker/services/budget_service.dart';
 import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:expense_tracker/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
@@ -32,6 +33,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DatabaseHelper.instance);
   sl.registerLazySingleton(() => AuthService());
   sl.registerLazySingleton(() => ExpenseService());
+  sl.registerLazySingleton(() => BudgetService());
 
   // ── Auth DataSources ───────────────────────────────────────────────────────
   sl.registerLazySingleton<IAuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
@@ -42,8 +44,12 @@ Future<void> init() async {
   sl.registerLazySingleton<ChatbotRemoteDataSource>(
     () => ChatbotRemoteDataSourceImpl(apiKey: AppStrings.geminiApiKey),
   );
+  // ── Receipt OCR ────────────────────────────────────────────────────────────
+  // 🧪 TESTING: DirectGeminiReceiptOcrDataSourceImpl — calls Gemini directly,
+  //    no npm/Node.js/Docker needed. Uses the same GEMINI_API_KEY as the chatbot.
+  // 🚀 PRODUCTION: swap back to GenkitReceiptOcrDataSourceImpl() for API key security.
   sl.registerLazySingleton<ReceiptOcrDataSource>(
-    () => ReceiptOcrDataSourceImpl(),
+    () => DirectGeminiReceiptOcrDataSourceImpl(apiKey: AppStrings.geminiApiKey),
   );
 
   // ── Repositories ───────────────────────────────────────────────────────────

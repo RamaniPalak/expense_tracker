@@ -31,14 +31,20 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (isLoggedIn) {
-      final isBiometricEnabled = await sl<IAuthRepository>().isBiometricEnabled();
+      final isBiometricEnabled = await authRepo.isBiometricEnabled();
       if (isBiometricEnabled) {
         await _handleBiometricAuth();
       } else {
         context.go(RoutePaths.home);
       }
     } else {
-      context.go(RoutePaths.onboarding);
+      final hasSeenOnboarding = await authRepo.hasSeenOnboarding();
+      if (!mounted) return;
+      if (hasSeenOnboarding) {
+        context.go(RoutePaths.login);
+      } else {
+        context.go(RoutePaths.onboarding);
+      }
     }
   }
 

@@ -21,7 +21,9 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
       'You are a personal financial assistant for an expense tracker app. '
       'Be concise and friendly. Focus on budgeting, spending analysis, and '
       'financial advice. Use the user transaction and budget data provided '
-      'to give personalized, practical insights. Keep responses under 200 words.';
+      'to give personalized, practical insights. Keep responses under 200 words. '
+      'Avoid raw markdown characters. Do not use asterisks (*) for lists or bold text. '
+      'Use bullet points (•) for list items, and standard capitalization for emphasis.';
 
   ChatbotRemoteDataSourceImpl({required String apiKey}) : _apiKey = apiKey;
 
@@ -61,34 +63,43 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
     // Inject financial context as the first user turn (model acknowledges it)
     contents.add({
       'role': 'user',
-      'parts': [{
-        'text': 'Financial context (for your reference only, do not repeat it):\n$context'
-      }],
+      'parts': [
+        {
+          'text':
+              'Financial context (for your reference only, do not repeat it):\n$context'
+        }
+      ],
     });
     contents.add({
       'role': 'model',
-      'parts': [{
-        'text': 'Understood. I have your financial data and am ready to help.'
-      }],
+      'parts': [
+        {'text': 'Understood. I have your financial data and am ready to help.'}
+      ],
     });
 
     // Append previous conversation turns
     for (final msg in history) {
       contents.add({
         'role': msg.isUser ? 'user' : 'model',
-        'parts': [{'text': msg.text}],
+        'parts': [
+          {'text': msg.text}
+        ],
       });
     }
 
     // Append the current user message
     contents.add({
       'role': 'user',
-      'parts': [{'text': text}],
+      'parts': [
+        {'text': text}
+      ],
     });
 
     final body = jsonEncode({
       'system_instruction': {
-        'parts': [{'text': _systemInstruction}],
+        'parts': [
+          {'text': _systemInstruction}
+        ],
       },
       'contents': contents,
       'generationConfig': {
@@ -139,15 +150,18 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
         log('Gemini API Error [$modelName - ${response.statusCode}]: $apiMessage');
 
         if (response.statusCode == 401 || response.statusCode == 403) {
-          friendlyMessage = 'API key is invalid or has been revoked. Please check your configuration.';
+          friendlyMessage =
+              'API key is invalid or has been revoked. Please check your configuration.';
         } else if (response.statusCode == 429) {
           friendlyMessage = 'AI quota exceeded. Please try again in a few minutes.';
         } else if (response.statusCode == 503) {
-          friendlyMessage = 'The AI model is currently overloaded. Please try again shortly.';
+          friendlyMessage =
+              'The AI model is currently overloaded. Please try again shortly.';
         } else if (response.statusCode == 400) {
           friendlyMessage = 'Bad request: $apiMessage';
         } else if (response.statusCode >= 500) {
-          friendlyMessage = 'Gemini AI service is temporarily unavailable. Try again later.';
+          friendlyMessage =
+              'Gemini AI service is temporarily unavailable. Try again later.';
         } else {
           friendlyMessage = 'AI error (${response.statusCode}): $apiMessage';
         }

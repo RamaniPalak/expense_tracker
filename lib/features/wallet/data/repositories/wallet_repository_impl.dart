@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/entities/budget_entity.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
 import '../models/budget_model.dart';
@@ -13,29 +14,7 @@ class WalletRepositoryImpl implements IWalletRepository {
   Future<Either<String, void>> upsertBudget(BudgetEntity budget) async {
     try {
       final model = BudgetModel.fromEntity(budget);
-      final db = await databaseHelper.database;
-
-      // Category + userEmail + month + year as unique key for budgets
-      final existing = await db.query(
-        'budgets',
-        where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
-        whereArgs: [model.category, model.userEmail, model.month, model.year],
-      );
-
-      if (existing.isNotEmpty) {
-        await db.update(
-          'budgets',
-          model.toMap()..remove('id'),
-          where: 'id = ?',
-          whereArgs: [existing.first['id']],
-        );
-      } else {
-        await db.insert('budgets', model.toMap());
-      }
-
-      // Trigger refresh on the helper's notifier for backward compatibility during migration
-      databaseHelper.refreshBudgets(model.userEmail);
-
+      await databaseHelper.upsertBudget(model);
       return const Right(null);
     } catch (e) {
       return Left(e.toString());
@@ -47,15 +26,14 @@ class WalletRepositoryImpl implements IWalletRepository {
     if (email == null) return const Left("User email is null");
 
     try {
-      final db = await databaseHelper.database;
-      final result = await db.query(
-        'budgets',
-        where: 'userEmail = ?',
-        whereArgs: [email],
+      final localData = await databaseHelper.getBudgets(email);
+      
+      // Perform background sync from remote server
+      databaseHelper.refreshBudgets(email, syncFromRemote: true).catchError(
+        (e) => debugPrint("Background budget load sync failed: $e"),
       );
 
-      final budgets = result.map((json) => BudgetModel.fromMap(json)).toList();
-      return Right(budgets);
+      return Right(localData);
     } catch (e) {
       return Left(e.toString());
     }
