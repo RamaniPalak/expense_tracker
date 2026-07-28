@@ -22,7 +22,7 @@ class ApiClient {
     
     const String baseUrl = useLocalBackend
         ? 'http://localhost:8080/' // Note: use 'http://10.0.2.2:8080/' if testing on Android Emulator
-        : 'https://expense-tracker-backend.onrender.com/'; 
+        : 'https://expense-tracker-2.onrender.com/'; 
     
     client = Client(
       baseUrl,
