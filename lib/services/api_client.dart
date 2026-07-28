@@ -22,14 +22,14 @@ class ApiClient {
     
     const String baseUrl = useLocalBackend
         ? 'http://localhost:8080/' // Note: use 'http://10.0.2.2:8080/' if testing on Android Emulator
-        : 'https://expensetracker-production-49bd.up.railway.app/'; 
+        : 'https://expense-tracker-backend.onrender.com/'; 
     
     client = Client(
       baseUrl,
       authenticationKeyManager: FlutterAuthenticationKeyManager(),
-      // Railway always-on — no cold starts, so 15s timeout is sufficient.
-      connectionTimeout: const Duration(seconds: 15),
-      streamingConnectionTimeout: const Duration(seconds: 15),
+      // Render free tier sleeps after 15 min — first request may take ~30-50s to wake up.
+      connectionTimeout: const Duration(seconds: 60),
+      streamingConnectionTimeout: const Duration(seconds: 60),
     )..connectivityMonitor = FlutterConnectivityMonitor();
   }
 }
