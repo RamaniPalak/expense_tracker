@@ -13,11 +13,18 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:serverpod/protocol.dart' as _i2;
 import 'budget_entry.dart' as _i3;
 import 'expense_entry.dart' as _i4;
-import 'user.dart' as _i5;
-import 'package:backend_server/src/generated/budget_entry.dart' as _i6;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i7;
+import 'goal_contribution_entry.dart' as _i5;
+import 'goal_entry.dart' as _i6;
+import 'user.dart' as _i7;
+import 'package:backend_server/src/generated/budget_entry.dart' as _i8;
+import 'package:backend_server/src/generated/goal_entry.dart' as _i9;
+import 'package:backend_server/src/generated/goal_contribution_entry.dart'
+    as _i10;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i11;
 export 'budget_entry.dart';
 export 'expense_entry.dart';
+export 'goal_contribution_entry.dart';
+export 'goal_entry.dart';
 export 'user.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -159,6 +166,185 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
+      name: 'goal_contribution_entry',
+      dartName: 'GoalContributionEntry',
+      schema: 'public',
+      module: 'backend',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault:
+              'nextval(\'goal_contribution_entry_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'goalId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'amount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'date',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'note',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'type',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'userEmail',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'goal_contribution_entry_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            )
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        )
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'goal_entry',
+      dartName: 'GoalEntry',
+      schema: 'public',
+      module: 'backend',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'goal_entry_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'title',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'targetAmount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'currentAmount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'targetDate',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'iconCode',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'colorValue',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'category',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'userEmail',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'priority',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'status',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'productUrl',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'autoDepositAmount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'autoDepositDay',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'goal_entry_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            )
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        )
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
       name: 'user_info',
       dartName: 'User',
       schema: 'public',
@@ -248,8 +434,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i4.ExpenseEntry) {
       return _i4.ExpenseEntry.fromJson(data) as T;
     }
-    if (t == _i5.User) {
-      return _i5.User.fromJson(data) as T;
+    if (t == _i5.GoalContributionEntry) {
+      return _i5.GoalContributionEntry.fromJson(data) as T;
+    }
+    if (t == _i6.GoalEntry) {
+      return _i6.GoalEntry.fromJson(data) as T;
+    }
+    if (t == _i7.User) {
+      return _i7.User.fromJson(data) as T;
     }
     if (t == _i1.getType<_i3.BudgetEntry?>()) {
       return (data != null ? _i3.BudgetEntry.fromJson(data) : null) as T;
@@ -257,16 +449,32 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i4.ExpenseEntry?>()) {
       return (data != null ? _i4.ExpenseEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i5.User?>()) {
-      return (data != null ? _i5.User.fromJson(data) : null) as T;
-    }
-    if (t == List<_i6.BudgetEntry>) {
-      return (data as List).map((e) => deserialize<_i6.BudgetEntry>(e)).toList()
+    if (t == _i1.getType<_i5.GoalContributionEntry?>()) {
+      return (data != null ? _i5.GoalContributionEntry.fromJson(data) : null)
           as T;
     }
-    if (t == List<_i7.ExpenseEntry>) {
+    if (t == _i1.getType<_i6.GoalEntry?>()) {
+      return (data != null ? _i6.GoalEntry.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.User?>()) {
+      return (data != null ? _i7.User.fromJson(data) : null) as T;
+    }
+    if (t == List<_i8.BudgetEntry>) {
+      return (data as List).map((e) => deserialize<_i8.BudgetEntry>(e)).toList()
+          as T;
+    }
+    if (t == List<_i9.GoalEntry>) {
+      return (data as List).map((e) => deserialize<_i9.GoalEntry>(e)).toList()
+          as T;
+    }
+    if (t == List<_i10.GoalContributionEntry>) {
       return (data as List)
-          .map((e) => deserialize<_i7.ExpenseEntry>(e))
+          .map((e) => deserialize<_i10.GoalContributionEntry>(e))
+          .toList() as T;
+    }
+    if (t == List<_i11.ExpenseEntry>) {
+      return (data as List)
+          .map((e) => deserialize<_i11.ExpenseEntry>(e))
           .toList() as T;
     }
     try {
@@ -285,7 +493,13 @@ class Protocol extends _i1.SerializationManagerServer {
     if (data is _i4.ExpenseEntry) {
       return 'ExpenseEntry';
     }
-    if (data is _i5.User) {
+    if (data is _i5.GoalContributionEntry) {
+      return 'GoalContributionEntry';
+    }
+    if (data is _i6.GoalEntry) {
+      return 'GoalEntry';
+    }
+    if (data is _i7.User) {
       return 'User';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -307,8 +521,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'ExpenseEntry') {
       return deserialize<_i4.ExpenseEntry>(data['data']);
     }
+    if (dataClassName == 'GoalContributionEntry') {
+      return deserialize<_i5.GoalContributionEntry>(data['data']);
+    }
+    if (dataClassName == 'GoalEntry') {
+      return deserialize<_i6.GoalEntry>(data['data']);
+    }
     if (dataClassName == 'User') {
-      return deserialize<_i5.User>(data['data']);
+      return deserialize<_i7.User>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -330,8 +550,12 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i3.BudgetEntry.t;
       case _i4.ExpenseEntry:
         return _i4.ExpenseEntry.t;
-      case _i5.User:
-        return _i5.User.t;
+      case _i5.GoalContributionEntry:
+        return _i5.GoalContributionEntry.t;
+      case _i6.GoalEntry:
+        return _i6.GoalEntry.t;
+      case _i7.User:
+        return _i7.User.t;
     }
     return null;
   }

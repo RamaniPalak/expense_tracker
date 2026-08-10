@@ -1,0 +1,16 @@
+class: GoalEntry
+table: goal_entry
+fields:
+  title: String
+  targetAmount: double
+  currentAmount: double
+  targetDate: DateTime
+  iconCode: int
+  colorValue: int
+  category: String
+  userEmail: String
+  priority: String
+  status: String
+  productUrl: String?
+  autoDepositAmount: double
+  autoDepositDay: int

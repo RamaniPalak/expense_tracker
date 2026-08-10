@@ -9,6 +9,7 @@ import 'package:expense_tracker/features/goals/data/models/goal_contribution_mod
 import 'package:expense_tracker/services/notification_service.dart';
 import 'expense_service.dart';
 import 'budget_service.dart';
+import 'goal_service.dart';
 import 'package:backend_client/backend_client.dart';
 import 'package:flutter/material.dart';
 
@@ -37,7 +38,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 10,
+      version: 11,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -131,6 +132,10 @@ CREATE TABLE goal_contributions (
       await db.execute("ALTER TABLE goals ADD COLUMN autoDepositAmount REAL DEFAULT 0.0");
       await db.execute("ALTER TABLE goals ADD COLUMN autoDepositDay INTEGER DEFAULT 1");
     }
+    if (oldVersion < 11) {
+      await db.execute("ALTER TABLE goals ADD COLUMN remoteId INTEGER");
+      await db.execute("ALTER TABLE goal_contributions ADD COLUMN remoteId INTEGER");
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -194,6 +199,7 @@ CREATE TABLE categories (
     await db.execute('''
 CREATE TABLE goals (
   id $idType,
+  remoteId INTEGER,
   title $textType,
   targetAmount $realType,
   currentAmount REAL NOT NULL DEFAULT 0.0,
@@ -213,6 +219,7 @@ CREATE TABLE goals (
     await db.execute('''
 CREATE TABLE goal_contributions (
   id $idType,
+  remoteId INTEGER,
   goalId $intType,
   amount $realType,
   date $textType,
@@ -672,7 +679,30 @@ CREATE TABLE goal_contributions (
 
   Future<int> insertGoal(GoalModel goal) async {
     final db = await instance.database;
-    final id = await db.insert('goals', goal.toMap());
+
+    GoalEntry? remoteEntry;
+    try {
+      remoteEntry = await GoalService().addGoal(GoalEntry(
+        title: goal.title,
+        targetAmount: goal.targetAmount,
+        currentAmount: goal.currentAmount,
+        targetDate: goal.targetDate,
+        iconCode: goal.iconCode,
+        colorValue: goal.colorValue,
+        category: goal.category,
+        userEmail: goal.userEmail,
+        priority: goal.priority,
+        status: goal.status,
+        productUrl: goal.productUrl,
+        autoDepositAmount: goal.autoDepositAmount,
+        autoDepositDay: goal.autoDepositDay,
+      ));
+    } catch (e) {
+      debugPrint("Remote addGoal error: $e");
+    }
+
+    final goalToSave = remoteEntry?.id != null ? goal.copyWith(remoteId: remoteEntry!.id) : goal;
+    final id = await db.insert('goals', goalToSave.toMap());
     await refreshGoals(goal.userEmail);
     return id;
   }
@@ -689,9 +719,98 @@ CREATE TABLE goal_contributions (
     return result.map((json) => GoalModel.fromMap(json)).toList();
   }
 
-  Future<void> refreshGoals(String? email) async {
+  Future<void> refreshGoals(String? email, {bool syncFromRemote = false}) async {
     if (email == null) return;
     goalsNotifier.value = await getGoals(email);
+
+    if (syncFromRemote) {
+      syncGoalsWithRemote(email).then((_) async {
+        goalsNotifier.value = await getGoals(email);
+      }).catchError((e) => debugPrint("Background goals sync error: $e"));
+    }
+  }
+
+  Future<void> syncGoalsWithRemote(String email) async {
+    try {
+      final remoteGoals = await GoalService().getGoals(email);
+      final remoteContributions = await GoalService().getGoalContributions(email);
+      final db = await instance.database;
+
+      for (GoalEntry entry in remoteGoals) {
+        if (entry.id == null) continue;
+
+        final existing = await db.query(
+          'goals',
+          where: 'remoteId = ? OR (userEmail = ? AND title = ?)',
+          whereArgs: [entry.id, email, entry.title],
+        );
+
+        if (existing.isEmpty) {
+          final goal = GoalModel(
+            remoteId: entry.id,
+            title: entry.title,
+            targetAmount: entry.targetAmount,
+            currentAmount: entry.currentAmount,
+            targetDate: entry.targetDate,
+            iconCode: entry.iconCode,
+            colorValue: entry.colorValue,
+            category: entry.category,
+            userEmail: entry.userEmail,
+            priority: entry.priority,
+            status: entry.status,
+            productUrl: entry.productUrl,
+            autoDepositAmount: entry.autoDepositAmount,
+            autoDepositDay: entry.autoDepositDay,
+          );
+          await db.insert('goals', goal.toMap());
+        } else {
+          final localId = existing.first['id'] as int;
+          final updatedGoal = GoalModel(
+            id: localId,
+            remoteId: entry.id,
+            title: entry.title,
+            targetAmount: entry.targetAmount,
+            currentAmount: entry.currentAmount,
+            targetDate: entry.targetDate,
+            iconCode: entry.iconCode,
+            colorValue: entry.colorValue,
+            category: entry.category,
+            userEmail: entry.userEmail,
+            priority: entry.priority,
+            status: entry.status,
+            productUrl: entry.productUrl,
+            autoDepositAmount: entry.autoDepositAmount,
+            autoDepositDay: entry.autoDepositDay,
+          );
+          await db.update('goals', updatedGoal.toMap(), where: 'id = ?', whereArgs: [localId]);
+        }
+      }
+
+      for (GoalContributionEntry contrib in remoteContributions) {
+        if (contrib.id == null) continue;
+
+        final existing = await db.query(
+          'goal_contributions',
+          where: 'remoteId = ?',
+          whereArgs: [contrib.id],
+        );
+
+        if (existing.isEmpty) {
+          final contribution = GoalContributionModel(
+            remoteId: contrib.id,
+            goalId: contrib.goalId,
+            amount: contrib.amount,
+            date: contrib.date,
+            note: contrib.note,
+            type: contrib.type,
+            userEmail: contrib.userEmail,
+          );
+          await db.insert('goal_contributions', contribution.toMap());
+        }
+      }
+    } catch (e) {
+      debugPrint('Goals sync failed: $e');
+    }
   }
 
   Future<void> updateGoal(GoalModel goal) async {
@@ -702,11 +821,48 @@ CREATE TABLE goal_contributions (
       where: 'id = ?',
       whereArgs: [goal.id],
     );
+
+    if (goal.remoteId != null) {
+      try {
+        await GoalService().updateGoal(GoalEntry(
+          id: goal.remoteId,
+          title: goal.title,
+          targetAmount: goal.targetAmount,
+          currentAmount: goal.currentAmount,
+          targetDate: goal.targetDate,
+          iconCode: goal.iconCode,
+          colorValue: goal.colorValue,
+          category: goal.category,
+          userEmail: goal.userEmail,
+          priority: goal.priority,
+          status: goal.status,
+          productUrl: goal.productUrl,
+          autoDepositAmount: goal.autoDepositAmount,
+          autoDepositDay: goal.autoDepositDay,
+        ));
+      } catch (e) {
+        debugPrint("Remote updateGoal error: $e");
+      }
+    }
+
     await refreshGoals(goal.userEmail);
   }
 
   Future<void> deleteGoal(int id, String? email) async {
     final db = await instance.database;
+
+    final rows = await db.query('goals', where: 'id = ?', whereArgs: [id]);
+    if (rows.isNotEmpty) {
+      final goal = GoalModel.fromMap(rows.first);
+      if (goal.remoteId != null) {
+        try {
+          await GoalService().deleteGoal(goal.remoteId!);
+        } catch (e) {
+          debugPrint("Remote deleteGoal error: $e");
+        }
+      }
+    }
+
     await db.delete('goals', where: 'id = ?', whereArgs: [id]);
     await db.delete('goal_contributions', where: 'goalId = ?', whereArgs: [id]);
     await refreshGoals(email);
@@ -714,7 +870,34 @@ CREATE TABLE goal_contributions (
 
   Future<void> insertGoalContribution(GoalContributionModel contribution) async {
     final db = await instance.database;
-    await db.insert('goal_contributions', contribution.toMap());
+
+    GoalContributionEntry? remoteContrib;
+    try {
+      remoteContrib = await GoalService().addGoalContribution(GoalContributionEntry(
+        goalId: contribution.goalId,
+        amount: contribution.amount,
+        date: contribution.date,
+        note: contribution.note,
+        type: contribution.type,
+        userEmail: contribution.userEmail,
+      ));
+    } catch (e) {
+      debugPrint("Remote addGoalContribution error: $e");
+    }
+
+    final contribToSave = remoteContrib?.id != null
+        ? GoalContributionModel(
+            goalId: contribution.goalId,
+            amount: contribution.amount,
+            date: contribution.date,
+            note: contribution.note,
+            type: contribution.type,
+            userEmail: contribution.userEmail,
+            remoteId: remoteContrib!.id,
+          )
+        : contribution;
+
+    await db.insert('goal_contributions', contribToSave.toMap());
 
     // Update goal current amount & status
     final goalRows = await db.query('goals', where: 'id = ?', whereArgs: [contribution.goalId]);
@@ -746,6 +929,19 @@ CREATE TABLE goal_contributions (
 
   Future<void> deleteGoalContribution(int contributionId, int goalId, double amount, String type, String? email) async {
     final db = await instance.database;
+
+    final rows = await db.query('goal_contributions', where: 'id = ?', whereArgs: [contributionId]);
+    if (rows.isNotEmpty) {
+      final contrib = GoalContributionModel.fromMap(rows.first);
+      if (contrib.remoteId != null) {
+        try {
+          await GoalService().deleteGoalContribution(contrib.remoteId!);
+        } catch (e) {
+          debugPrint("Remote deleteGoalContribution error: $e");
+        }
+      }
+    }
+
     await db.delete('goal_contributions', where: 'id = ?', whereArgs: [contributionId]);
 
     // Revert goal amount & status

@@ -12,10 +12,14 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
 import '../endpoints/budget_endpoint.dart' as _i3;
-import '../endpoints/transaction_endpoint.dart' as _i4;
-import 'package:backend_server/src/generated/user.dart' as _i5;
-import 'package:backend_server/src/generated/budget_entry.dart' as _i6;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i7;
+import '../endpoints/goal_endpoint.dart' as _i4;
+import '../endpoints/transaction_endpoint.dart' as _i5;
+import 'package:backend_server/src/generated/user.dart' as _i6;
+import 'package:backend_server/src/generated/budget_entry.dart' as _i7;
+import 'package:backend_server/src/generated/goal_entry.dart' as _i8;
+import 'package:backend_server/src/generated/goal_contribution_entry.dart'
+    as _i9;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i10;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -33,7 +37,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'budgetEntry',
           null,
         ),
-      'expenseEntry': _i4.ExpenseEntryEndpoint()
+      'goalEntry': _i4.GoalEntryEndpoint()
+        ..initialize(
+          server,
+          'goalEntry',
+          null,
+        ),
+      'expenseEntry': _i5.ExpenseEntryEndpoint()
         ..initialize(
           server,
           'expenseEntry',
@@ -49,7 +59,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i5.User>(),
+              type: _i1.getType<_i6.User>(),
               nullable: false,
             )
           },
@@ -157,7 +167,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'entry': _i1.ParameterDescription(
               name: 'entry',
-              type: _i1.getType<_i6.BudgetEntry>(),
+              type: _i1.getType<_i7.BudgetEntry>(),
               nullable: false,
             )
           },
@@ -176,7 +186,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'entry': _i1.ParameterDescription(
               name: 'entry',
-              type: _i1.getType<_i6.BudgetEntry>(),
+              type: _i1.getType<_i7.BudgetEntry>(),
               nullable: false,
             )
           },
@@ -230,6 +240,141 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['goalEntry'] = _i1.EndpointConnector(
+      name: 'goalEntry',
+      endpoint: endpoints['goalEntry']!,
+      methodConnectors: {
+        'addGoalEntry': _i1.MethodConnector(
+          name: 'addGoalEntry',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i8.GoalEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).addGoalEntry(
+            session,
+            params['entry'],
+          ),
+        ),
+        'updateGoalEntry': _i1.MethodConnector(
+          name: 'updateGoalEntry',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i8.GoalEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).updateGoalEntry(
+            session,
+            params['entry'],
+          ),
+        ),
+        'deleteGoalEntry': _i1.MethodConnector(
+          name: 'deleteGoalEntry',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).deleteGoalEntry(
+            session,
+            params['id'],
+          ),
+        ),
+        'getGoalEntries': _i1.MethodConnector(
+          name: 'getGoalEntries',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).getGoalEntries(
+            session,
+            params['userEmail'],
+          ),
+        ),
+        'addGoalContribution': _i1.MethodConnector(
+          name: 'addGoalContribution',
+          params: {
+            'entry': _i1.ParameterDescription(
+              name: 'entry',
+              type: _i1.getType<_i9.GoalContributionEntry>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+                  .addGoalContribution(
+            session,
+            params['entry'],
+          ),
+        ),
+        'deleteGoalContribution': _i1.MethodConnector(
+          name: 'deleteGoalContribution',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+                  .deleteGoalContribution(
+            session,
+            params['id'],
+          ),
+        ),
+        'getGoalContributions': _i1.MethodConnector(
+          name: 'getGoalContributions',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+                  .getGoalContributions(
+            session,
+            params['userEmail'],
+          ),
+        ),
+      },
+    );
     connectors['expenseEntry'] = _i1.EndpointConnector(
       name: 'expenseEntry',
       endpoint: endpoints['expenseEntry']!,
@@ -239,7 +384,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'expenseEntry': _i1.ParameterDescription(
               name: 'expenseEntry',
-              type: _i1.getType<_i7.ExpenseEntry>(),
+              type: _i1.getType<_i10.ExpenseEntry>(),
               nullable: false,
             )
           },
@@ -247,7 +392,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
                   .addExpenseEntry(
             session,
             params['expenseEntry'],
@@ -258,7 +403,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'entry': _i1.ParameterDescription(
               name: 'entry',
-              type: _i1.getType<_i7.ExpenseEntry>(),
+              type: _i1.getType<_i10.ExpenseEntry>(),
               nullable: false,
             )
           },
@@ -266,7 +411,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
                   .updateExpenseEntry(
             session,
             params['entry'],
@@ -285,7 +430,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
                   .deleteExpenseEntry(
             session,
             params['id'],
@@ -304,7 +449,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i4.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
                   .getExpenseEntries(
             session,
             params['userEmail'],

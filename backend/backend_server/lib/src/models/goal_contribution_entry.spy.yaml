@@ -1,0 +1,9 @@
+class: GoalContributionEntry
+table: goal_contribution_entry
+fields:
+  goalId: int
+  amount: double
+  date: DateTime
+  note: String?
+  type: String
+  userEmail: String

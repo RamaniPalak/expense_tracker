@@ -8,6 +8,14 @@ budgetEntry:
   - updateBudgetEntry:
   - deleteBudgetEntry:
   - getBudgetEntries:
+goalEntry:
+  - addGoalEntry:
+  - updateGoalEntry:
+  - deleteGoalEntry:
+  - getGoalEntries:
+  - addGoalContribution:
+  - deleteGoalContribution:
+  - getGoalContributions:
 expenseEntry:
   - addExpenseEntry:
   - updateExpenseEntry:

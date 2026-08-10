@@ -16,7 +16,10 @@ import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:backend_server/src/generated/user.dart' as _i4;
 import 'package:backend_server/src/generated/budget_entry.dart' as _i5;
-import 'package:backend_server/src/generated/expense_entry.dart' as _i6;
+import 'package:backend_server/src/generated/goal_entry.dart' as _i6;
+import 'package:backend_server/src/generated/goal_contribution_entry.dart'
+    as _i7;
+import 'package:backend_server/src/generated/expense_entry.dart' as _i8;
 import 'package:backend_server/src/generated/protocol.dart';
 import 'package:backend_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -107,6 +110,8 @@ class TestEndpoints {
 
   late final _BudgetEntryEndpoint budgetEntry;
 
+  late final _GoalEntryEndpoint goalEntry;
+
   late final _ExpenseEntryEndpoint expenseEntry;
 }
 
@@ -122,6 +127,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     budgetEntry = _BudgetEntryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    goalEntry = _GoalEntryEndpoint(
       endpoints,
       serializationManager,
     );
@@ -402,6 +411,220 @@ class _BudgetEntryEndpoint {
   }
 }
 
+class _GoalEntryEndpoint {
+  _GoalEntryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i6.GoalEntry> addGoalEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i6.GoalEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'addGoalEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'addGoalEntry',
+          parameters: _i1.testObjectToJson({'entry': entry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i6.GoalEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.GoalEntry> updateGoalEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i6.GoalEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'updateGoalEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'updateGoalEntry',
+          parameters: _i1.testObjectToJson({'entry': entry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i6.GoalEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteGoalEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    int id,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'deleteGoalEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'deleteGoalEntry',
+          parameters: _i1.testObjectToJson({'id': id}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i6.GoalEntry>> getGoalEntries(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'getGoalEntries',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'getGoalEntries',
+          parameters: _i1.testObjectToJson({'userEmail': userEmail}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<List<_i6.GoalEntry>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i7.GoalContributionEntry> addGoalContribution(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i7.GoalContributionEntry entry,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'addGoalContribution',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'addGoalContribution',
+          parameters: _i1.testObjectToJson({'entry': entry}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<_i7.GoalContributionEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteGoalContribution(
+    _i1.TestSessionBuilder sessionBuilder,
+    int id,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'deleteGoalContribution',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'deleteGoalContribution',
+          parameters: _i1.testObjectToJson({'id': id}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i7.GoalContributionEntry>> getGoalContributions(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'goalEntry',
+        method: 'getGoalContributions',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'goalEntry',
+          methodName: 'getGoalContributions',
+          parameters: _i1.testObjectToJson({'userEmail': userEmail}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<List<_i7.GoalContributionEntry>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _ExpenseEntryEndpoint {
   _ExpenseEntryEndpoint(
     this._endpointDispatch,
@@ -412,9 +635,9 @@ class _ExpenseEntryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.ExpenseEntry> addExpenseEntry(
+  _i3.Future<_i8.ExpenseEntry> addExpenseEntry(
     _i1.TestSessionBuilder sessionBuilder,
-    _i6.ExpenseEntry expenseEntry,
+    _i8.ExpenseEntry expenseEntry,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -433,7 +656,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<_i6.ExpenseEntry>);
+        ) as _i3.Future<_i8.ExpenseEntry>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -441,9 +664,9 @@ class _ExpenseEntryEndpoint {
     });
   }
 
-  _i3.Future<_i6.ExpenseEntry> updateExpenseEntry(
+  _i3.Future<_i8.ExpenseEntry> updateExpenseEntry(
     _i1.TestSessionBuilder sessionBuilder,
-    _i6.ExpenseEntry entry,
+    _i8.ExpenseEntry entry,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -462,7 +685,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<_i6.ExpenseEntry>);
+        ) as _i3.Future<_i8.ExpenseEntry>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -499,7 +722,7 @@ class _ExpenseEntryEndpoint {
     });
   }
 
-  _i3.Future<List<_i6.ExpenseEntry>> getExpenseEntries(
+  _i3.Future<List<_i8.ExpenseEntry>> getExpenseEntries(
     _i1.TestSessionBuilder sessionBuilder,
     String userEmail,
   ) async {
@@ -520,7 +743,7 @@ class _ExpenseEntryEndpoint {
         var _localReturnValue = await (_localCallContext.method.call(
           _localUniqueSession,
           _localCallContext.arguments,
-        ) as _i3.Future<List<_i6.ExpenseEntry>>);
+        ) as _i3.Future<List<_i8.ExpenseEntry>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

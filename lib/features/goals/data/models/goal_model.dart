@@ -1,5 +1,6 @@
 class GoalModel {
   final int? id;
+  final int? remoteId;
   final String title;
   final double targetAmount;
   final double currentAmount;
@@ -16,6 +17,7 @@ class GoalModel {
 
   GoalModel({
     this.id,
+    this.remoteId,
     required this.title,
     required this.targetAmount,
     this.currentAmount = 0.0,
@@ -74,6 +76,7 @@ class GoalModel {
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
+      if (remoteId != null) 'remoteId': remoteId,
       'title': title,
       'targetAmount': targetAmount,
       'currentAmount': currentAmount,
@@ -93,6 +96,7 @@ class GoalModel {
   factory GoalModel.fromMap(Map<String, dynamic> map) {
     return GoalModel(
       id: map['id'] as int?,
+      remoteId: map['remoteId'] as int?,
       title: map['title'] as String,
       targetAmount: (map['targetAmount'] as num).toDouble(),
       currentAmount: (map['currentAmount'] as num?)?.toDouble() ?? 0.0,
@@ -111,6 +115,7 @@ class GoalModel {
 
   GoalModel copyWith({
     int? id,
+    int? remoteId,
     String? title,
     double? targetAmount,
     double? currentAmount,
@@ -127,6 +132,7 @@ class GoalModel {
   }) {
     return GoalModel(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       title: title ?? this.title,
       targetAmount: targetAmount ?? this.targetAmount,
       currentAmount: currentAmount ?? this.currentAmount,

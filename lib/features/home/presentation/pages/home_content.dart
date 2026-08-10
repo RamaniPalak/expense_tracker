@@ -59,7 +59,7 @@ class _HomeContentState extends State<HomeContent> {
       // Initial sync from remote on load
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
-      sl<DatabaseHelper>().refreshGoals(_userEmail);
+      sl<DatabaseHelper>().refreshGoals(_userEmail, syncFromRemote: true);
     }
   }
 

@@ -1,5 +1,6 @@
 class GoalContributionModel {
   final int? id;
+  final int? remoteId;
   final int goalId;
   final double amount;
   final DateTime date;
@@ -9,6 +10,7 @@ class GoalContributionModel {
 
   GoalContributionModel({
     this.id,
+    this.remoteId,
     required this.goalId,
     required this.amount,
     required this.date,
@@ -22,6 +24,7 @@ class GoalContributionModel {
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
+      if (remoteId != null) 'remoteId': remoteId,
       'goalId': goalId,
       'amount': amount,
       'date': date.toIso8601String(),
@@ -34,6 +37,7 @@ class GoalContributionModel {
   factory GoalContributionModel.fromMap(Map<String, dynamic> map) {
     return GoalContributionModel(
       id: map['id'] as int?,
+      remoteId: map['remoteId'] as int?,
       goalId: map['goalId'] as int,
       amount: (map['amount'] as num).toDouble(),
       date: DateTime.parse(map['date'] as String),

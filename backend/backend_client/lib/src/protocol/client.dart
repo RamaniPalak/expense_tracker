@@ -13,8 +13,11 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:backend_client/src/protocol/user.dart' as _i3;
 import 'package:backend_client/src/protocol/budget_entry.dart' as _i4;
-import 'package:backend_client/src/protocol/expense_entry.dart' as _i5;
-import 'protocol.dart' as _i6;
+import 'package:backend_client/src/protocol/goal_entry.dart' as _i5;
+import 'package:backend_client/src/protocol/goal_contribution_entry.dart'
+    as _i6;
+import 'package:backend_client/src/protocol/expense_entry.dart' as _i7;
+import 'protocol.dart' as _i8;
 
 /// {@category Endpoint}
 class EndpointAuth extends _i1.EndpointRef {
@@ -109,21 +112,79 @@ class EndpointBudgetEntry extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointGoalEntry extends _i1.EndpointRef {
+  EndpointGoalEntry(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'goalEntry';
+
+  _i2.Future<_i5.GoalEntry> addGoalEntry(_i5.GoalEntry entry) =>
+      caller.callServerEndpoint<_i5.GoalEntry>(
+        'goalEntry',
+        'addGoalEntry',
+        {'entry': entry},
+      );
+
+  _i2.Future<_i5.GoalEntry> updateGoalEntry(_i5.GoalEntry entry) =>
+      caller.callServerEndpoint<_i5.GoalEntry>(
+        'goalEntry',
+        'updateGoalEntry',
+        {'entry': entry},
+      );
+
+  _i2.Future<bool> deleteGoalEntry(int id) => caller.callServerEndpoint<bool>(
+        'goalEntry',
+        'deleteGoalEntry',
+        {'id': id},
+      );
+
+  _i2.Future<List<_i5.GoalEntry>> getGoalEntries(String userEmail) =>
+      caller.callServerEndpoint<List<_i5.GoalEntry>>(
+        'goalEntry',
+        'getGoalEntries',
+        {'userEmail': userEmail},
+      );
+
+  _i2.Future<_i6.GoalContributionEntry> addGoalContribution(
+          _i6.GoalContributionEntry entry) =>
+      caller.callServerEndpoint<_i6.GoalContributionEntry>(
+        'goalEntry',
+        'addGoalContribution',
+        {'entry': entry},
+      );
+
+  _i2.Future<bool> deleteGoalContribution(int id) =>
+      caller.callServerEndpoint<bool>(
+        'goalEntry',
+        'deleteGoalContribution',
+        {'id': id},
+      );
+
+  _i2.Future<List<_i6.GoalContributionEntry>> getGoalContributions(
+          String userEmail) =>
+      caller.callServerEndpoint<List<_i6.GoalContributionEntry>>(
+        'goalEntry',
+        'getGoalContributions',
+        {'userEmail': userEmail},
+      );
+}
+
+/// {@category Endpoint}
 class EndpointExpenseEntry extends _i1.EndpointRef {
   EndpointExpenseEntry(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'expenseEntry';
 
-  _i2.Future<_i5.ExpenseEntry> addExpenseEntry(_i5.ExpenseEntry expenseEntry) =>
-      caller.callServerEndpoint<_i5.ExpenseEntry>(
+  _i2.Future<_i7.ExpenseEntry> addExpenseEntry(_i7.ExpenseEntry expenseEntry) =>
+      caller.callServerEndpoint<_i7.ExpenseEntry>(
         'expenseEntry',
         'addExpenseEntry',
         {'expenseEntry': expenseEntry},
       );
 
-  _i2.Future<_i5.ExpenseEntry> updateExpenseEntry(_i5.ExpenseEntry entry) =>
-      caller.callServerEndpoint<_i5.ExpenseEntry>(
+  _i2.Future<_i7.ExpenseEntry> updateExpenseEntry(_i7.ExpenseEntry entry) =>
+      caller.callServerEndpoint<_i7.ExpenseEntry>(
         'expenseEntry',
         'updateExpenseEntry',
         {'entry': entry},
@@ -136,8 +197,8 @@ class EndpointExpenseEntry extends _i1.EndpointRef {
         {'id': id},
       );
 
-  _i2.Future<List<_i5.ExpenseEntry>> getExpenseEntries(String userEmail) =>
-      caller.callServerEndpoint<List<_i5.ExpenseEntry>>(
+  _i2.Future<List<_i7.ExpenseEntry>> getExpenseEntries(String userEmail) =>
+      caller.callServerEndpoint<List<_i7.ExpenseEntry>>(
         'expenseEntry',
         'getExpenseEntries',
         {'userEmail': userEmail},
@@ -160,7 +221,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
           host,
-          _i6.Protocol(),
+          _i8.Protocol(),
           securityContext: securityContext,
           authenticationKeyManager: authenticationKeyManager,
           streamingConnectionTimeout: streamingConnectionTimeout,
@@ -172,6 +233,7 @@ class Client extends _i1.ServerpodClientShared {
         ) {
     auth = EndpointAuth(this);
     budgetEntry = EndpointBudgetEntry(this);
+    goalEntry = EndpointGoalEntry(this);
     expenseEntry = EndpointExpenseEntry(this);
   }
 
@@ -179,12 +241,15 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointBudgetEntry budgetEntry;
 
+  late final EndpointGoalEntry goalEntry;
+
   late final EndpointExpenseEntry expenseEntry;
 
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
         'auth': auth,
         'budgetEntry': budgetEntry,
+        'goalEntry': goalEntry,
         'expenseEntry': expenseEntry,
       };
 
