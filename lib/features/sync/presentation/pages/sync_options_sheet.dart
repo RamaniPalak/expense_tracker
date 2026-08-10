@@ -62,7 +62,7 @@ class SyncOptionsSheet extends StatelessWidget {
                 child: _SyncOptionCard(
                   icon: Icons.sms_outlined,
                   title: 'Bank SMS',
-                  subtitle: 'Auto-read bank messages',
+                  subtitle: 'Bank SMS alerts',
                   badge: 'Android',
                   badgeColor: AppColors.incomeGreen,
                   gradientColors: const [
@@ -75,12 +75,30 @@ class SyncOptionsSheet extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _SyncOptionCard(
+                  icon: Icons.email_outlined,
+                  title: 'Email Sync',
+                  subtitle: 'Bank email alerts',
+                  badge: 'OAuth/IMAP',
+                  badgeColor: const Color(0xFF9C27B0),
+                  gradientColors: const [
+                    Color(0xFF8E24AA),
+                    Color(0xFF512DA8),
+                  ],
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(RoutePaths.emailSyncReview);
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: _SyncOptionCard(
                   icon: Icons.upload_file_outlined,
                   title: 'Import File',
-                  subtitle: 'Upload PDF or CSV file',
+                  subtitle: 'PDF / CSV statement',
                   badge: 'All Devices',
                   badgeColor: const Color(0xFF5B8DEF),
                   gradientColors: const [

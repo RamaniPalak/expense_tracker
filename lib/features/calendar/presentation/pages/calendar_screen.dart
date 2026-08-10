@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
@@ -44,6 +46,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _userEmail = email;
       });
       sl<DatabaseHelper>().refreshExpenses(_userEmail);
+    }
+  }
+
+  Future<void> _editTransaction(TransactionModel tx) async {
+    final updated = await context.push<bool>(RoutePaths.addExpense, extra: tx);
+    if (updated == true || true) {
+      sl<DatabaseHelper>().refreshExpenses(_userEmail);
+    }
+  }
+
+  Future<void> _confirmDeleteTransaction(TransactionModel tx) async {
+    final c = context.appColors;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Delete Transaction?', style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "${tx.title}" (₹${tx.amount.toStringAsFixed(2)})?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: c.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed, foregroundColor: Colors.white),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && tx.id != null) {
+      await sl<DatabaseHelper>().deleteExpense(tx.id!, _userEmail);
     }
   }
 
@@ -170,7 +207,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 );
                 for (var tx in displayTransactions) {
-                  listItems.add(CalendarTransactionTile(tx: tx));
+                  listItems.add(
+                    CalendarTransactionTile(
+                      tx: tx,
+                      onEdit: () => _editTransaction(tx),
+                      onDelete: () => _confirmDeleteTransaction(tx),
+                    ),
+                  );
                 }
               } else {
                 DateTime? lastDate;
@@ -192,7 +235,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     );
                     lastDate = txDate;
                   }
-                  listItems.add(CalendarTransactionTile(tx: tx));
+                  listItems.add(
+                    CalendarTransactionTile(
+                      tx: tx,
+                      onEdit: () => _editTransaction(tx),
+                      onDelete: () => _confirmDeleteTransaction(tx),
+                    ),
+                  );
                 }
               }
             }
@@ -201,7 +250,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 // Header (Title & INR Badge)
                 Padding(
-                  padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 8),
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -216,7 +265,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       // INR Badge Chip (static as currency is Rupee)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(100),
@@ -224,7 +273,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         child: Text(
                           "INR (₹)",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
@@ -236,15 +285,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // Selector Navigation Row (< Name >)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 20),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 18),
                         onPressed: () => _navigateOffset(-1),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => showCalendarViewModeSheet(
                           context: context,
@@ -267,19 +316,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   ? DateFormat('MMMM yyyy').format(_currentMonthYear)
                                   : "$_currentYear",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 22),
+                            const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 20),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 20),
+                        icon: const Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 18),
                         onPressed: () => _navigateOffset(1),
                       ),
                     ],
@@ -289,8 +338,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 // Calendar Grid Container
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: _viewMode == "Year" ? 6 : 12,
+                    horizontal: 16,
+                    vertical: _viewMode == "Year" ? 2 : 4,
                   ),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
@@ -325,12 +374,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Expanded(
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(left: 24, right: 24, top: 20),
+                    padding: const EdgeInsets.only(left: 18, right: 18, top: 12),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF0F132B) : const Color(0xFFF9FAFC),
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -347,12 +396,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           expense: totalExpense,
                           savings: totalSavings,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
                         
-                        // Transaction List
+                        // Transaction List with bottom padding so items aren't hidden by bottom bar
                         Expanded(
                           child: ListView(
-                            padding: EdgeInsets.zero,
+                            padding: const EdgeInsets.only(bottom: 100),
                             children: listItems,
                           ),
                         ),

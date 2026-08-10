@@ -247,6 +247,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               }
                             },
                           ),
+                          _buildMenuItem(
+                            icon: Icons.category_outlined,
+                            title: "Categories",
+                            subtitle: "Add, edit or delete expense & income categories",
+                            color: Colors.teal,
+                            onTap: () {
+                              context.push(RoutePaths.editCategories);
+                            },
+                          ),
                           _buildDivider(),
                           _buildMenuItem(
                             icon: Icons.lock_outline_rounded,

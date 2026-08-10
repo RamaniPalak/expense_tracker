@@ -19,8 +19,14 @@ import 'package:expense_tracker/features/bills/presentation/pages/bill_detail_sc
 import 'package:expense_tracker/features/bills/presentation/pages/add_edit_bill_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/sms_sync_review_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/file_sync_review_screen.dart';
+import 'package:expense_tracker/features/sync/presentation/pages/email_sync_review_screen.dart';
 import 'package:expense_tracker/features/sync/presentation/pages/sync_success_screen.dart';
 import 'package:expense_tracker/features/statistics/presentation/pages/category_breakdown_screen.dart';
+import 'package:expense_tracker/features/categories/presentation/pages/edit_categories_screen.dart';
+import 'package:expense_tracker/features/goals/presentation/pages/goals_dashboard_screen.dart';
+import 'package:expense_tracker/features/goals/presentation/pages/add_edit_goal_screen.dart';
+import 'package:expense_tracker/features/goals/presentation/pages/goal_detail_screen.dart';
+import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
 
 part 'route_paths.dart';
 
@@ -212,6 +218,26 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: RoutePaths.emailSyncReview,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const EmailSyncReviewScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
         path: RoutePaths.syncSuccess,
         parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (context, state) {
@@ -247,6 +273,73 @@ class AppRouter {
               );
             },
             transitionDuration: const Duration(milliseconds: 500),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.editCategories,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const EditCategoriesScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.goals,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const GoalsDashboardScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.addEditGoal,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final goal = state.extra as GoalModel?;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: AddEditGoalScreen(goal: goal),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.0, 1.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.goalDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final goal = state.extra as GoalModel;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: GoalDetailScreen(goal: goal),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
           );
         },
       ),

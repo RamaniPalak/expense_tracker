@@ -50,8 +50,12 @@ class AuthRepositoryImpl implements IAuthRepository {
         return const Right(null);
       }
       return const Left("Login failed: Invalid credentials");
-    } catch (e) {
-      return Left(_friendlyError(e));
+    } catch (e, st) {
+      print('=== AUTH LOGIN ERROR ===');
+      print('Error: $e');
+      print('Stacktrace: $st');
+      print('========================');
+      return Left('Login Error: ${e.toString()}');
     }
   }
 

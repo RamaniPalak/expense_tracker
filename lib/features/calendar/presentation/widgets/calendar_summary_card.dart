@@ -20,15 +20,15 @@ class CalendarSummaryCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF121B35) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: c.shadow,
-            blurRadius: 15,
-            offset: const Offset(0, 6),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -68,20 +68,21 @@ class CalendarSummaryCard extends StatelessWidget {
   }) {
     final c = context.appColors;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 11,
             color: c.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 3),
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: valueColor,
           ),
@@ -94,7 +95,7 @@ class CalendarSummaryCard extends StatelessWidget {
     final c = context.appColors;
     return Container(
       width: 1,
-      height: 40,
+      height: 30,
       color: c.divider.withValues(alpha: 0.5),
     );
   }

@@ -11,7 +11,16 @@ abstract class IAuthRemoteDataSource {
 class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
   @override
   Future<User?> login(String email, String password) async {
-    return await apiClient.client.auth.login(email, password);
+    try {
+      return await apiClient.client.auth.login(email, password);
+    } catch (e, st) {
+      print('=== REMOTE DATASOURCE LOGIN EXCEPTION ===');
+      print('Exception: $e');
+      print('Type: ${e.runtimeType}');
+      print('Stack: $st');
+      print('========================================');
+      rethrow;
+    }
   }
 
   @override

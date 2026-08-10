@@ -16,8 +16,13 @@ class RoutePaths {
   static const String bills = '/bills';
   static const String smsSyncReview = '/sync/sms';
   static const String fileSyncReview = '/sync/file';
+  static const String emailSyncReview = '/sync/email';
   static const String syncSuccess = '/sync/success';
   static const String categoryBreakdown = '/category-breakdown';
   static const String billDetail = '/bill-detail';
   static const String addEditBill = '/add-edit-bill';
+  static const String editCategories = '/edit-categories';
+  static const String goals = '/goals';
+  static const String addEditGoal = '/goals/add-edit';
+  static const String goalDetail = '/goals/detail';
 }

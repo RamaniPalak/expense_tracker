@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
-import 'package:expense_tracker/features/transactions/presentation/widgets/add_expense_helper.dart';
+import 'package:expense_tracker/features/categories/data/models/category_model.dart';
+import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
+import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:go_router/go_router.dart';
+import 'package:expense_tracker/routing/app_router.dart';
 
 class SelectCategoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -19,16 +24,36 @@ class SelectCategoryScreen extends StatefulWidget {
 
 class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
   late String _tempSelected;
+  List<CategoryModel> _categories = [];
+  bool _isLoading = true;
+  String? _userEmail;
 
   @override
   void initState() {
     super.initState();
     _tempSelected = widget.selectedCategory;
+    _loadUserAndCategories();
   }
 
-  List<Map<String, dynamic>> get _categories => widget.isIncome
-      ? AddExpenseHelper.incomeCategories
-      : AddExpenseHelper.expenseCategories;
+  Future<void> _loadUserAndCategories() async {
+    final email = await sl<IAuthRepository>().getUserEmail();
+    if (mounted) {
+      _userEmail = email ?? '';
+      await _fetchCategories();
+    }
+  }
+
+  Future<void> _fetchCategories() async {
+    if (_userEmail == null) return;
+    setState(() => _isLoading = true);
+    final list = await DatabaseHelper.instance.getCategories(_userEmail!, isIncome: widget.isIncome);
+    if (mounted) {
+      setState(() {
+        _categories = list;
+        _isLoading = false;
+      });
+    }
+  }
 
   Widget _buildCheckbox(BuildContext context, bool isSelected) {
     final primary = context.appColors.primary;
@@ -78,7 +103,7 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -104,98 +129,113 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 36), // Offset balance
+                  GestureDetector(
+                    onTap: () async {
+                      await context.push(RoutePaths.editCategories);
+                      _fetchCategories();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: c.card,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.settings_outlined,
+                        color: c.textPrimary,
+                        size: 18,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
 
             // Scrollable List of Categories inside a Card
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: c.card,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _categories.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 24,
-                      color: c.divider.withValues(alpha: 0.5),
-                    ),
-                    itemBuilder: (context, index) {
-                      final category = _categories[index];
-                      final isSelected = category['name'] == _tempSelected;
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator(color: c.primary))
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: c.card,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _categories.length,
+                          separatorBuilder: (context, index) => Divider(
+                            height: 24,
+                            color: c.divider.withOpacity(0.5),
+                          ),
+                          itemBuilder: (context, index) {
+                            final category = _categories[index];
+                            final isSelected = category.name == _tempSelected;
 
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          setState(() {
-                            _tempSelected = category['name'];
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              // Icon container with pastel background
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: category['color'],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    category['emoji'] ?? "🏷️",
-                                    style: const TextStyle(fontSize: 22),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() {
+                                  _tempSelected = category.name;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      category['name'],
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: c.textPrimary,
+                                    // Icon container with pastel background
+                                    Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        color: category.color.withOpacity(0.18),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          category.emoji,
+                                          style: const TextStyle(fontSize: 22),
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    const Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      color: Color(0xFF94A3B8),
-                                      size: 18,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        category.name,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: c.textPrimary,
+                                        ),
+                                      ),
                                     ),
+                                    _buildCheckbox(context, isSelected),
                                   ],
                                 ),
                               ),
-                              _buildCheckbox(context, isSelected),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+                      ),
+                    ),
             ),
 
             // Confirm Button

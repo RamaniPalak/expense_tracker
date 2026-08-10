@@ -1,3 +1,6 @@
+// BACKUP OF ORIGINAL HOME CONTENT (Created before Premium UI Redesign)
+// Keep this file intact as requested by the user.
+
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
 import 'package:expense_tracker/services/database_helper.dart';
@@ -13,16 +16,15 @@ import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/common_widgets/glass_container.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
-import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
 
-class HomeContent extends StatefulWidget {
-  const HomeContent({super.key});
+class HomeContentBackup extends StatefulWidget {
+  const HomeContentBackup({super.key});
 
   @override
-  State<HomeContent> createState() => _HomeContentState();
+  State<HomeContentBackup> createState() => _HomeContentBackupState();
 }
 
-class _HomeContentState extends State<HomeContent> {
+class _HomeContentBackupState extends State<HomeContentBackup> {
   String? _userEmail;
   String? _userName;
 
@@ -35,7 +37,6 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload name every time this tab becomes active (e.g., after profile edit)
     _reloadUserName();
   }
 
@@ -56,14 +57,11 @@ class _HomeContentState extends State<HomeContent> {
         _userEmail = email;
         _userName = name;
       });
-      // Initial sync from remote on load
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
-      sl<DatabaseHelper>().refreshGoals(_userEmail);
     }
   }
 
-  /// Returns the best display name: saved name → email prefix → fallback.
   String _getDisplayName() {
     if (_userName != null && _userName!.isNotEmpty) return _userName!;
     if (_userEmail != null && _userEmail!.isNotEmpty) {
@@ -82,14 +80,11 @@ class _HomeContentState extends State<HomeContent> {
       children: [
         Column(
           children: [
-
-            // Header Stack (Fixed)
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // Curved Background
                 ClipPath(
-                  clipper: HeaderClipper(),
+                  clipper: HeaderClipperBackup(),
                   child: Container(
                     height: 250,
                     width: double.infinity,
@@ -169,7 +164,6 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Balance Card
                       ValueListenableBuilder<List<TransactionModel>>(
                         valueListenable: sl<DatabaseHelper>().expensesNotifier,
                         builder: (context, expenses, _) {
@@ -332,7 +326,6 @@ class _HomeContentState extends State<HomeContent> {
               ],
             ),
 
-            // Scrollable part
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
@@ -340,101 +333,6 @@ class _HomeContentState extends State<HomeContent> {
                   color: c.background,
                   child: Column(
                     children: [
-                    const SizedBox(height: 20),
-
-                    // Savings Goals Quick Access Card
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: ValueListenableBuilder<List<GoalModel>>(
-                        valueListenable: sl<DatabaseHelper>().goalsNotifier,
-                        builder: (context, goals, _) {
-                          final totalTarget = goals.fold<double>(0, (sum, g) => sum + g.targetAmount);
-                          final totalSaved = goals.fold<double>(0, (sum, g) => sum + g.currentAmount);
-                          final progress = totalTarget > 0 ? (totalSaved / totalTarget).clamp(0.0, 1.0) : 0.0;
-                          final percent = (progress * 100).toInt();
-
-                          return GestureDetector(
-                            onTap: () => context.push(RoutePaths.goals),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: c.border),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: c.shadow,
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withAlpha(25),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: const Icon(Icons.savings_rounded, color: AppColors.primary, size: 24),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              'Savings Goals',
-                                              style: AppTextStyles.bodyMedium.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: c.textPrimary,
-                                              ),
-                                            ),
-                                            Text(
-                                              goals.isEmpty ? 'Set Goal' : '$percent% Saved',
-                                              style: AppTextStyles.bodySmall.copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          goals.isEmpty
-                                              ? 'Create target buckets for emergency or shopping'
-                                              : 'Saved ₹${totalSaved.toStringAsFixed(0)} of ₹${totalTarget.toStringAsFixed(0)} (${goals.length} goals)',
-                                          style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 11),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(4),
-                                          child: LinearProgressIndicator(
-                                            value: progress,
-                                            minHeight: 5,
-                                            backgroundColor: c.border.withAlpha(80),
-                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: c.textSecondary),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -519,13 +417,12 @@ class _HomeContentState extends State<HomeContent> {
             ),
           ],
         ),
-        // Chatbot Floating Entry Point
         Positioned(
           bottom: 100,
           right: 24,
           child: FloatingActionButton(
             mini: true,
-            heroTag: 'chatbot_fab',
+            heroTag: 'chatbot_fab_backup',
             onPressed: () => context.push(RoutePaths.chatbot),
             backgroundColor: AppColors.primary,
             child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
@@ -535,10 +432,9 @@ class _HomeContentState extends State<HomeContent> {
     ),
     );
   }
-
 }
 
-class HeaderClipper extends CustomClipper<Path> {
+class HeaderClipperBackup extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();

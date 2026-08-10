@@ -25,8 +25,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(seconds: 2))
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))
       ..repeat(reverse: true);
 
     _offsetAnimation = Tween<Offset>(
@@ -73,8 +72,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: Stack(
         children: [
           CustomPaint(
-            size: Size(MediaQuery.of(context).size.width,
-                MediaQuery.of(context).size.height),
+            size: Size(
+                MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
             painter: BackgroundPainter(),
           ),
           SafeArea(
@@ -102,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     ],
                   ),
                 ),
-                
+
                 // PageView
                 Expanded(
                   child: PageView(
@@ -128,10 +127,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       // Page Indicators
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_numPages, (index) => _buildPageIndicator(index)),
+                        children: List.generate(
+                            _numPages, (index) => _buildPageIndicator(index)),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Action Button
                       PrimaryButton(
                         text: _currentPage == _numPages - 1 ? "Get Started" : "Next",
@@ -147,7 +147,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         },
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Already have account logic
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -256,7 +256,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       Align(
                         alignment: Alignment.centerRight,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.tabBackground,
                             borderRadius: const BorderRadius.only(
@@ -278,7 +279,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           decoration: const BoxDecoration(
                             gradient: AppColors.mainGradient,
                             borderRadius: BorderRadius.only(
@@ -286,7 +288,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                               bottomLeft: Radius.circular(16),
                               bottomRight: Radius.circular(16),
                             ),
-                          ),
+                           ),
                           child: Text(
                             "You spent ₹5,400 on Food this month. This is 15% less than last month! 📉",
                             style: AppTextStyles.bodySmall.copyWith(
@@ -614,7 +616,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isDue ? AppColors.expenseRed.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+              color: isDue
+                  ? AppColors.expenseRed.withOpacity(0.1)
+                  : AppColors.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(

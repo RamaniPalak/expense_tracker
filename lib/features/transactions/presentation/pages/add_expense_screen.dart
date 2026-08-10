@@ -17,6 +17,8 @@ import 'package:expense_tracker/features/sync/data/sources/receipt_ocr_remote_da
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/select_category_screen.dart';
+import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/features/goals/presentation/widgets/allocate_income_sheet.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final TransactionModel? expense;
@@ -316,12 +318,39 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         BlocListener<TransactionBloc, TransactionState>(
           listener: (context, state) {
             if (state is TransactionOperationSuccess) {
+              final isIncome = _isIncomeVal.value;
+              final amountStr = _amountController.text
+                  .replaceAll('₹', '')
+                  .replaceAll(' ', '')
+                  .replaceAll(',', '.');
+              final incomeAmount = double.tryParse(amountStr) ?? 0.0;
+              final incomeTitle = _selectedCategoryVal.value;
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.green),
+                  content: Text(state.message),
+                  backgroundColor: Colors.green,
+                ),
               );
-              context.pop();
+
+              if (isIncome && incomeAmount > 0 && _userEmail != null) {
+                DatabaseHelper.instance.getGoals(_userEmail).then((goals) async {
+                  final activeGoals = goals.where((g) => !g.isCompleted).toList();
+                  if (activeGoals.isNotEmpty && context.mounted) {
+                    await AllocateIncomeSheet.show(
+                      context,
+                      incomeAmount: incomeAmount,
+                      incomeTitle: incomeTitle,
+                      activeGoals: activeGoals,
+                    );
+                  }
+                  if (context.mounted) {
+                    context.pop();
+                  }
+                });
+              } else {
+                context.pop();
+              }
             } else if (state is TransactionFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
