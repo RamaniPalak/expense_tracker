@@ -12,12 +12,23 @@ import 'package:expense_tracker/features/wallet/presentation/bloc/budget_bloc.da
 import 'package:expense_tracker/core/di/injection_container.dart' as di;
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/services/notification_service.dart';
+import 'package:expense_tracker/services/fcm_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:expense_tracker/core/theme/theme_provider.dart';
 import 'package:expense_tracker/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
+
+  // Initialize Firebase Core safely
+  try {
+    await Firebase.initializeApp();
+    await FCMService.instance.init();
+  } catch (e) {
+    debugPrint('[main] Firebase initialization note: Add google-services.json / GoogleService-Info.plist for live FCM push: $e');
+  }
+
   await NotificationService.instance.init();
   apiClient.init();
   Intl.defaultLocale = 'en_US';

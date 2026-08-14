@@ -46,8 +46,8 @@ class DatabaseHelper {
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute(
-          'ALTER TABLE expenses ADD COLUMN userEmail TEXT NOT NULL DEFAULT ""');
+      await db
+          .execute('ALTER TABLE expenses ADD COLUMN userEmail TEXT NOT NULL DEFAULT ""');
     }
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE expenses ADD COLUMN remoteId INTEGER');
@@ -126,8 +126,10 @@ CREATE TABLE goal_contributions (
 ''');
     }
     if (oldVersion < 10) {
-      await db.execute("ALTER TABLE goals ADD COLUMN priority TEXT NOT NULL DEFAULT 'Medium'");
-      await db.execute("ALTER TABLE goals ADD COLUMN status TEXT NOT NULL DEFAULT 'Active'");
+      await db.execute(
+          "ALTER TABLE goals ADD COLUMN priority TEXT NOT NULL DEFAULT 'Medium'");
+      await db
+          .execute("ALTER TABLE goals ADD COLUMN status TEXT NOT NULL DEFAULT 'Active'");
       await db.execute("ALTER TABLE goals ADD COLUMN productUrl TEXT");
       await db.execute("ALTER TABLE goals ADD COLUMN autoDepositAmount REAL DEFAULT 0.0");
       await db.execute("ALTER TABLE goals ADD COLUMN autoDepositDay INTEGER DEFAULT 1");
@@ -233,35 +235,141 @@ CREATE TABLE goal_contributions (
   // ── Category Operations & Defaults Seeding ──────────────────────────────────
 
   static final List<Map<String, dynamic>> _defaultExpenseCategories = [
-    {"name": "Automobile / Car", "emoji": "🚗", "iconCode": Icons.directions_car_filled_rounded.codePoint, "colorValue": 0xFFEF4444},
-    {"name": "Bills / Utilities", "emoji": "🔌", "iconCode": Icons.electrical_services_rounded.codePoint, "colorValue": 0xFF06B6D4},
-    {"name": "Charges / Fees", "emoji": "🏛️", "iconCode": Icons.account_balance_rounded.codePoint, "colorValue": 0xFF84CC16},
-    {"name": "Education", "emoji": "📚", "iconCode": Icons.school_rounded.codePoint, "colorValue": 0xFFEC4899},
-    {"name": "Entertainment", "emoji": "🎭", "iconCode": Icons.theater_comedy_rounded.codePoint, "colorValue": 0xFF10B981},
-    {"name": "Food & Dining", "emoji": "🍔", "iconCode": Icons.fastfood_rounded.codePoint, "colorValue": 0xFFF59E0B},
-    {"name": "Gifts & Similar", "emoji": "🎁", "iconCode": Icons.card_giftcard_rounded.codePoint, "colorValue": 0xFF0EA5E9},
-    {"name": "Health & Fitness", "emoji": "💪", "iconCode": Icons.fitness_center_rounded.codePoint, "colorValue": 0xFF8B5CF6},
-    {"name": "Housing", "emoji": "🏠", "iconCode": Icons.home_rounded.codePoint, "colorValue": 0xFFF97316},
-    {"name": "Subscriptions", "emoji": "📱", "iconCode": Icons.phonelink_setup_rounded.codePoint, "colorValue": 0xFF3B82F6},
-    {"name": "Travel", "emoji": "✈️", "iconCode": Icons.flight_takeoff_rounded.codePoint, "colorValue": 0xFF0EA5E9},
-    {"name": "Other", "emoji": "🧩", "iconCode": Icons.category_rounded.codePoint, "colorValue": 0xFF64748B},
+    {
+      "name": "Automobile / Car",
+      "emoji": "🚗",
+      "iconCode": Icons.directions_car_filled_rounded.codePoint,
+      "colorValue": 0xFFEF4444
+    },
+    {
+      "name": "Bills / Utilities",
+      "emoji": "🔌",
+      "iconCode": Icons.electrical_services_rounded.codePoint,
+      "colorValue": 0xFF06B6D4
+    },
+    {
+      "name": "Charges / Fees",
+      "emoji": "🏛️",
+      "iconCode": Icons.account_balance_rounded.codePoint,
+      "colorValue": 0xFF84CC16
+    },
+    {
+      "name": "Education",
+      "emoji": "📚",
+      "iconCode": Icons.school_rounded.codePoint,
+      "colorValue": 0xFFEC4899
+    },
+    {
+      "name": "Entertainment",
+      "emoji": "🎭",
+      "iconCode": Icons.theater_comedy_rounded.codePoint,
+      "colorValue": 0xFF10B981
+    },
+    {
+      "name": "Food & Dining",
+      "emoji": "🍔",
+      "iconCode": Icons.fastfood_rounded.codePoint,
+      "colorValue": 0xFFF59E0B
+    },
+    {
+      "name": "Gifts & Similar",
+      "emoji": "🎁",
+      "iconCode": Icons.card_giftcard_rounded.codePoint,
+      "colorValue": 0xFF0EA5E9
+    },
+    {
+      "name": "Health & Fitness",
+      "emoji": "💪",
+      "iconCode": Icons.fitness_center_rounded.codePoint,
+      "colorValue": 0xFF8B5CF6
+    },
+    {
+      "name": "Housing",
+      "emoji": "🏠",
+      "iconCode": Icons.home_rounded.codePoint,
+      "colorValue": 0xFFF97316
+    },
+    {
+      "name": "Subscriptions",
+      "emoji": "📱",
+      "iconCode": Icons.phonelink_setup_rounded.codePoint,
+      "colorValue": 0xFF3B82F6
+    },
+    {
+      "name": "Travel",
+      "emoji": "✈️",
+      "iconCode": Icons.flight_takeoff_rounded.codePoint,
+      "colorValue": 0xFF0EA5E9
+    },
+    {
+      "name": "Other",
+      "emoji": "🧩",
+      "iconCode": Icons.category_rounded.codePoint,
+      "colorValue": 0xFF64748B
+    },
   ];
 
   static final List<Map<String, dynamic>> _defaultIncomeCategories = [
-    {"name": "Bonus", "emoji": "🌈", "iconCode": Icons.celebration_rounded.codePoint, "colorValue": 0xFFF43F5E},
-    {"name": "Commission", "emoji": "🎉", "iconCode": Icons.percent_rounded.codePoint, "colorValue": 0xFF06B6D4},
-    {"name": "Interest", "emoji": "🌱", "iconCode": Icons.trending_up_rounded.codePoint, "colorValue": 0xFF22C55E},
-    {"name": "Investments", "emoji": "🚀", "iconCode": Icons.rocket_launch_rounded.codePoint, "colorValue": 0xFFEAB308},
-    {"name": "Received from Others", "emoji": "📦", "iconCode": Icons.inventory_2_rounded.codePoint, "colorValue": 0xFF6366F1},
-    {"name": "Rental Income", "emoji": "🛏️", "iconCode": Icons.home_rounded.codePoint, "colorValue": 0xFFF97316},
-    {"name": "Salary", "emoji": "💼", "iconCode": Icons.work_rounded.codePoint, "colorValue": 0xFF22C55E},
-    {"name": "Selling Assets", "emoji": "💰", "iconCode": Icons.monetization_on_rounded.codePoint, "colorValue": 0xFF0EA5E9},
-    {"name": "Other", "emoji": "🧩", "iconCode": Icons.category_rounded.codePoint, "colorValue": 0xFF64748B},
+    {
+      "name": "Bonus",
+      "emoji": "🌈",
+      "iconCode": Icons.celebration_rounded.codePoint,
+      "colorValue": 0xFFF43F5E
+    },
+    {
+      "name": "Commission",
+      "emoji": "🎉",
+      "iconCode": Icons.percent_rounded.codePoint,
+      "colorValue": 0xFF06B6D4
+    },
+    {
+      "name": "Interest",
+      "emoji": "🌱",
+      "iconCode": Icons.trending_up_rounded.codePoint,
+      "colorValue": 0xFF22C55E
+    },
+    {
+      "name": "Investments",
+      "emoji": "🚀",
+      "iconCode": Icons.rocket_launch_rounded.codePoint,
+      "colorValue": 0xFFEAB308
+    },
+    {
+      "name": "Received from Others",
+      "emoji": "📦",
+      "iconCode": Icons.inventory_2_rounded.codePoint,
+      "colorValue": 0xFF6366F1
+    },
+    {
+      "name": "Rental Income",
+      "emoji": "🛏️",
+      "iconCode": Icons.home_rounded.codePoint,
+      "colorValue": 0xFFF97316
+    },
+    {
+      "name": "Salary",
+      "emoji": "💼",
+      "iconCode": Icons.work_rounded.codePoint,
+      "colorValue": 0xFF22C55E
+    },
+    {
+      "name": "Selling Assets",
+      "emoji": "💰",
+      "iconCode": Icons.monetization_on_rounded.codePoint,
+      "colorValue": 0xFF0EA5E9
+    },
+    {
+      "name": "Other",
+      "emoji": "🧩",
+      "iconCode": Icons.category_rounded.codePoint,
+      "colorValue": 0xFF64748B
+    },
   ];
 
   Future<void> _ensureCategoriesSeeded(String email) async {
     final db = await instance.database;
-    final existing = await db.query('categories', where: 'userEmail = ?', whereArgs: [email]);
+    final existing =
+        await db.query('categories', where: 'userEmail = ?', whereArgs: [email]);
     if (existing.isEmpty) {
       // Seed expense default categories
       for (var cat in _defaultExpenseCategories) {
@@ -290,7 +398,8 @@ CREATE TABLE goal_contributions (
     }
   }
 
-  Future<List<CategoryModel>> getCategories(String? email, {required bool isIncome}) async {
+  Future<List<CategoryModel>> getCategories(String? email,
+      {required bool isIncome}) async {
     if (email == null) return [];
     await _ensureCategoriesSeeded(email);
     final db = await instance.database;
@@ -365,8 +474,7 @@ CREATE TABLE goal_contributions (
     return result.map((json) => TransactionModel.fromMap(json)).toList();
   }
 
-  Future<void> refreshExpenses(String? email,
-      {bool syncFromRemote = false}) async {
+  Future<void> refreshExpenses(String? email, {bool syncFromRemote = false}) async {
     if (email == null) return;
 
     expensesNotifier.value = await getExpenses(email);
@@ -435,7 +543,7 @@ CREATE TABLE goal_contributions (
 
   Future<void> upsertBudget(BudgetModel budget) async {
     final db = await instance.database;
-    
+
     final existing = await db.query(
       'budgets',
       where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
@@ -504,7 +612,7 @@ CREATE TABLE goal_contributions (
 
   Future<void> refreshBudgets(String? email, {bool syncFromRemote = false}) async {
     if (email == null) return;
-    
+
     final budgets = await getBudgets(email);
     budgetsNotifier.value = budgets;
 
@@ -525,7 +633,8 @@ CREATE TABLE goal_contributions (
 
         final existing = await db.query(
           'budgets',
-          where: 'remoteId = ? OR (category = ? AND userEmail = ? AND month = ? AND year = ?)',
+          where:
+              'remoteId = ? OR (category = ? AND userEmail = ? AND month = ? AND year = ?)',
           whereArgs: [entry.id, entry.category, entry.userEmail, entry.month, entry.year],
         );
 
@@ -565,14 +674,14 @@ CREATE TABLE goal_contributions (
 
   Future<void> deleteBudget(int id, String email) async {
     final db = await instance.database;
-    
+
     final existing = await db.query(
       'budgets',
       columns: ['remoteId'],
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     int? remoteId;
     if (existing.isNotEmpty) {
       remoteId = existing.first['remoteId'] as int?;
@@ -601,7 +710,11 @@ CREATE TABLE goal_contributions (
 
     final dueDate = bill.dueDate;
     final reminderDate = DateTime(
-      dueDate.year, dueDate.month, dueDate.day, 9, 0,
+      dueDate.year,
+      dueDate.month,
+      dueDate.day,
+      9,
+      0,
     ).subtract(const Duration(days: 1));
 
     await NotificationService.instance.scheduleBillReminder(
@@ -659,14 +772,17 @@ CREATE TABLE goal_contributions (
       if (!bill.isPaid) {
         final dueDate = bill.dueDate;
         final reminderDate = DateTime(
-          dueDate.year, dueDate.month, dueDate.day, 9, 0,
+          dueDate.year,
+          dueDate.month,
+          dueDate.day,
+          9,
+          0,
         ).subtract(const Duration(days: 1));
 
         await NotificationService.instance.scheduleBillReminder(
           id: bill.id!,
           title: 'Upcoming Bill: ${bill.title}',
-          body:
-              'Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.',
+          body: 'Your bill of ₹${bill.amount.toStringAsFixed(2)} is due tomorrow.',
           scheduledDate: reminderDate,
         );
       }
@@ -680,31 +796,36 @@ CREATE TABLE goal_contributions (
   Future<int> insertGoal(GoalModel goal) async {
     final db = await instance.database;
 
-    GoalEntry? remoteEntry;
-    try {
-      remoteEntry = await GoalService().addGoal(GoalEntry(
-        title: goal.title,
-        targetAmount: goal.targetAmount,
-        currentAmount: goal.currentAmount,
-        targetDate: goal.targetDate,
-        iconCode: goal.iconCode,
-        colorValue: goal.colorValue,
-        category: goal.category,
-        userEmail: goal.userEmail,
-        priority: goal.priority,
-        status: goal.status,
-        productUrl: goal.productUrl,
-        autoDepositAmount: goal.autoDepositAmount,
-        autoDepositDay: goal.autoDepositDay,
-      ));
-    } catch (e) {
-      debugPrint("Remote addGoal error: $e");
-    }
-
-    final goalToSave = remoteEntry?.id != null ? goal.copyWith(remoteId: remoteEntry!.id) : goal;
-    final id = await db.insert('goals', goalToSave.toMap());
+    // Save locally first for instant UI response (Offline-first approach)
+    final localId = await db.insert('goals', goal.toMap());
     await refreshGoals(goal.userEmail);
-    return id;
+
+    // Perform remote sync in background without blocking UI
+    GoalService()
+        .addGoal(GoalEntry(
+      title: goal.title,
+      targetAmount: goal.targetAmount,
+      currentAmount: goal.currentAmount,
+      targetDate: goal.targetDate,
+      iconCode: goal.iconCode,
+      colorValue: goal.colorValue,
+      category: goal.category,
+      userEmail: goal.userEmail,
+      priority: goal.priority,
+      status: goal.status,
+      productUrl: goal.productUrl,
+      autoDepositAmount: goal.autoDepositAmount,
+      autoDepositDay: goal.autoDepositDay,
+    ))
+        .then((remoteEntry) async {
+      if (remoteEntry != null && remoteEntry.id != null) {
+        final updatedGoal = goal.copyWith(id: localId, remoteId: remoteEntry.id);
+        await db
+            .update('goals', updatedGoal.toMap(), where: 'id = ?', whereArgs: [localId]);
+      }
+    }).catchError((e) => debugPrint("Background addGoal remote sync failed: $e"));
+
+    return localId;
   }
 
   Future<List<GoalModel>> getGoals(String? email) async {
@@ -782,7 +903,8 @@ CREATE TABLE goal_contributions (
             autoDepositAmount: entry.autoDepositAmount,
             autoDepositDay: entry.autoDepositDay,
           );
-          await db.update('goals', updatedGoal.toMap(), where: 'id = ?', whereArgs: [localId]);
+          await db.update('goals', updatedGoal.toMap(),
+              where: 'id = ?', whereArgs: [localId]);
         }
       }
 
@@ -822,92 +944,97 @@ CREATE TABLE goal_contributions (
       whereArgs: [goal.id],
     );
 
-    if (goal.remoteId != null) {
-      try {
-        await GoalService().updateGoal(GoalEntry(
-          id: goal.remoteId,
-          title: goal.title,
-          targetAmount: goal.targetAmount,
-          currentAmount: goal.currentAmount,
-          targetDate: goal.targetDate,
-          iconCode: goal.iconCode,
-          colorValue: goal.colorValue,
-          category: goal.category,
-          userEmail: goal.userEmail,
-          priority: goal.priority,
-          status: goal.status,
-          productUrl: goal.productUrl,
-          autoDepositAmount: goal.autoDepositAmount,
-          autoDepositDay: goal.autoDepositDay,
-        ));
-      } catch (e) {
-        debugPrint("Remote updateGoal error: $e");
-      }
-    }
-
+    // Refresh UI immediately
     await refreshGoals(goal.userEmail);
+
+    // Perform remote update in background
+    if (goal.remoteId != null) {
+      GoalService()
+          .updateGoal(GoalEntry(
+            id: goal.remoteId,
+            title: goal.title,
+            targetAmount: goal.targetAmount,
+            currentAmount: goal.currentAmount,
+            targetDate: goal.targetDate,
+            iconCode: goal.iconCode,
+            colorValue: goal.colorValue,
+            category: goal.category,
+            userEmail: goal.userEmail,
+            priority: goal.priority,
+            status: goal.status,
+            productUrl: goal.productUrl,
+            autoDepositAmount: goal.autoDepositAmount,
+            autoDepositDay: goal.autoDepositDay,
+          ))
+          .catchError((e) => debugPrint("Background updateGoal remote sync failed: $e"));
+    }
   }
 
   Future<void> deleteGoal(int id, String? email) async {
     final db = await instance.database;
 
     final rows = await db.query('goals', where: 'id = ?', whereArgs: [id]);
-    if (rows.isNotEmpty) {
-      final goal = GoalModel.fromMap(rows.first);
-      if (goal.remoteId != null) {
-        try {
-          await GoalService().deleteGoal(goal.remoteId!);
-        } catch (e) {
-          debugPrint("Remote deleteGoal error: $e");
-        }
-      }
-    }
+    final GoalModel? goal = rows.isNotEmpty ? GoalModel.fromMap(rows.first) : null;
 
+    // Delete local records first
     await db.delete('goals', where: 'id = ?', whereArgs: [id]);
     await db.delete('goal_contributions', where: 'goalId = ?', whereArgs: [id]);
     await refreshGoals(email);
+
+    // Perform remote deletion in background
+    if (goal != null && goal.remoteId != null) {
+      GoalService().deleteGoal(goal.remoteId!).catchError(
+            (e) => debugPrint("Background deleteGoal remote sync failed: $e"),
+          );
+    }
   }
 
   Future<void> insertGoalContribution(GoalContributionModel contribution) async {
     final db = await instance.database;
 
-    GoalContributionEntry? remoteContrib;
-    try {
-      remoteContrib = await GoalService().addGoalContribution(GoalContributionEntry(
-        goalId: contribution.goalId,
-        amount: contribution.amount,
-        date: contribution.date,
-        note: contribution.note,
-        type: contribution.type,
-        userEmail: contribution.userEmail,
-      ));
-    } catch (e) {
-      debugPrint("Remote addGoalContribution error: $e");
-    }
+    // Insert contribution locally first
+    final localId = await db.insert('goal_contributions', contribution.toMap());
 
-    final contribToSave = remoteContrib?.id != null
-        ? GoalContributionModel(
-            goalId: contribution.goalId,
-            amount: contribution.amount,
-            date: contribution.date,
-            note: contribution.note,
-            type: contribution.type,
-            userEmail: contribution.userEmail,
-            remoteId: remoteContrib!.id,
-          )
-        : contribution;
+    // Perform remote sync in background
+    GoalService()
+        .addGoalContribution(GoalContributionEntry(
+      goalId: contribution.goalId,
+      amount: contribution.amount,
+      date: contribution.date,
+      note: contribution.note,
+      type: contribution.type,
+      userEmail: contribution.userEmail,
+    ))
+        .then((remoteContrib) async {
+      if (remoteContrib != null && remoteContrib.id != null) {
+        final updatedContrib = GoalContributionModel(
+          id: localId,
+          remoteId: remoteContrib.id,
+          goalId: contribution.goalId,
+          amount: contribution.amount,
+          date: contribution.date,
+          note: contribution.note,
+          type: contribution.type,
+          userEmail: contribution.userEmail,
+        );
+        await db.update('goal_contributions', updatedContrib.toMap(),
+            where: 'id = ?', whereArgs: [localId]);
+      }
+    }).catchError(
+            (e) => debugPrint("Background addGoalContribution remote sync failed: $e"));
 
-    await db.insert('goal_contributions', contribToSave.toMap());
-
-    // Update goal current amount & status
-    final goalRows = await db.query('goals', where: 'id = ?', whereArgs: [contribution.goalId]);
+    // Update goal current amount & status locally
+    final goalRows =
+        await db.query('goals', where: 'id = ?', whereArgs: [contribution.goalId]);
     if (goalRows.isNotEmpty) {
       final goal = GoalModel.fromMap(goalRows.first);
       final newAmount = contribution.isDeposit
           ? goal.currentAmount + contribution.amount
           : (goal.currentAmount - contribution.amount).clamp(0.0, double.infinity);
       final isCompleted = newAmount >= goal.targetAmount && goal.targetAmount > 0;
-      final newStatus = isCompleted ? 'Completed' : (goal.status == 'Completed' ? 'Active' : goal.status);
+      final newStatus = isCompleted
+          ? 'Completed'
+          : (goal.status == 'Completed' ? 'Active' : goal.status);
       await updateGoal(goal.copyWith(
         currentAmount: newAmount,
         status: newStatus,
@@ -915,7 +1042,8 @@ CREATE TABLE goal_contributions (
     }
   }
 
-  Future<List<GoalContributionModel>> getGoalContributions(int goalId, String? email) async {
+  Future<List<GoalContributionModel>> getGoalContributions(
+      int goalId, String? email) async {
     if (email == null) return [];
     final db = await instance.database;
     final result = await db.query(
@@ -927,22 +1055,24 @@ CREATE TABLE goal_contributions (
     return result.map((json) => GoalContributionModel.fromMap(json)).toList();
   }
 
-  Future<void> deleteGoalContribution(int contributionId, int goalId, double amount, String type, String? email) async {
+  Future<void> deleteGoalContribution(
+      int contributionId, int goalId, double amount, String type, String? email) async {
     final db = await instance.database;
 
-    final rows = await db.query('goal_contributions', where: 'id = ?', whereArgs: [contributionId]);
-    if (rows.isNotEmpty) {
-      final contrib = GoalContributionModel.fromMap(rows.first);
-      if (contrib.remoteId != null) {
-        try {
-          await GoalService().deleteGoalContribution(contrib.remoteId!);
-        } catch (e) {
-          debugPrint("Remote deleteGoalContribution error: $e");
-        }
-      }
-    }
+    final rows = await db
+        .query('goal_contributions', where: 'id = ?', whereArgs: [contributionId]);
+    final GoalContributionModel? contrib =
+        rows.isNotEmpty ? GoalContributionModel.fromMap(rows.first) : null;
 
+    // Delete local record first
     await db.delete('goal_contributions', where: 'id = ?', whereArgs: [contributionId]);
+
+    // Perform remote deletion in background
+    if (contrib != null && contrib.remoteId != null) {
+      GoalService().deleteGoalContribution(contrib.remoteId!).catchError(
+            (e) => debugPrint("Background deleteGoalContribution remote sync failed: $e"),
+          );
+    }
 
     // Revert goal amount & status
     final goalRows = await db.query('goals', where: 'id = ?', whereArgs: [goalId]);
@@ -953,7 +1083,9 @@ CREATE TABLE goal_contributions (
           ? (goal.currentAmount - amount).clamp(0.0, double.infinity)
           : goal.currentAmount + amount;
       final isCompleted = newAmount >= goal.targetAmount && goal.targetAmount > 0;
-      final newStatus = isCompleted ? 'Completed' : (goal.status == 'Completed' ? 'Active' : goal.status);
+      final newStatus = isCompleted
+          ? 'Completed'
+          : (goal.status == 'Completed' ? 'Active' : goal.status);
       await updateGoal(goal.copyWith(
         currentAmount: newAmount,
         status: newStatus,

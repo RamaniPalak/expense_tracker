@@ -58,6 +58,8 @@ dependencies:
   serverpod_auth_shared_flutter: ^2.9.2
   local_auth: ^2.3.0
   flutter_local_notifications: ^18.0.1
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
   timezone: ^0.9.4
   backend_client:
     path: backend/backend_client

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "486535295005",
+    "project_id": "expense-tracker-789fd",
+    "storage_bucket": "expense-tracker-789fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486535295005:android:597a712e1c5fd2b34f16f4",
+        "android_client_info": {
+          "package_name": "com.albiorix.expense_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD00_ZXN0y5FwCiQWWe2zl6BYKJHutSle4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

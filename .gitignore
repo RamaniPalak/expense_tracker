@@ -52,3 +52,7 @@ app.*.map.json
 
 # Local Secrets
 secrets.json
+*-service-account.json
+firebase-service-account.json
+*.pem
+*.key

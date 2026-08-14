@@ -7,12 +7,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "dev:watch": "ts-node-dev --respawn src/index.ts"
+    "dev:watch": "ts-node-dev --respawn src/index.ts",
+    "test:fcm": "ts-node src/test_fcm.ts"
   },
   "dependencies": {
     "genkit": "^1.0.4",
     "@genkit-ai/googleai": "^1.0.4",
     "express": "^4.21.2",
+    "firebase-admin": "^13.1.0",
     "zod": "^3.24.2",
     "dotenv": "^16.4.7"
   },

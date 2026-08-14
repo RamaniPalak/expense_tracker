@@ -441,13 +441,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                         future:
                                             sl<DatabaseHelper>().getBudgets(_userEmail),
                                         builder: (context, snapshot) {
-                                          if (!snapshot.hasData)
+                                          if (!snapshot.hasData) {
                                             return const Text("Loading...");
+                                          }
                                           final list = snapshot.data!;
-                                          if (list.isEmpty)
+                                          if (list.isEmpty) {
                                             return const Text("No budgets stored",
                                                 style: TextStyle(
                                                     fontSize: 12, color: Colors.amber));
+                                          }
                                           return Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: list

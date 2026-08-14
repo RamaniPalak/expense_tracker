@@ -17,12 +17,8 @@ class ApiClient {
     // 2. For Android Emulators: Use 'http://10.0.2.2:8080/'
     // 3. For Physical Devices + Wi-Fi: Use your Computer's Local IP (e.g. 'http://192.168.1.15:8080/')
     
-    // Toggle this flag to true to test with your local backend server
-    const bool useLocalBackend = false; 
-    
-    const String baseUrl = useLocalBackend
-        ? 'http://localhost:8080/' // Note: use 'http://10.0.2.2:8080/' if testing on Android Emulator
-        : 'https://expense-tracker-2-lr2e.onrender.com/'; 
+    // Set baseUrl (use 'http://localhost:8080/' or 'http://10.0.2.2:8080/' when testing local backend server)
+    const String baseUrl = 'https://expense-tracker-2-lr2e.onrender.com/'; 
     
     client = Client(
       baseUrl,
