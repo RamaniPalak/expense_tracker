@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -48,6 +49,14 @@ class NotificationService {
     );
 
     tz.initializeTimeZones();
+    try {
+      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      debugPrint('[NotificationService] Local timezone initialized to: $timeZoneName');
+    } catch (e) {
+      debugPrint('[NotificationService] Could not set local timezone, fallback: $e');
+    }
+
     await requestPermissions();
 
     // Auto-restore daily reminder on app start if it was enabled
@@ -62,6 +71,7 @@ class NotificationService {
               .resolvePlatformSpecificImplementation<
                   AndroidFlutterLocalNotificationsPlugin>();
       await androidImpl?.requestNotificationsPermission();
+      await androidImpl?.requestExactAlarmsPermission();
     }
   }
 
@@ -140,6 +150,31 @@ class NotificationService {
     // (called from outside when the toggle turns ON).
   }
 
+  /// Instantly show a test notification banner (useful for immediate local verification)
+  Future<void> showInstantTestNotification({
+    String title = '💰 Daily Expense Check-In (Test)',
+    String body = "Don't forget to log today's expenses. Stay on top of your budget!",
+  }) async {
+    await _notificationsPlugin.show(
+      999,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder_channel',
+          'Daily Reminders',
+          channelDescription: 'Daily expense logging reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
+    debugPrint('[NotificationService] Instant test notification displayed');
+  }
+
   // ── internal: actually schedule the recurring daily notification ───────────
   Future<void> _scheduleDailyReminder({
     required int hour,
@@ -150,37 +185,62 @@ class NotificationService {
 
     final now       = tz.TZDateTime.now(tz.local);
     var scheduled   = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    // If the time has already passed today, schedule for tomorrow
-    if (scheduled.isBefore(now)) {
+    
+    // If the scheduled time is earlier than or equal to current local time, schedule for tomorrow
+    if (scheduled.isBefore(now) || scheduled.isAtSameMomentAs(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
-    await _notificationsPlugin.zonedSchedule(
-      _kDailyReminderId,
-      '💰 Daily Expense Check-In',
-      "Don't forget to log today's expenses. Stay on top of your budget!",
-      scheduled,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder_channel',
-          'Daily Reminders',
-          channelDescription: 'Daily expense logging reminders',
-          importance: Importance.high,
-          priority: Priority.high,
-          showWhen: true,
-          icon: '@mipmap/ic_launcher',
+    try {
+      await _notificationsPlugin.zonedSchedule(
+        _kDailyReminderId,
+        '💰 Daily Expense Check-In',
+        "Don't forget to log today's expenses. Stay on top of your budget!",
+        scheduled,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_reminder_channel',
+            'Daily Reminders',
+            channelDescription: 'Daily expense logging reminders',
+            importance: Importance.max,
+            priority: Priority.high,
+            showWhen: true,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      // Repeats every day at the same time
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-
-    debugPrint(
-        '[NotificationService] Daily reminder scheduled at $hour:$minute');
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      debugPrint('[NotificationService] Daily reminder scheduled exact at $scheduled (Local: ${tz.local.name})');
+    } catch (e) {
+      // Fallback if exact alarms permission is disabled by user in OS settings
+      await _notificationsPlugin.zonedSchedule(
+        _kDailyReminderId,
+        '💰 Daily Expense Check-In',
+        "Don't forget to log today's expenses. Stay on top of your budget!",
+        scheduled,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_reminder_channel',
+            'Daily Reminders',
+            channelDescription: 'Daily expense logging reminders',
+            importance: Importance.max,
+            priority: Priority.high,
+            showWhen: true,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      debugPrint('[NotificationService] Daily reminder scheduled inexact fallback: $e');
+    }
   }
 
   /// Called on app launch — silently restores daily reminder if it was set.

@@ -332,6 +332,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.deepOrange,
                               onTap: _pickReminderTime,
                             ),
+                            _buildDivider(),
+                            _buildMenuItem(
+                              icon: Icons.notifications_active_rounded,
+                              title: 'Test Notification Now',
+                              subtitle: 'Tap to trigger instant local notification banner',
+                              color: Colors.teal,
+                              onTap: () async {
+                                await NotificationService.instance.showInstantTestNotification();
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Instant test notification triggered!'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                           _buildDivider(),
                           // Bill reminders toggle
