@@ -218,7 +218,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: c.primary))
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
               children: [
                 // Top Goal Summary Card with Progress Circle
                 Container(
@@ -248,7 +248,14 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(_goal.title, style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20)),
+                                      child: Text(
+                                        _goal.title.isNotEmpty
+                                            ? _goal.title[0].toUpperCase() + _goal.title.substring(1)
+                                            : '',
+                                        style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                     if (_goal.priority == 'High')
                                       Container(
@@ -310,14 +317,18 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         children: [
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
-                                  Text('Saved', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('Saved', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                  ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
@@ -333,14 +344,18 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
-                                  Text('Remaining', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('Remaining', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                  ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
@@ -356,14 +371,18 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
-                                  Text('Target', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('Target', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                  ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
@@ -399,34 +418,26 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         const Icon(Icons.pause_circle_outline_rounded, color: Color(0xFFF59E0B), size: 24),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Goal is Paused',
-                                style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Pacing calculations are frozen. Tap the play button above to resume.',
-                                style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary, fontSize: 13),
-                              ),
-                            ],
+                          child: Text(
+                            'Goal is currently paused. Resume to restart auto-deposits and pace tracking.',
+                            style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFFF59E0B), fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
                     ),
                   )
-                else if (!_goal.isCompleted && _goal.remainingAmount > 0)
+                else if (!_goal.isCompleted && _goal.daysRemaining > 0)
                   Container(
+                    margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(25),
+                      color: AppColors.primaryBlue.withAlpha(15),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.primary.withAlpha(80)),
+                      border: Border.all(color: AppColors.primaryBlue.withAlpha(60)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.speed_rounded, color: AppColors.primary, size: 24),
+                        const Icon(Icons.speed_rounded, color: AppColors.primaryBlue, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -434,20 +445,38 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             children: [
                               Text(
                                 'Recommended Saving Pace',
-                                style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
                               ),
+                              const SizedBox(height: 2),
                               Text(
-                                'Save ₹${_goal.monthlyPace.toStringAsFixed(0)} / month to hit target on time.',
-                                style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary, fontSize: 13),
+                                'Save ₹${_goal.recommendedMonthlyPace.toStringAsFixed(0)} / month to hit target on time.',
+                                style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                               ),
-                              if (_goal.autoDepositAmount > 0) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  '🔄 Monthly Auto-Deposit Plan: ₹${_goal.autoDepositAmount.toStringAsFixed(0)}',
-                                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.incomeGreen, fontWeight: FontWeight.bold),
-                                ),
-                              ],
                             ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Auto-deposit settings indicator
+                if (_goal.autoDepositAmount > 0)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.incomeGreen.withAlpha(15),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.incomeGreen.withAlpha(60)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.autorenew_rounded, color: AppColors.incomeGreen, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Auto-deposit active: ₹${_goal.autoDepositAmount.toStringAsFixed(0)} scheduled on day ${_goal.autoDepositDay} of every month.',
+                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.incomeGreen, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -540,14 +569,20 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
                 if (_contributions.isEmpty)
                   Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(18)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: c.border),
+                    ),
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.history_toggle_off_rounded, size: 36, color: c.textSecondary),
-                          const SizedBox(height: 8),
-                          Text('No deposits yet', style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary)),
+                          Icon(Icons.history_toggle_off_rounded, size: 40, color: c.textSecondary),
+                          const SizedBox(height: 10),
+                          Text('No deposit history yet', style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text('Tap "Add Deposit" above to add funds to this goal.', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12), textAlign: TextAlign.center),
                         ],
                       ),
                     ),
