@@ -431,13 +431,13 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withAlpha(15),
+                      color: AppColors.primary.withAlpha(15),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.primaryBlue.withAlpha(60)),
+                      border: Border.all(color: AppColors.primary.withAlpha(60)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.speed_rounded, color: AppColors.primaryBlue, size: 24),
+                        Icon(Icons.speed_rounded, color: AppColors.primary, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -445,11 +445,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             children: [
                               Text(
                                 'Recommended Saving Pace',
-                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
+                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Save ₹${_goal.recommendedMonthlyPace.toStringAsFixed(0)} / month to hit target on time.',
+                                'Save ₹${_goal.monthlyPace.toStringAsFixed(0)} / month to hit target on time.',
                                 style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                               ),
                             ],
