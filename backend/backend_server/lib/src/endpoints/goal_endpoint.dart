@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS "goal_entry" (
     "productUrl" text,
     "autoDepositAmount" double precision NOT NULL,
     "autoDepositDay" bigint NOT NULL
-);
+)
+''');
+      await session.db.unsafeQuery('''
 CREATE TABLE IF NOT EXISTS "goal_contribution_entry" (
     "id" bigserial PRIMARY KEY,
     "goalId" bigint NOT NULL,
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "goal_contribution_entry" (
     "note" text,
     "type" text NOT NULL,
     "userEmail" text NOT NULL
-);
+)
 ''');
       _tablesEnsured = true;
     } catch (e) {
