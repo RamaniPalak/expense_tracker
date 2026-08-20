@@ -40,9 +40,10 @@ class GoalService {
   /// Fetches all goals for a given user email from the remote server.
   Future<List<GoalEntry>> getGoals(String email) async {
     try {
-      return await apiClient.client.goalEntry.getGoalEntries(email);
+      final cleanEmail = email.trim().toLowerCase();
+      return await apiClient.client.goalEntry.getGoalEntries(cleanEmail);
     } catch (e) {
-      log('Error fetching remote goals: $e');
+      log('Error fetching remote goals: ${e.toString()}');
       return [];
     }
   }
@@ -70,7 +71,8 @@ class GoalService {
   /// Fetches all goal contributions for a given user email from the remote server.
   Future<List<GoalContributionEntry>> getGoalContributions(String email) async {
     try {
-      return await apiClient.client.goalEntry.getGoalContributions(email);
+      final cleanEmail = email.trim().toLowerCase();
+      return await apiClient.client.goalEntry.getGoalContributions(cleanEmail);
     } catch (e) {
       log('Error fetching remote goal contributions: $e');
       return [];

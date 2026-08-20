@@ -3,10 +3,12 @@ import '../generated/protocol.dart';
 
 class GoalEntryEndpoint extends Endpoint {
   Future<GoalEntry> addGoalEntry(Session session, GoalEntry entry) async {
+    entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await GoalEntry.db.insertRow(session, entry);
   }
 
   Future<GoalEntry> updateGoalEntry(Session session, GoalEntry entry) async {
+    entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await GoalEntry.db.updateRow(session, entry);
   }
 
@@ -19,15 +21,17 @@ class GoalEntryEndpoint extends Endpoint {
   }
 
   Future<List<GoalEntry>> getGoalEntries(Session session, String userEmail) async {
+    final cleanEmail = userEmail.trim().toLowerCase();
     return await GoalEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(userEmail),
+      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
       orderBy: (t) => t.targetDate,
       orderDescending: false,
     );
   }
 
   Future<GoalContributionEntry> addGoalContribution(Session session, GoalContributionEntry entry) async {
+    entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await GoalContributionEntry.db.insertRow(session, entry);
   }
 
@@ -40,9 +44,10 @@ class GoalEntryEndpoint extends Endpoint {
   }
 
   Future<List<GoalContributionEntry>> getGoalContributions(Session session, String userEmail) async {
+    final cleanEmail = userEmail.trim().toLowerCase();
     return await GoalContributionEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(userEmail),
+      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
       orderBy: (t) => t.date,
       orderDescending: true,
     );

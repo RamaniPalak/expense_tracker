@@ -27,7 +27,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   
   // State for Month View
   DateTime _currentMonthYear = DateTime(DateTime.now().year, DateTime.now().month);
-  DateTime _selectedDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  DateTime? _selectedDate;
   
   // State for Year View
   int _currentYear = DateTime.now().year;
@@ -98,10 +98,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           newYear--;
         }
         _currentMonthYear = DateTime(newYear, newMonth);
-        _selectedDate = DateTime(newYear, newMonth, 1);
+        _selectedDate = null;
       } else {
         _currentYear += direction;
-        _selectedDate = DateTime(_currentYear, _selectedMonthIndex, 1);
+        _selectedDate = null;
       }
     });
   }
@@ -144,11 +144,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
             double totalExpense = 0;
 
             if (_viewMode == "Month") {
-              // Transactions for the selected day in Month View
-              displayTransactions = allExpenses.where((tx) =>
-                  tx.date.year == _selectedDate.year &&
-                  tx.date.month == _selectedDate.month &&
-                  tx.date.day == _selectedDate.day).toList();
+              // Get all transactions for the current month
+              final monthTransactions = allExpenses.where((tx) =>
+                  tx.date.year == _currentMonthYear.year &&
+                  tx.date.month == _currentMonthYear.month).toList();
+
+              if (_selectedDate != null) {
+                // Transactions for the selected day in Month View
+                displayTransactions = monthTransactions.where((tx) =>
+                    tx.date.day == _selectedDate!.day).toList();
+              } else {
+                // All transactions in Month View when no single date is tapped
+                displayTransactions = monthTransactions;
+              }
 
               for (var tx in displayTransactions) {
                 if (tx.isIncome) {
@@ -192,12 +200,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               );
             } else {
-              if (_viewMode == "Month") {
+              if (_viewMode == "Month" && _selectedDate != null) {
                 listItems.add(
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      _formatHeaderDate(_selectedDate),
+                      _formatHeaderDate(_selectedDate!),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -301,11 +309,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           onViewModeSelected: (newMode) {
                             setState(() {
                               _viewMode = newMode;
-                              if (newMode == "Month") {
-                                _selectedDate = DateTime(_currentMonthYear.year, _currentMonthYear.month, 1);
-                              } else {
-                                _selectedDate = DateTime(_currentYear, _selectedMonthIndex, 1);
-                              }
+                              _selectedDate = null;
                             });
                           },
                         ),
@@ -351,7 +355,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             allExpenses: allExpenses,
                             onDateSelected: (date) {
                               setState(() {
-                                _selectedDate = date;
+                                if (_selectedDate != null &&
+                                    _selectedDate!.year == date.year &&
+                                    _selectedDate!.month == date.month &&
+                                    _selectedDate!.day == date.day) {
+                                  _selectedDate = null;
+                                } else {
+                                  _selectedDate = date;
+                                }
                               });
                             },
                           )
@@ -363,7 +374,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             onMonthSelected: (monthIndex, cellDate) {
                               setState(() {
                                 _selectedMonthIndex = monthIndex;
-                                _selectedDate = cellDate;
+                                _selectedDate = null;
                               });
                             },
                           ),

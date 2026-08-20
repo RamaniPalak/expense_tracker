@@ -6,6 +6,7 @@ import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
 import 'package:expense_tracker/features/categories/data/models/category_model.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_contribution_model.dart';
+import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
 import 'package:expense_tracker/services/notification_service.dart';
 import 'expense_service.dart';
 import 'budget_service.dart';
@@ -23,6 +24,7 @@ class DatabaseHelper {
   final ValueNotifier<List<BillModel>> billsNotifier = ValueNotifier([]);
   final ValueNotifier<List<CategoryModel>> categoriesNotifier = ValueNotifier([]);
   final ValueNotifier<List<GoalModel>> goalsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<AppNotificationModel>> notificationsNotifier = ValueNotifier([]);
 
   DatabaseHelper._init();
 
@@ -38,7 +40,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 11,
+      version: 12,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -138,6 +140,20 @@ CREATE TABLE goal_contributions (
       await db.execute("ALTER TABLE goals ADD COLUMN remoteId INTEGER");
       await db.execute("ALTER TABLE goal_contributions ADD COLUMN remoteId INTEGER");
     }
+    if (oldVersion < 12) {
+      await db.execute('''
+CREATE TABLE notifications (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  type TEXT NOT NULL,
+  timestamp TEXT NOT NULL,
+  isRead INTEGER NOT NULL DEFAULT 0,
+  actionRoute TEXT,
+  userEmail TEXT NOT NULL
+)
+''');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -228,6 +244,19 @@ CREATE TABLE goal_contributions (
   note TEXT,
   type $textType,
   userEmail $textType
+  )
+''');
+
+    await db.execute('''
+CREATE TABLE notifications (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  type TEXT NOT NULL,
+  timestamp TEXT NOT NULL,
+  isRead INTEGER NOT NULL DEFAULT 0,
+  actionRoute TEXT,
+  userEmail TEXT NOT NULL
   )
 ''');
   }
@@ -400,26 +429,28 @@ CREATE TABLE goal_contributions (
 
   Future<List<CategoryModel>> getCategories(String? email,
       {required bool isIncome}) async {
-    if (email == null) return [];
-    await _ensureCategoriesSeeded(email);
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
+    await _ensureCategoriesSeeded(cleanEmail);
     final db = await instance.database;
     final result = await db.query(
       'categories',
-      where: 'userEmail = ? AND isIncome = ?',
-      whereArgs: [email, isIncome ? 1 : 0],
+      where: 'LOWER(TRIM(userEmail)) = ? AND isIncome = ?',
+      whereArgs: [cleanEmail, isIncome ? 1 : 0],
       orderBy: 'isDefault DESC, id ASC',
     );
     return result.map((json) => CategoryModel.fromMap(json)).toList();
   }
 
   Future<void> refreshCategories(String? email) async {
-    if (email == null) return;
-    await _ensureCategoriesSeeded(email);
+    if (email == null || email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
+    await _ensureCategoriesSeeded(cleanEmail);
     final db = await instance.database;
     final result = await db.query(
       'categories',
-      where: 'userEmail = ?',
-      whereArgs: [email],
+      where: 'LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [cleanEmail],
       orderBy: 'isDefault DESC, id ASC',
     );
     categoriesNotifier.value = result.map((json) => CategoryModel.fromMap(json)).toList();
@@ -461,13 +492,14 @@ CREATE TABLE goal_contributions (
   }
 
   Future<List<TransactionModel>> getExpenses(String? email) async {
-    if (email == null) return [];
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
     final db = await instance.database;
     const orderBy = 'date DESC';
     final result = await db.query(
       'expenses',
-      where: 'userEmail = ?',
-      whereArgs: [email],
+      where: 'LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [cleanEmail],
       orderBy: orderBy,
     );
 
@@ -475,13 +507,16 @@ CREATE TABLE goal_contributions (
   }
 
   Future<void> refreshExpenses(String? email, {bool syncFromRemote = false}) async {
-    if (email == null) return;
+    if (email == null || email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
 
-    expensesNotifier.value = await getExpenses(email);
+    expensesNotifier.value = await getExpenses(cleanEmail);
+    await syncNotifications(cleanEmail);
 
     if (syncFromRemote) {
-      syncWithRemote(email).then((_) async {
-        expensesNotifier.value = await getExpenses(email);
+      syncWithRemote(cleanEmail).then((_) async {
+        expensesNotifier.value = await getExpenses(cleanEmail);
+        await syncNotifications(cleanEmail);
       }).catchError((e) => debugPrint("Background sync error: $e"));
     }
   }
@@ -744,6 +779,7 @@ CREATE TABLE goal_contributions (
   Future<void> refreshBills(String? email) async {
     if (email == null) return;
     billsNotifier.value = await getBills(email);
+    await syncNotifications(email);
   }
 
   Future<void> deleteBill(int id, String? email) async {
@@ -829,32 +865,40 @@ CREATE TABLE goal_contributions (
   }
 
   Future<List<GoalModel>> getGoals(String? email) async {
-    if (email == null) return [];
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
     final db = await instance.database;
     final result = await db.query(
       'goals',
-      where: 'userEmail = ?',
-      whereArgs: [email],
+      where: 'LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [cleanEmail],
       orderBy: 'targetDate ASC',
     );
     return result.map((json) => GoalModel.fromMap(json)).toList();
   }
 
   Future<void> refreshGoals(String? email, {bool syncFromRemote = false}) async {
-    if (email == null) return;
-    goalsNotifier.value = await getGoals(email);
+    if (email == null || email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
+    goalsNotifier.value = await getGoals(cleanEmail);
+    await syncNotifications(cleanEmail);
 
     if (syncFromRemote) {
-      syncGoalsWithRemote(email).then((_) async {
-        goalsNotifier.value = await getGoals(email);
-      }).catchError((e) => debugPrint("Background goals sync error: $e"));
+      try {
+        await syncGoalsWithRemote(cleanEmail);
+        goalsNotifier.value = await getGoals(cleanEmail);
+        await syncNotifications(cleanEmail);
+      } catch (e) {
+        debugPrint("Background goals sync error: $e");
+      }
     }
   }
 
   Future<void> syncGoalsWithRemote(String email) async {
     try {
-      final remoteGoals = await GoalService().getGoals(email);
-      final remoteContributions = await GoalService().getGoalContributions(email);
+      final cleanEmail = email.trim().toLowerCase();
+      final remoteGoals = await GoalService().getGoals(cleanEmail);
+      final remoteContributions = await GoalService().getGoalContributions(cleanEmail);
       final db = await instance.database;
 
       for (GoalEntry entry in remoteGoals) {
@@ -862,8 +906,8 @@ CREATE TABLE goal_contributions (
 
         final existing = await db.query(
           'goals',
-          where: 'remoteId = ? OR (userEmail = ? AND title = ?)',
-          whereArgs: [entry.id, email, entry.title],
+          where: 'remoteId = ? OR (LOWER(TRIM(userEmail)) = ? AND LOWER(TRIM(title)) = ?)',
+          whereArgs: [entry.id, cleanEmail, entry.title.trim().toLowerCase()],
         );
 
         if (existing.isEmpty) {
@@ -876,7 +920,7 @@ CREATE TABLE goal_contributions (
             iconCode: entry.iconCode,
             colorValue: entry.colorValue,
             category: entry.category,
-            userEmail: entry.userEmail,
+            userEmail: cleanEmail,
             priority: entry.priority,
             status: entry.status,
             productUrl: entry.productUrl,
@@ -896,7 +940,7 @@ CREATE TABLE goal_contributions (
             iconCode: entry.iconCode,
             colorValue: entry.colorValue,
             category: entry.category,
-            userEmail: entry.userEmail,
+            userEmail: cleanEmail,
             priority: entry.priority,
             status: entry.status,
             productUrl: entry.productUrl,
@@ -911,6 +955,13 @@ CREATE TABLE goal_contributions (
       for (GoalContributionEntry contrib in remoteContributions) {
         if (contrib.id == null) continue;
 
+        final matchingGoals = await db.query(
+          'goals',
+          where: 'remoteId = ?',
+          whereArgs: [contrib.goalId],
+        );
+        final localGoalId = matchingGoals.isNotEmpty ? (matchingGoals.first['id'] as int) : contrib.goalId;
+
         final existing = await db.query(
           'goal_contributions',
           where: 'remoteId = ?',
@@ -920,12 +971,12 @@ CREATE TABLE goal_contributions (
         if (existing.isEmpty) {
           final contribution = GoalContributionModel(
             remoteId: contrib.id,
-            goalId: contrib.goalId,
+            goalId: localGoalId,
             amount: contrib.amount,
             date: contrib.date,
             note: contrib.note,
             type: contrib.type,
-            userEmail: contrib.userEmail,
+            userEmail: cleanEmail,
           );
           await db.insert('goal_contributions', contribution.toMap());
         }
@@ -1044,15 +1095,25 @@ CREATE TABLE goal_contributions (
 
   Future<List<GoalContributionModel>> getGoalContributions(
       int goalId, String? email) async {
-    if (email == null) return [];
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
     final db = await instance.database;
     final result = await db.query(
       'goal_contributions',
-      where: 'goalId = ? AND userEmail = ?',
-      whereArgs: [goalId, email],
+      where: 'goalId = ? AND LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [goalId, cleanEmail],
       orderBy: 'date DESC',
     );
     return result.map((json) => GoalContributionModel.fromMap(json)).toList();
+  }
+
+  void clearLocalDataNotifiers() {
+    expensesNotifier.value = [];
+    budgetsNotifier.value = [];
+    billsNotifier.value = [];
+    categoriesNotifier.value = [];
+    goalsNotifier.value = [];
+    notificationsNotifier.value = [];
   }
 
   Future<void> deleteGoalContribution(
@@ -1091,6 +1152,270 @@ CREATE TABLE goal_contributions (
         status: newStatus,
       ));
     }
+  }
+
+  // ── Notification Operations & Smart Sync ────────────────────────────────────
+
+  Future<List<AppNotificationModel>> getNotifications(String? userEmail) async {
+    final db = await instance.database;
+    final email = userEmail ?? '';
+    final result = await db.query(
+      'notifications',
+      where: 'userEmail = ? OR userEmail = ""',
+      whereArgs: [email],
+      orderBy: 'timestamp DESC',
+    );
+    final list = result.map((json) => AppNotificationModel.fromMap(json)).toList();
+    notificationsNotifier.value = list;
+    return list;
+  }
+
+  Future<void> refreshNotifications(String? userEmail) async {
+    await getNotifications(userEmail);
+  }
+
+  Future<void> insertNotification(AppNotificationModel notification) async {
+    final db = await instance.database;
+    await db.insert(
+      'notifications',
+      notification.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    await refreshNotifications(notification.userEmail);
+  }
+
+  Future<void> markNotificationAsRead(String id, String? userEmail) async {
+    final db = await instance.database;
+    await db.update(
+      'notifications',
+      {'isRead': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await refreshNotifications(userEmail);
+  }
+
+  Future<void> markAllNotificationsAsRead(String? userEmail) async {
+    final db = await instance.database;
+    final email = userEmail ?? '';
+    await db.update(
+      'notifications',
+      {'isRead': 1},
+      where: 'userEmail = ? OR userEmail = ""',
+      whereArgs: [email],
+    );
+    await refreshNotifications(userEmail);
+  }
+
+  Future<void> deleteNotification(String id, String? userEmail) async {
+    final db = await instance.database;
+    await db.delete(
+      'notifications',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await refreshNotifications(userEmail);
+  }
+
+  Future<void> clearAllNotifications(String? userEmail) async {
+    final db = await instance.database;
+    final email = userEmail ?? '';
+    await db.delete(
+      'notifications',
+      where: 'userEmail = ? OR userEmail = ""',
+      whereArgs: [email],
+    );
+    await refreshNotifications(userEmail);
+  }
+
+  /// Automatically syncs/evaluates app state (upcoming bills, budget warnings, goal achievements, check-ins)
+  /// and updates the notification list so the user always has up-to-date notification insights.
+  Future<void> syncNotifications(String? userEmail) async {
+    final email = userEmail ?? '';
+    final now = DateTime.now();
+    final db = await instance.database;
+
+    // 1. Check Unpaid Upcoming / Overdue Bills
+    final billsResult = await db.query(
+      'bills',
+      where: '(userEmail = ? OR userEmail = "") AND isPaid = 0',
+      whereArgs: [email],
+    );
+    final bills = billsResult.map((m) => BillModel.fromMap(m)).toList();
+    for (var bill in bills) {
+      final diff = bill.dueDate.difference(now).inDays;
+      if (diff <= 7 && diff >= -30) {
+        final notifId = 'bill_${bill.id}_${bill.dueDate.year}_${bill.dueDate.month}_${bill.dueDate.day}';
+        final status = diff < 0
+            ? 'Overdue'
+            : (diff == 0 ? 'Due Today' : 'Due in $diff day${diff > 1 ? "s" : ""}');
+        final title = 'Bill Reminder: ${bill.title}';
+        final desc = 'Your ${bill.category} bill of \$${bill.amount.toStringAsFixed(2)} is $status (${bill.dueDate.day}/${bill.dueDate.month}/${bill.dueDate.year}).';
+
+        await db.insert(
+          'notifications',
+          AppNotificationModel(
+            id: notifId,
+            title: title,
+            description: desc,
+            timestamp: bill.dueDate.isBefore(now) ? now : bill.dueDate,
+            type: NotificationType.bill,
+            actionRoute: '/bills',
+            userEmail: email,
+          ).toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+    }
+
+    // 2. Check Budget Thresholds (Spending vs Monthly Budget)
+    final month = now.month;
+    final year = now.year;
+    final budgetResult = await db.query(
+      'budgets',
+      where: '(userEmail = ? OR userEmail = "") AND month = ? AND year = ?',
+      whereArgs: [email, month, year],
+    );
+    final budgets = budgetResult.map((m) => BudgetModel.fromMap(m)).toList();
+
+    if (budgets.isNotEmpty) {
+      final expResult = await db.query(
+        'expenses',
+        where: 'userEmail = ? OR userEmail = ""',
+        whereArgs: [email],
+      );
+      final expenses = expResult.map((m) => TransactionModel.fromMap(m)).toList();
+
+      for (var budget in budgets) {
+        double spent = 0.0;
+        for (var e in expenses) {
+          if (!e.isIncome && e.category == budget.category && e.date.month == month && e.date.year == year) {
+            spent += e.amount;
+          }
+        }
+        if (budget.amount > 0) {
+          final pct = (spent / budget.amount) * 100;
+          if (pct >= 80) {
+            final notifId = 'budget_${budget.category}_${year}_$month';
+            final isExceeded = pct >= 100;
+            final title = isExceeded ? 'Budget Exceeded: ${budget.category}' : 'Budget Warning: ${budget.category}';
+            final desc = isExceeded
+                ? 'You have spent \$${spent.toStringAsFixed(2)}, exceeding your budget of \$${budget.amount.toStringAsFixed(2)} by \$${(spent - budget.amount).toStringAsFixed(2)}.'
+                : 'You have used ${pct.toStringAsFixed(0)}% of your \$${budget.amount.toStringAsFixed(2)} budget for ${budget.category}.';
+
+            await db.insert(
+              'notifications',
+              AppNotificationModel(
+                id: notifId,
+                title: title,
+                description: desc,
+                timestamp: now,
+                type: NotificationType.budget,
+                actionRoute: '/connect-wallet',
+                userEmail: email,
+              ).toMap(),
+              conflictAlgorithm: ConflictAlgorithm.ignore,
+            );
+          }
+        }
+      }
+    }
+
+    // 3. Check Goals Progress
+    final goalsResult = await db.query(
+      'goals',
+      where: 'userEmail = ? OR userEmail = ""',
+      whereArgs: [email],
+    );
+    final goals = goalsResult.map((m) => GoalModel.fromMap(m)).toList();
+    for (var goal in goals) {
+      if (goal.targetAmount > 0) {
+        final pct = (goal.currentAmount / goal.targetAmount) * 100;
+        if (pct >= 25) {
+          String milestoneKey = '25';
+          String title = 'Goal Milestone 🌱: ${goal.title}';
+          String desc = 'Strong start! You reached ${pct.toStringAsFixed(0)}% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}.';
+
+          if (pct >= 100) {
+            milestoneKey = '100';
+            title = 'Goal Achieved 🎉: ${goal.title}';
+            desc = 'Congratulations! You reached 100% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}!';
+          } else if (pct >= 75) {
+            milestoneKey = '75';
+            title = 'Goal Milestone 🔥: ${goal.title}';
+            desc = 'You are ${pct.toStringAsFixed(0)}% of the way to achieving your goal of \$${goal.targetAmount.toStringAsFixed(2)}!';
+          } else if (pct >= 50) {
+            milestoneKey = '50';
+            title = 'Goal Milestone 🎯: ${goal.title}';
+            desc = 'Great job! You reached ${pct.toStringAsFixed(0)}% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}.';
+          }
+
+          final notifId = 'goal_${goal.id}_$milestoneKey';
+          final existing = await db.query('notifications', where: 'id = ?', whereArgs: [notifId]);
+
+          final notifModel = AppNotificationModel(
+            id: notifId,
+            title: title,
+            description: desc,
+            timestamp: now,
+            type: NotificationType.goal,
+            actionRoute: '/goals',
+            userEmail: email,
+          );
+
+          await db.insert(
+            'notifications',
+            notifModel.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+          // If this milestone notification was newly created, trigger OS heads-up banner!
+          if (existing.isEmpty) {
+            NotificationService.instance.showInstantTestNotification(
+              title: title,
+              body: desc,
+            );
+          }
+        }
+      }
+    }
+
+    // 4. Daily Reminder & Welcome Check
+    final existingNotifs = await db.query(
+      'notifications',
+      where: 'userEmail = ? OR userEmail = ""',
+      whereArgs: [email],
+    );
+
+    if (existingNotifs.isEmpty) {
+      // Seed Welcome Notification
+      await db.insert(
+        'notifications',
+        AppNotificationModel(
+          id: 'welcome_1',
+          title: 'Welcome to Expense Tracker 👋',
+          description: 'Track your spending, manage bills, and hit your savings goals effortlessly. Tap the notification bell anytime to review your alerts!',
+          timestamp: now.subtract(const Duration(minutes: 5)),
+          type: NotificationType.system,
+          userEmail: email,
+        ).toMap(),
+      );
+
+      await db.insert(
+        'notifications',
+        AppNotificationModel(
+          id: 'daily_checkin_1',
+          title: 'Daily Expense Check-In 💰',
+          description: 'Don\'t forget to log today\'s expenses to keep your monthly budget and reports accurate!',
+          timestamp: now,
+          type: NotificationType.reminder,
+          actionRoute: '/add-expense',
+          userEmail: email,
+        ).toMap(),
+      );
+    }
+
+    await getNotifications(email);
   }
 
   Future<void> close() async {

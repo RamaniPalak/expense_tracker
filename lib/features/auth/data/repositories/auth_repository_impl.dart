@@ -5,6 +5,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../datasources/auth_local_datasource.dart';
 import 'package:expense_tracker/services/cloudinary_service.dart';
+import 'package:expense_tracker/services/database_helper.dart';
 
 class AuthRepositoryImpl implements IAuthRepository {
   final IAuthRemoteDataSource remoteDataSource;
@@ -90,6 +91,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   Future<Either<String, void>> logout() async {
     try {
       await localDataSource.clearSession();
+      DatabaseHelper.instance.clearLocalDataNotifiers();
       return const Right(null);
     } catch (e) {
       return Left(e.toString());
@@ -103,7 +105,8 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<String?> getUserEmail() async {
-    return await localDataSource.getCachedEmail();
+    final raw = await localDataSource.getCachedEmail();
+    return raw?.trim().toLowerCase();
   }
 
   @override

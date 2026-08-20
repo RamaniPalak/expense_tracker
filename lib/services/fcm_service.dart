@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
+
 // ── SharedPreferences Key for FCM Token ────────────────────────────────────────
 const String kFcmTokenKey = 'fcm_device_token';
 
@@ -118,32 +121,60 @@ class FCMService {
   /// Handle incoming foreground messages by displaying a local notification banner
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('[FCMService] Foreground message received: ${message.notification?.title}');
-    final notification = message.notification;
+    final title = message.notification?.title ?? message.data['title'] ?? message.data['subject'] ?? 'Notification';
+    final body = message.notification?.body ?? message.data['body'] ?? message.data['message'] ?? '';
     final android = message.notification?.android;
 
-    if (notification != null) {
-      _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _fcmChannel.id,
-            _fcmChannel.name,
-            channelDescription: _fcmChannel.description,
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
+    _localNotifications.show(
+      message.hashCode,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _fcmChannel.id,
+          _fcmChannel.name,
+          channelDescription: _fcmChannel.description,
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+          icon: android?.smallIcon ?? '@mipmap/ic_launcher',
         ),
-        payload: jsonEncode(message.data),
-      );
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: jsonEncode(message.data),
+    );
+
+    // Save to in-app notification center
+    final typeStr = message.data['type'] as String? ?? 'system';
+    NotificationType nType = NotificationType.system;
+    String? route;
+    if (typeStr == 'SAVING_GOAL') {
+      nType = NotificationType.goal;
+      route = '/goals';
+    } else if (typeStr == 'BILL_REMINDER') {
+      nType = NotificationType.bill;
+      route = '/bills';
+    } else if (typeStr == 'DAILY_REMINDER') {
+      nType = NotificationType.reminder;
+      route = '/add-expense';
     }
+
+    DatabaseHelper.instance.insertNotification(
+      AppNotificationModel(
+        id: 'fcm_${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        description: body,
+        timestamp: DateTime.now(),
+        type: nType,
+        actionRoute: route,
+        userEmail: '',
+      ),
+    );
   }
 
   /// Handle user clicking a push notification (Navigating based on payload data)

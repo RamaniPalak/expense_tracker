@@ -5,6 +5,8 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
 
 // ── SharedPreferences keys ─────────────────────────────────────────────────────
 const String _kDailyReminderEnabled = 'notif_daily_reminder_enabled';
@@ -48,6 +50,8 @@ class NotificationService {
       },
     );
 
+    await _createNotificationChannels();
+
     tz.initializeTimeZones();
     try {
       final String timeZoneName = await FlutterTimezone.getLocalTimezone();
@@ -63,6 +67,34 @@ class NotificationService {
     await _restoreDailyReminderIfEnabled();
   }
 
+  // ── Create Notification Channels for Android ───────────────────────────
+  Future<void> _createNotificationChannels() async {
+    if (!Platform.isAndroid) return;
+    final androidImpl = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    const dailyChannel = AndroidNotificationChannel(
+      'daily_reminder_channel',
+      'Daily Reminders',
+      description: 'Daily expense logging reminders',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const billChannel = AndroidNotificationChannel(
+      'bill_reminders_channel',
+      'Bill Reminders',
+      description: 'Notifications for upcoming bills and rent',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    await androidImpl?.createNotificationChannel(dailyChannel);
+    await androidImpl?.createNotificationChannel(billChannel);
+  }
+
   // ── Permissions ───────────────────────────────────────────────────────────────
   Future<void> requestPermissions() async {
     if (Platform.isAndroid) {
@@ -72,6 +104,14 @@ class NotificationService {
                   AndroidFlutterLocalNotificationsPlugin>();
       await androidImpl?.requestNotificationsPermission();
       await androidImpl?.requestExactAlarmsPermission();
+    } else if (Platform.isIOS) {
+      final iosImpl = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      await iosImpl?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
     }
   }
 
@@ -172,6 +212,20 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
     );
+
+    // Save to in-app notification center
+    await DatabaseHelper.instance.insertNotification(
+      AppNotificationModel(
+        id: 'test_${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        description: body,
+        timestamp: DateTime.now(),
+        type: NotificationType.reminder,
+        actionRoute: '/add-expense',
+        userEmail: '',
+      ),
+    );
+
     debugPrint('[NotificationService] Instant test notification displayed');
   }
 

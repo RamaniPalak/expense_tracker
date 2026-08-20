@@ -4,11 +4,13 @@ import '../generated/protocol.dart';
 class BudgetEntryEndpoint extends Endpoint {
   Future<BudgetEntry> addBudgetEntry(
       Session session, BudgetEntry entry) async {
+    entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await BudgetEntry.db.insertRow(session, entry);
   }
 
   Future<BudgetEntry> updateBudgetEntry(
       Session session, BudgetEntry entry) async {
+    entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await BudgetEntry.db.updateRow(session, entry);
   }
 
@@ -22,9 +24,10 @@ class BudgetEntryEndpoint extends Endpoint {
 
   Future<List<BudgetEntry>> getBudgetEntries(
       Session session, String userEmail) async {
+    final cleanEmail = userEmail.trim().toLowerCase();
     return await BudgetEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(userEmail),
+      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
     );
   }
 }

@@ -36,7 +36,9 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
     setState(() => _isLoading = true);
     try {
       final userEmail = await sl<IAuthRepository>().getUserEmail();
-      await DatabaseHelper.instance.refreshGoals(userEmail, syncFromRemote: true);
+      if (userEmail != null && userEmail.isNotEmpty) {
+        await DatabaseHelper.instance.refreshGoals(userEmail, syncFromRemote: true);
+      }
     } catch (e) {
       debugPrint("Error refreshing goals: $e");
     } finally {

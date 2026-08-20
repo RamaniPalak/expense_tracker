@@ -339,11 +339,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               subtitle: 'Tap to trigger instant local notification banner',
                               color: Colors.teal,
                               onTap: () async {
+                                await NotificationService.instance.requestPermissions();
                                 await NotificationService.instance.showInstantTestNotification();
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Instant test notification triggered!'),
+                                      content: Text('Instant test notification triggered! Check status bar & notification bell.'),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );

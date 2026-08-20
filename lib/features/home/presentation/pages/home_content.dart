@@ -14,6 +14,8 @@ import 'package:expense_tracker/core/common_widgets/glass_container.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
+import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
+import 'package:expense_tracker/features/notifications/presentation/widgets/notification_sheet.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -60,6 +62,7 @@ class _HomeContentState extends State<HomeContent> {
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
       sl<DatabaseHelper>().refreshGoals(_userEmail, syncFromRemote: true);
+      sl<DatabaseHelper>().syncNotifications(_userEmail);
     }
   }
 
@@ -142,29 +145,47 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                             ],
                           ),
-                          GlassContainer(
-                            padding: const EdgeInsets.all(8),
-                            borderRadius: 12,
-                            opacity: 0.1,
-                            child: Stack(
-                              children: [
-                                const Icon(Icons.notifications_none,
-                                    color: Colors.white),
-                                Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.expenseRed,
-                                      shape: BoxShape.circle,
-                                    ),
+                          GestureDetector(
+                            onTap: () {
+                              NotificationSheet.show(context,
+                                  userEmail: _userEmail);
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: ValueListenableBuilder<
+                                List<AppNotificationModel>>(
+                              valueListenable:
+                                  sl<DatabaseHelper>().notificationsNotifier,
+                              builder: (context, notifications, _) {
+                                final hasUnread =
+                                    notifications.any((n) => !n.isRead);
+
+                                return GlassContainer(
+                                  padding: const EdgeInsets.all(8),
+                                  borderRadius: 12,
+                                  opacity: 0.1,
+                                  child: Stack(
+                                    children: [
+                                      const Icon(Icons.notifications_none,
+                                          color: Colors.white),
+                                      if (hasUnread)
+                                        Positioned(
+                                          top: 0,
+                                          right: 0,
+                                          child: Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.expenseRed,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),

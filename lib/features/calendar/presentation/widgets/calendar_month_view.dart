@@ -5,14 +5,14 @@ import 'package:expense_tracker/features/transactions/data/models/transaction_mo
 
 class CalendarMonthView extends StatelessWidget {
   final DateTime currentMonthYear;
-  final DateTime selectedDate;
+  final DateTime? selectedDate;
   final List<TransactionModel> allExpenses;
   final Function(DateTime) onDateSelected;
 
   const CalendarMonthView({
     super.key,
     required this.currentMonthYear,
-    required this.selectedDate,
+    this.selectedDate,
     required this.allExpenses,
     required this.onDateSelected,
   });
@@ -72,9 +72,10 @@ class CalendarMonthView extends StatelessWidget {
         }
         final dayNumber = index - startOffset + 1;
         final cellDate = DateTime(currentMonthYear.year, currentMonthYear.month, dayNumber);
-        final isSelected = selectedDate.year == cellDate.year &&
-            selectedDate.month == cellDate.month &&
-            selectedDate.day == cellDate.day;
+        final isSelected = selectedDate != null &&
+            selectedDate!.year == cellDate.year &&
+            selectedDate!.month == cellDate.month &&
+            selectedDate!.day == cellDate.day;
 
         // Count transactions for this day
         final txCount = allExpenses.where((e) =>
