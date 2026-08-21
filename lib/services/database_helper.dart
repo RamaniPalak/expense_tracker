@@ -7,6 +7,8 @@ import 'package:expense_tracker/features/categories/data/models/category_model.d
 import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_contribution_model.dart';
 import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
+import 'package:intl/intl.dart';
+import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/services/notification_service.dart';
 import 'expense_service.dart';
 import 'budget_service.dart';
@@ -489,6 +491,80 @@ CREATE TABLE notifications (
     final db = await instance.database;
     await db.insert('expenses', expense.toMap());
     await refreshExpenses(expense.userEmail);
+    await _checkAndTriggerBudgetAlert(expense);
+  }
+
+  Future<void> updateExpense(TransactionModel expense) async {
+    final db = await instance.database;
+    await db.update(
+      'expenses',
+      expense.toMap(),
+      where: 'id = ?',
+      whereArgs: [expense.id],
+    );
+    await refreshExpenses(expense.userEmail);
+    await _checkAndTriggerBudgetAlert(expense);
+  }
+
+  Future<void> _checkAndTriggerBudgetAlert(TransactionModel expense) async {
+    if (expense.isIncome) return;
+    try {
+      final cleanEmail = expense.userEmail.trim().toLowerCase();
+      final month = expense.date.month;
+      final year = expense.date.year;
+      final category = expense.category;
+
+      final allBudgets = await getBudgets(cleanEmail);
+      final catBudget = allBudgets.firstWhere(
+        (b) => b.category == category && b.month == month && b.year == year,
+        orElse: () => BudgetModel(category: '', amount: 0, month: month, year: year, userEmail: cleanEmail),
+      );
+
+      final totalBudget = allBudgets.firstWhere(
+        (b) => b.category == AppStrings.total && b.month == month && b.year == year,
+        orElse: () => BudgetModel(category: '', amount: 0, month: month, year: year, userEmail: cleanEmail),
+      );
+
+      final allExpenses = await getExpenses(cleanEmail);
+
+      // Check Category-specific budget alert
+      if (catBudget.amount > 0) {
+        final catSpent = allExpenses
+            .where((e) => !e.isIncome && e.category == category && e.date.month == month && e.date.year == year)
+            .fold(0.0, (sum, e) => sum + e.amount);
+
+        final pct = catSpent / catBudget.amount;
+        if (pct >= 1.0) {
+          final title = "🚨 $category Budget Exceeded!";
+          final body = "You spent ₹${NumberFormat('#,##0').format(catSpent)} of your ₹${NumberFormat('#,##0').format(catBudget.amount)} budget for $category.";
+          await NotificationService().showBudgetAlertNotification(title: title, body: body, userEmail: cleanEmail);
+        } else if (pct >= 0.8) {
+          final title = "⚠️ $category Budget Warning (${(pct * 100).toStringAsFixed(0)}%)";
+          final body = "You have used ${(pct * 100).toStringAsFixed(0)}% of your $category budget (₹${NumberFormat('#,##0').format(catSpent)} / ₹${NumberFormat('#,##0').format(catBudget.amount)}).";
+          await NotificationService().showBudgetAlertNotification(title: title, body: body, userEmail: cleanEmail);
+        }
+      }
+
+      // Check Overall Total Monthly budget alert
+      if (totalBudget.amount > 0) {
+        final totalSpent = allExpenses
+            .where((e) => !e.isIncome && e.date.month == month && e.date.year == year)
+            .fold(0.0, (sum, e) => sum + e.amount);
+
+        final pct = totalSpent / totalBudget.amount;
+        if (pct >= 1.0) {
+          final title = "🚨 Overall Monthly Budget Exceeded!";
+          final body = "Total spending (₹${NumberFormat('#,##0').format(totalSpent)}) has exceeded your monthly limit of ₹${NumberFormat('#,##0').format(totalBudget.amount)}.";
+          await NotificationService().showBudgetAlertNotification(title: title, body: body, userEmail: cleanEmail);
+        } else if (pct >= 0.8) {
+          final title = "⚠️ Monthly Budget Warning (${(pct * 100).toStringAsFixed(0)}%)";
+          final body = "You have reached ${(pct * 100).toStringAsFixed(0)}% of your overall monthly limit (₹${NumberFormat('#,##0').format(totalSpent)} / ₹${NumberFormat('#,##0').format(totalBudget.amount)}).";
+          await NotificationService().showBudgetAlertNotification(title: title, body: body, userEmail: cleanEmail);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error checking budget alert: $e");
+    }
   }
 
   Future<List<TransactionModel>> getExpenses(String? email) async {

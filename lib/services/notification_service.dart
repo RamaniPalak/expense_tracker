@@ -229,6 +229,47 @@ class NotificationService {
     debugPrint('[NotificationService] Instant test notification displayed');
   }
 
+  // ── Show Budget Alert Notification ─────────────────────────────────────────
+  Future<void> showBudgetAlertNotification({
+    required String title,
+    required String body,
+    required String userEmail,
+  }) async {
+    final notifId = DateTime.now().millisecondsSinceEpoch % 100000;
+    await _notificationsPlugin.show(
+      notifId,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'bill_reminders_channel',
+          'Bill & Budget Reminders',
+          channelDescription: 'Notifications for budget alerts and spending limits',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
+
+    // Save to in-app notification center
+    await DatabaseHelper.instance.insertNotification(
+      AppNotificationModel(
+        id: 'budget_${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        description: body,
+        timestamp: DateTime.now(),
+        type: NotificationType.budget,
+        actionRoute: '/statistics',
+        userEmail: userEmail,
+      ),
+    );
+
+    debugPrint('[NotificationService] Budget alert notification displayed: $title');
+  }
+
   // ── internal: actually schedule the recurring daily notification ───────────
   Future<void> _scheduleDailyReminder({
     required int hour,
