@@ -639,17 +639,6 @@ CREATE TABLE notifications (
     await refreshExpenses(email);
   }
 
-  Future<void> updateExpense(TransactionModel expense) async {
-    final db = await instance.database;
-    await db.update(
-      'expenses',
-      expense.toMap(),
-      where: 'id = ?',
-      whereArgs: [expense.id],
-    );
-    await refreshExpenses(expense.userEmail);
-  }
-
   // ── Budget Operations ───────────────────────────────────────────────────────
 
   Future<void> upsertBudget(BudgetModel budget) async {
