@@ -7,6 +7,7 @@ import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
 import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/services/notification_service.dart';
 
 class NotificationSheet extends StatelessWidget {
   final String? userEmail;
@@ -163,51 +164,68 @@ class NotificationSheet extends StatelessWidget {
                       ),
                     ],
                     const Spacer(),
-                    if (notifications.isNotEmpty)
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: c.textSecondary),
-                        color: c.card,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert, color: c.textSecondary),
+                      color: c.card,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      onSelected: (value) async {
+                        if (value == 'test_notif') {
+                          await NotificationService().showBudgetAlertNotification(
+                            title: '🔔 Test Notification',
+                            body: 'Notifications are working perfectly on your device!',
+                            userEmail: userEmail ?? '',
+                          );
+                        } else if (value == 'mark_read') {
+                          await sl<DatabaseHelper>()
+                              .markAllNotificationsAsRead(userEmail);
+                        } else if (value == 'clear_all') {
+                          await sl<DatabaseHelper>()
+                              .clearAllNotifications(userEmail);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'test_notif',
+                          child: Row(
+                            children: [
+                              Icon(Icons.notifications_active_outlined,
+                                  size: 18, color: c.primary),
+                              const SizedBox(width: 10),
+                              Text('Send test notification',
+                                  style: TextStyle(color: c.textPrimary)),
+                            ],
+                          ),
                         ),
-                        onSelected: (value) async {
-                          if (value == 'mark_read') {
-                            await sl<DatabaseHelper>()
-                                .markAllNotificationsAsRead(userEmail);
-                          } else if (value == 'clear_all') {
-                            await sl<DatabaseHelper>()
-                                .clearAllNotifications(userEmail);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          if (unreadCount > 0)
-                            PopupMenuItem(
-                              value: 'mark_read',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.done_all,
-                                      size: 18, color: c.primary),
-                                  const SizedBox(width: 10),
-                                  Text('Mark all as read',
-                                      style: TextStyle(color: c.textPrimary)),
-                                ],
-                              ),
-                            ),
+                        if (unreadCount > 0)
                           PopupMenuItem(
-                            value: 'clear_all',
+                            value: 'mark_read',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline,
-                                    size: 18, color: AppColors.expenseRed),
+                                Icon(Icons.done_all,
+                                    size: 18, color: c.primary),
                                 const SizedBox(width: 10),
-                                Text('Clear all',
-                                    style:
-                                        TextStyle(color: AppColors.expenseRed)),
+                                Text('Mark all as read',
+                                    style: TextStyle(color: c.textPrimary)),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        PopupMenuItem(
+                          value: 'clear_all',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 18, color: AppColors.expenseRed),
+                              const SizedBox(width: 10),
+                              Text('Clear all',
+                                  style:
+                                      TextStyle(color: AppColors.expenseRed)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               );

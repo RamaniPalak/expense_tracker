@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/features/notifications/data/models/app_notification_model.dart';
 
@@ -91,12 +92,30 @@ class NotificationService {
       enableVibration: true,
     );
 
+    const budgetChannel = AndroidNotificationChannel(
+      'budget_alerts_channel',
+      'Budget & Overspending Alerts',
+      description: 'Alerts when approaching or exceeding category budget limits',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+
     await androidImpl?.createNotificationChannel(dailyChannel);
     await androidImpl?.createNotificationChannel(billChannel);
+    await androidImpl?.createNotificationChannel(budgetChannel);
   }
 
   // ── Permissions ───────────────────────────────────────────────────────────────
   Future<void> requestPermissions() async {
+    try {
+      if (await Permission.notification.isDenied) {
+        await Permission.notification.request();
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] permission_handler request error: $e');
+    }
+
     if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImpl =
           _notificationsPlugin
@@ -242,8 +261,8 @@ class NotificationService {
       body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'bill_reminders_channel',
-          'Bill & Budget Reminders',
+          'budget_alerts_channel',
+          'Budget & Overspending Alerts',
           channelDescription: 'Notifications for budget alerts and spending limits',
           importance: Importance.max,
           priority: Priority.high,
