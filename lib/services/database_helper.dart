@@ -1294,16 +1294,17 @@ CREATE TABLE notifications (
   }
 
   /// Automatically syncs/evaluates app state (upcoming bills, budget warnings, goal achievements, check-ins)
-  /// and updates the notification list so the user always has up-to-date notification insights.
+  /// and updates the notification list so the user always has up-to-date notification insights and system tray alerts.
   Future<void> syncNotifications(String? userEmail) async {
-    final email = userEmail ?? '';
+    if (userEmail == null || userEmail.trim().isEmpty) return;
+    final email = userEmail.trim().toLowerCase();
     final now = DateTime.now();
     final db = await instance.database;
 
     // 1. Check Unpaid Upcoming / Overdue Bills
     final billsResult = await db.query(
       'bills',
-      where: '(userEmail = ? OR userEmail = "") AND isPaid = 0',
+      where: 'LOWER(TRIM(userEmail)) = ? OR userEmail = "" AND isPaid = 0',
       whereArgs: [email],
     );
     final bills = billsResult.map((m) => BillModel.fromMap(m)).toList();
@@ -1311,11 +1312,13 @@ CREATE TABLE notifications (
       final diff = bill.dueDate.difference(now).inDays;
       if (diff <= 7 && diff >= -30) {
         final notifId = 'bill_${bill.id}_${bill.dueDate.year}_${bill.dueDate.month}_${bill.dueDate.day}';
+        final existing = await db.query('notifications', where: 'id = ?', whereArgs: [notifId]);
+
         final status = diff < 0
             ? 'Overdue'
             : (diff == 0 ? 'Due Today' : 'Due in $diff day${diff > 1 ? "s" : ""}');
         final title = 'Bill Reminder: ${bill.title}';
-        final desc = 'Your ${bill.category} bill of \$${bill.amount.toStringAsFixed(2)} is $status (${bill.dueDate.day}/${bill.dueDate.month}/${bill.dueDate.year}).';
+        final desc = 'Your ${bill.category} bill of ₹${NumberFormat('#,##0').format(bill.amount)} is $status (${bill.dueDate.day}/${bill.dueDate.month}/${bill.dueDate.year}).';
 
         await db.insert(
           'notifications',
@@ -1330,6 +1333,14 @@ CREATE TABLE notifications (
           ).toMap(),
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
+
+        if (existing.isEmpty) {
+          NotificationService.instance.showBudgetAlertNotification(
+            title: title,
+            body: desc,
+            userEmail: email,
+          );
+        }
       }
     }
 
@@ -1338,7 +1349,7 @@ CREATE TABLE notifications (
     final year = now.year;
     final budgetResult = await db.query(
       'budgets',
-      where: '(userEmail = ? OR userEmail = "") AND month = ? AND year = ?',
+      where: '(LOWER(TRIM(userEmail)) = ? OR userEmail = "") AND month = ? AND year = ?',
       whereArgs: [email, month, year],
     );
     final budgets = budgetResult.map((m) => BudgetModel.fromMap(m)).toList();
@@ -1346,7 +1357,7 @@ CREATE TABLE notifications (
     if (budgets.isNotEmpty) {
       final expResult = await db.query(
         'expenses',
-        where: 'userEmail = ? OR userEmail = ""',
+        where: 'LOWER(TRIM(userEmail)) = ? OR userEmail = ""',
         whereArgs: [email],
       );
       final expenses = expResult.map((m) => TransactionModel.fromMap(m)).toList();
@@ -1354,7 +1365,7 @@ CREATE TABLE notifications (
       for (var budget in budgets) {
         double spent = 0.0;
         for (var e in expenses) {
-          if (!e.isIncome && e.category == budget.category && e.date.month == month && e.date.year == year) {
+          if (!e.isIncome && e.category.trim().toLowerCase() == budget.category.trim().toLowerCase() && e.date.month == month && e.date.year == year) {
             spent += e.amount;
           }
         }
@@ -1362,11 +1373,12 @@ CREATE TABLE notifications (
           final pct = (spent / budget.amount) * 100;
           if (pct >= 80) {
             final notifId = 'budget_${budget.category}_${year}_$month';
+            final existing = await db.query('notifications', where: 'id = ?', whereArgs: [notifId]);
             final isExceeded = pct >= 100;
-            final title = isExceeded ? 'Budget Exceeded: ${budget.category}' : 'Budget Warning: ${budget.category}';
+            final title = isExceeded ? '🚨 Budget Exceeded: ${budget.category}' : '⚠️ Budget Warning: ${budget.category}';
             final desc = isExceeded
-                ? 'You have spent \$${spent.toStringAsFixed(2)}, exceeding your budget of \$${budget.amount.toStringAsFixed(2)} by \$${(spent - budget.amount).toStringAsFixed(2)}.'
-                : 'You have used ${pct.toStringAsFixed(0)}% of your \$${budget.amount.toStringAsFixed(2)} budget for ${budget.category}.';
+                ? 'You spent ₹${NumberFormat('#,##0').format(spent)}, exceeding your ${budget.category} budget of ₹${NumberFormat('#,##0').format(budget.amount)} by ₹${NumberFormat('#,##0').format(spent - budget.amount)}.'
+                : 'You have used ${pct.toStringAsFixed(0)}% of your ₹${NumberFormat('#,##0').format(budget.amount)} budget for ${budget.category}.';
 
             await db.insert(
               'notifications',
@@ -1376,11 +1388,19 @@ CREATE TABLE notifications (
                 description: desc,
                 timestamp: now,
                 type: NotificationType.budget,
-                actionRoute: '/connect-wallet',
+                actionRoute: '/statistics',
                 userEmail: email,
               ).toMap(),
               conflictAlgorithm: ConflictAlgorithm.ignore,
             );
+
+            if (existing.isEmpty) {
+              NotificationService.instance.showBudgetAlertNotification(
+                title: title,
+                body: desc,
+                userEmail: email,
+              );
+            }
           }
         }
       }
@@ -1389,7 +1409,7 @@ CREATE TABLE notifications (
     // 3. Check Goals Progress
     final goalsResult = await db.query(
       'goals',
-      where: 'userEmail = ? OR userEmail = ""',
+      where: 'LOWER(TRIM(userEmail)) = ? OR userEmail = ""',
       whereArgs: [email],
     );
     final goals = goalsResult.map((m) => GoalModel.fromMap(m)).toList();
@@ -1399,20 +1419,20 @@ CREATE TABLE notifications (
         if (pct >= 25) {
           String milestoneKey = '25';
           String title = 'Goal Milestone 🌱: ${goal.title}';
-          String desc = 'Strong start! You reached ${pct.toStringAsFixed(0)}% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}.';
+          String desc = 'Strong start! You reached ${pct.toStringAsFixed(0)}% of your savings goal of ₹${NumberFormat('#,##0').format(goal.targetAmount)}.';
 
           if (pct >= 100) {
             milestoneKey = '100';
             title = 'Goal Achieved 🎉: ${goal.title}';
-            desc = 'Congratulations! You reached 100% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}!';
+            desc = 'Congratulations! You reached 100% of your savings goal of ₹${NumberFormat('#,##0').format(goal.targetAmount)}!';
           } else if (pct >= 75) {
             milestoneKey = '75';
             title = 'Goal Milestone 🔥: ${goal.title}';
-            desc = 'You are ${pct.toStringAsFixed(0)}% of the way to achieving your goal of \$${goal.targetAmount.toStringAsFixed(2)}!';
+            desc = 'You are ${pct.toStringAsFixed(0)}% of the way to achieving your goal of ₹${NumberFormat('#,##0').format(goal.targetAmount)}!';
           } else if (pct >= 50) {
             milestoneKey = '50';
             title = 'Goal Milestone 🎯: ${goal.title}';
-            desc = 'Great job! You reached ${pct.toStringAsFixed(0)}% of your savings goal of \$${goal.targetAmount.toStringAsFixed(2)}.';
+            desc = 'Great job! You reached ${pct.toStringAsFixed(0)}% of your savings goal of ₹${NumberFormat('#,##0').format(goal.targetAmount)}.';
           }
 
           final notifId = 'goal_${goal.id}_$milestoneKey';
@@ -1434,11 +1454,11 @@ CREATE TABLE notifications (
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
 
-          // If this milestone notification was newly created, trigger OS heads-up banner!
           if (existing.isEmpty) {
-            NotificationService.instance.showInstantTestNotification(
+            NotificationService.instance.showBudgetAlertNotification(
               title: title,
               body: desc,
+              userEmail: email,
             );
           }
         }
