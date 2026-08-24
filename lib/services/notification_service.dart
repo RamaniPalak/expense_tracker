@@ -248,11 +248,13 @@ class NotificationService {
     debugPrint('[NotificationService] Instant test notification displayed');
   }
 
-  // ── Show Budget Alert Notification ─────────────────────────────────────────
-  Future<void> showBudgetAlertNotification({
+  // ── Show Notification Banner (OS System Tray + In-App) ─────────────────────
+  Future<void> showNotification({
     required String title,
     required String body,
     required String userEmail,
+    NotificationType type = NotificationType.system,
+    String? actionRoute,
   }) async {
     final notifId = DateTime.now().millisecondsSinceEpoch % 100000;
     await _notificationsPlugin.show(
@@ -261,32 +263,51 @@ class NotificationService {
       body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'budget_alerts_channel',
-          'Budget & Overspending Alerts',
-          channelDescription: 'Notifications for budget alerts and spending limits',
+          'daily_reminder_channel',
+          'Expense Tracker Alerts',
+          channelDescription: 'Notifications for budget limits, bills, and reminders',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
           icon: '@mipmap/ic_launcher',
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
     );
 
     // Save to in-app notification center
     await DatabaseHelper.instance.insertNotification(
       AppNotificationModel(
-        id: 'budget_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
         title: title,
         description: body,
         timestamp: DateTime.now(),
-        type: NotificationType.budget,
-        actionRoute: '/statistics',
+        type: type,
+        actionRoute: actionRoute ?? '/statistics',
         userEmail: userEmail,
       ),
     );
 
-    debugPrint('[NotificationService] Budget alert notification displayed: $title');
+    debugPrint('[NotificationService] Notification displayed: $title');
+  }
+
+  // ── Legacy/Convenience Wrapper for Budget Alerts ───────────────────────────
+  Future<void> showBudgetAlertNotification({
+    required String title,
+    required String body,
+    required String userEmail,
+  }) async {
+    await showNotification(
+      title: title,
+      body: body,
+      userEmail: userEmail,
+      type: NotificationType.budget,
+      actionRoute: '/statistics',
+    );
   }
 
   // ── internal: actually schedule the recurring daily notification ───────────
