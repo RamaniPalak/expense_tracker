@@ -75,7 +75,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
   }
 
   List<Map<String, dynamic>> _buildCategoryList(
-      List<TransactionModel> all) {
+      List<TransactionModel> all, List<BudgetModel> allBudgets) {
     final filtered = all.where((e) =>
         e.isIncome == _isIncome &&
         e.date.month == _selectedMonth &&
@@ -84,6 +84,17 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
     final Map<String, double> catTotals = {};
     for (final e in filtered) {
       catTotals[e.category] = (catTotals[e.category] ?? 0) + e.amount;
+    }
+
+    if (!_isIncome) {
+      for (final b in allBudgets) {
+        if (b.category != AppStrings.total &&
+            b.month == _selectedMonth &&
+            b.year == _selectedYear &&
+            b.amount > 0) {
+          catTotals.putIfAbsent(b.category, () => 0.0);
+        }
+      }
     }
 
     final list = catTotals.entries
@@ -132,7 +143,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
           return ValueListenableBuilder<List<BudgetModel>>(
             valueListenable: sl<DatabaseHelper>().budgetsNotifier,
             builder: (context, allBudgets, _) {
-              final categoryList = _buildCategoryList(allTransactions);
+              final categoryList = _buildCategoryList(allTransactions, allBudgets);
               final total = categoryList.fold(
                   0.0, (sum, e) => sum + (e['amount'] as double));
 
@@ -156,7 +167,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
                               final delay = index * 0.08;
 
                               final catBudget = allBudgets.where((b) =>
-                                  b.category == item['category'] &&
+                                  b.category.trim().toLowerCase() == (item['category'] as String).trim().toLowerCase() &&
                                   b.month == _selectedMonth &&
                                   b.year == _selectedYear).firstOrNull;
 

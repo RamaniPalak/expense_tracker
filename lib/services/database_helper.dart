@@ -642,39 +642,42 @@ CREATE TABLE notifications (
   // ── Budget Operations ───────────────────────────────────────────────────────
 
   Future<void> upsertBudget(BudgetModel budget) async {
+    final cleanEmail = budget.userEmail.trim().toLowerCase();
     final db = await instance.database;
 
     final existing = await db.query(
       'budgets',
-      where: 'category = ? AND userEmail = ? AND month = ? AND year = ?',
-      whereArgs: [budget.category, budget.userEmail, budget.month, budget.year],
+      where: 'LOWER(TRIM(category)) = LOWER(TRIM(?)) AND LOWER(TRIM(userEmail)) = ? AND month = ? AND year = ?',
+      whereArgs: [budget.category, cleanEmail, budget.month, budget.year],
     );
 
     int? localId;
     int? currentRemoteId = budget.remoteId;
+
+    final normalizedBudget = budget.copyWith(userEmail: cleanEmail);
 
     if (existing.isNotEmpty) {
       localId = existing.first['id'] as int;
       currentRemoteId = currentRemoteId ?? existing.first['remoteId'] as int?;
       await db.update(
         'budgets',
-        budget.toMap()..remove('id'),
+        normalizedBudget.toMap()..remove('id'),
         where: 'id = ?',
         whereArgs: [localId],
       );
     } else {
-      localId = await db.insert('budgets', budget.toMap());
+      localId = await db.insert('budgets', normalizedBudget.toMap());
     }
 
-    await refreshBudgets(budget.userEmail);
+    await refreshBudgets(cleanEmail);
 
     final remoteEntry = BudgetEntry(
       id: currentRemoteId,
-      category: budget.category,
-      amount: budget.amount,
-      month: budget.month,
-      year: budget.year,
-      userEmail: budget.userEmail,
+      category: normalizedBudget.category,
+      amount: normalizedBudget.amount,
+      month: normalizedBudget.month,
+      year: normalizedBudget.year,
+      userEmail: cleanEmail,
     );
 
     if (currentRemoteId != null) {
@@ -691,7 +694,7 @@ CREATE TABLE notifications (
             where: 'id = ?',
             whereArgs: [localId],
           );
-          await refreshBudgets(budget.userEmail);
+          await refreshBudgets(cleanEmail);
         }
       }).catchError((e) {
         debugPrint("Background add budget remote failed: $e");
@@ -700,32 +703,36 @@ CREATE TABLE notifications (
   }
 
   Future<List<BudgetModel>> getBudgets(String? email) async {
-    if (email == null) return [];
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
     final db = await instance.database;
     final result = await db.query(
       'budgets',
-      where: 'userEmail = ?',
-      whereArgs: [email],
+      where: 'LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [cleanEmail],
     );
     return result.map((json) => BudgetModel.fromMap(json)).toList();
   }
 
   Future<void> refreshBudgets(String? email, {bool syncFromRemote = false}) async {
-    if (email == null) return;
+    if (email == null || email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
 
-    final budgets = await getBudgets(email);
+    final budgets = await getBudgets(cleanEmail);
     budgetsNotifier.value = budgets;
 
     if (syncFromRemote) {
-      syncBudgetsWithRemote(email).then((_) async {
-        budgetsNotifier.value = await getBudgets(email);
+      syncBudgetsWithRemote(cleanEmail).then((_) async {
+        budgetsNotifier.value = await getBudgets(cleanEmail);
       }).catchError((e) => debugPrint("Background budget sync error: $e"));
     }
   }
 
   Future<void> syncBudgetsWithRemote(String email) async {
+    if (email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
     try {
-      final remoteEntries = await BudgetService().getBudgets(email);
+      final remoteEntries = await BudgetService().getBudgets(cleanEmail);
       final db = await instance.database;
 
       for (BudgetEntry entry in remoteEntries) {
@@ -734,8 +741,8 @@ CREATE TABLE notifications (
         final existing = await db.query(
           'budgets',
           where:
-              'remoteId = ? OR (category = ? AND userEmail = ? AND month = ? AND year = ?)',
-          whereArgs: [entry.id, entry.category, entry.userEmail, entry.month, entry.year],
+              'remoteId = ? OR (LOWER(TRIM(category)) = LOWER(TRIM(?)) AND LOWER(TRIM(userEmail)) = ? AND month = ? AND year = ?)',
+          whereArgs: [entry.id, entry.category, cleanEmail, entry.month, entry.year],
         );
 
         if (existing.isEmpty) {
@@ -745,7 +752,7 @@ CREATE TABLE notifications (
             amount: entry.amount,
             month: entry.month,
             year: entry.year,
-            userEmail: entry.userEmail,
+            userEmail: cleanEmail,
           );
           await db.insert('budgets', budget.toMap());
         } else {
@@ -757,7 +764,7 @@ CREATE TABLE notifications (
             amount: entry.amount,
             month: entry.month,
             year: entry.year,
-            userEmail: entry.userEmail,
+            userEmail: cleanEmail,
           );
           await db.update(
             'budgets',

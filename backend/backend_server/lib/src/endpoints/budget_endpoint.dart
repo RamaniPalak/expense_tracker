@@ -27,6 +27,22 @@ CREATE TABLE IF NOT EXISTS "budget_entry" (
       Session session, BudgetEntry entry) async {
     await _ensureTableExists(session);
     entry.userEmail = entry.userEmail.trim().toLowerCase();
+    
+    // Check if a budget entry already exists for the same category, month, year, and email
+    final existing = await BudgetEntry.db.find(
+      session,
+      where: (t) =>
+          t.userEmail.equals(entry.userEmail) &
+          t.category.equals(entry.category) &
+          t.month.equals(entry.month) &
+          t.year.equals(entry.year),
+    );
+
+    if (existing.isNotEmpty) {
+      entry.id = existing.first.id;
+      return await BudgetEntry.db.updateRow(session, entry);
+    }
+
     return await BudgetEntry.db.insertRow(session, entry);
   }
 
