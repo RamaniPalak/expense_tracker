@@ -50,6 +50,7 @@ class _BudgetDialogState extends State<BudgetDialog> {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount <= 0) return;
 
+    final now = DateTime.now();
     final budget = BudgetModel(
       id: widget.initialBudget?.id,
       remoteId: widget.initialBudget?.remoteId,

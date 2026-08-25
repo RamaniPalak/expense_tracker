@@ -46,4 +46,24 @@ class BudgetModel extends BudgetEntity {
       'userEmail': userEmail,
     };
   }
+
+  BudgetModel copyWith({
+    int? id,
+    int? remoteId,
+    String? category,
+    double? amount,
+    int? month,
+    int? year,
+    String? userEmail,
+  }) {
+    return BudgetModel(
+      id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
+      category: category ?? this.category,
+      amount: amount ?? this.amount,
+      month: month ?? this.month,
+      year: year ?? this.year,
+      userEmail: userEmail ?? this.userEmail,
+    );
+  }
 }

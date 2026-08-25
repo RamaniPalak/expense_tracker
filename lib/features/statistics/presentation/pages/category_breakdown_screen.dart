@@ -7,6 +7,7 @@ import 'package:expense_tracker/features/transactions/data/models/transaction_mo
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
+import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
