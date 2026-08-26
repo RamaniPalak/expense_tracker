@@ -498,13 +498,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                                     ))
                                                 .toList(),
                                           );
-                              );
-                            },
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 30),
+                              ],
+                            ),
                           );
                         },
                       );
                     },
-                  ),
+                  );
+                },
+              ),
 
                   // ── Tab 2: Upcoming Bills ────────────────────────
                   _UpcomingBillsTab(userEmail: _userEmail),
