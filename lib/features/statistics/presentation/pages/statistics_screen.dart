@@ -114,18 +114,49 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int selectedSpendingIndex = -1;
 
   BudgetModel _calculateTotalBudget(List<BudgetModel> allBudgets) {
-    return allBudgets.firstWhere(
+    final exact = allBudgets.firstWhere(
       (b) =>
           b.category == AppStrings.total &&
           b.month == selectedMonth &&
-          b.year == selectedYear,
-      orElse: () => BudgetModel(
-        category: AppStrings.total,
-        amount: 0,
+          b.year == selectedYear &&
+          b.amount > 0,
+      orElse: () => const BudgetModel(
+        category: '',
+        amount: -1,
+        month: 0,
+        year: 0,
+        userEmail: '',
+      ),
+    );
+
+    if (exact.amount >= 0) return exact;
+
+    // Carry-forward fallback: Find the most recent previous month's total budget
+    final previousBudgets = allBudgets.where((b) {
+      if (b.category != AppStrings.total || b.amount <= 0) return false;
+      if (b.year < selectedYear) return true;
+      if (b.year == selectedYear && b.month < selectedMonth) return true;
+      return false;
+    }).toList();
+
+    if (previousBudgets.isNotEmpty) {
+      previousBudgets.sort((a, b) {
+        final aKey = a.year * 100 + a.month;
+        final bKey = b.year * 100 + b.month;
+        return bKey.compareTo(aKey);
+      });
+      return previousBudgets.first.copyWith(
         month: selectedMonth,
         year: selectedYear,
-        userEmail: _userEmail ?? '',
-      ),
+      );
+    }
+
+    return BudgetModel(
+      category: AppStrings.total,
+      amount: 0,
+      month: selectedMonth,
+      year: selectedYear,
+      userEmail: _userEmail ?? '',
     );
   }
 

@@ -75,6 +75,26 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
     });
   }
 
+  BudgetModel? _findMostRecentPreviousCategoryBudget(
+      List<BudgetModel> allBudgets, String category) {
+    final previous = allBudgets.where((b) {
+      if (b.category.trim().toLowerCase() != category.trim().toLowerCase() || b.amount <= 0) return false;
+      if (b.year < _selectedYear) return true;
+      if (b.year == _selectedYear && b.month < _selectedMonth) return true;
+      return false;
+    }).toList();
+
+    if (previous.isEmpty) return null;
+
+    previous.sort((a, b) {
+      final aKey = a.year * 100 + a.month;
+      final bKey = b.year * 100 + b.month;
+      return bKey.compareTo(aKey);
+    });
+
+    return previous.first.copyWith(month: _selectedMonth, year: _selectedYear);
+  }
+
   List<Map<String, dynamic>> _buildCategoryList(
       List<TransactionModel> all, List<BudgetModel> allBudgets) {
     final filtered = all.where((e) =>
@@ -89,11 +109,12 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
 
     if (!_isIncome) {
       for (final b in allBudgets) {
-        if (b.category != AppStrings.total &&
-            b.month == _selectedMonth &&
-            b.year == _selectedYear &&
-            b.amount > 0) {
-          catTotals.putIfAbsent(b.category, () => 0.0);
+        if (b.category != AppStrings.total && b.amount > 0) {
+          final isSameOrPreviousMonth = b.year < _selectedYear ||
+              (b.year == _selectedYear && b.month <= _selectedMonth);
+          if (isSameOrPreviousMonth) {
+            catTotals.putIfAbsent(b.category, () => 0.0);
+          }
         }
       }
     }
@@ -170,7 +191,8 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
                               final catBudget = allBudgets.where((b) =>
                                   b.category.trim().toLowerCase() == (item['category'] as String).trim().toLowerCase() &&
                                   b.month == _selectedMonth &&
-                                  b.year == _selectedYear).firstOrNull;
+                                  b.year == _selectedYear).firstOrNull ??
+                                  _findMostRecentPreviousCategoryBudget(allBudgets, item['category'] as String);
 
                               return _CategoryTile(
                                 key: ValueKey('$_selectedMonth-$_selectedYear-${item['category']}'),
