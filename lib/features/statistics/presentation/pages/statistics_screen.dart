@@ -498,17 +498,149 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                                     ))
                                                 .toList(),
                                           );
-                                        },
+                                        totalBudget: totalBudgetObj.amount,
+                                        totalSpent: totalSpentResult,
+                                        monthYear: DateFormat('MMMM yyyy')
+                                            .format(DateTime(selectedYear, selectedMonth)),
+                                        onPreviousMonth: () => _changeMonth(-1),
+                                        onNextMonth: () => _changeMonth(1),
+                                        showNextMonth: !isCurrentMonth,
+                                        availableBalance: walletBalance,
+                                        onSetBudget: () =>
+                                            _showBudgetDialog(context, allMonthlyBudgets),
                                       ),
                                     ],
-                                  ),
+                                    const SizedBox(height: 20),
+                                    if (!isIncomeMode && selectedTimeFilter == "Month") ...[
+                                      Builder(builder: (context) {
+                                        final insight = _getBenchmarkInsight(allExpenses);
+                                        return StatisticsHelper.buildSpendingInsightCard(
+                                          context: context,
+                                          currentTotal: insight['current'],
+                                          previousTotal: insight['previous'],
+                                          difference: insight['difference'],
+                                          isIncrease: insight['isIncrease'],
+                                        );
+                                      }),
+                                      const SizedBox(height: 20),
+                                    ],
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          StatisticsHelper.buildTypeDropdown(
+                                            context: context,
+                                            selectedType: selectedTransactionType,
+                                            types: transactionTypes,
+                                            onChanged: (String? newValue) {
+                                              if (newValue != null) {
+                                                setState(() {
+                                                  selectedTransactionType = newValue;
+                                                });
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    StatisticsPieChart(
+                                      pieSections: pieSections,
+                                      topSpendingList: topSpendingList,
+                                      totalInFilter: totalInFilter,
+                                      touchedIndex: touchedIndex,
+                                      selectedTransactionType: selectedTransactionType,
+                                      onSelectionChanged: (index) {
+                                        setState(() {
+                                          touchedIndex = index;
+                                          selectedSpendingIndex = index;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 30),
+                                    StatisticsHelper.buildSpendingHeader(context: context),
+                                    const SizedBox(height: 16),
+                                    StatisticsSpendingList(
+                                      topSpendingList: topSpendingList,
+                                      isIncomeMode: isIncomeMode,
+                                      selectedSpendingIndex: selectedSpendingIndex,
+                                      onItemTapped: (index) {
+                                        setState(() {
+                                          selectedSpendingIndex = index;
+                                          touchedIndex = index;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    StatisticsBreakdownButton(
+                                      isIncomeMode: isIncomeMode,
+                                      onTap: () => context.push(
+                                        RoutePaths.categoryBreakdown,
+                                        extra: isIncomeMode,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                      child: ExpansionTile(
+                                        title: const Text(
+                                          "DB Debug Panel",
+                                          style: TextStyle(
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14),
+                                        ),
+                                        children: [
+                                          Text("Active Email: $_userEmail",
+                                              style: TextStyle(
+                                                  color: c.textSecondary, fontSize: 12)),
+                                          Text(
+                                              "Current Month: $selectedMonth / $selectedYear",
+                                              style: TextStyle(
+                                                  color: c.textSecondary, fontSize: 12)),
+                                          const SizedBox(height: 8),
+                                          FutureBuilder<List<BudgetModel>>(
+                                            future:
+                                                sl<DatabaseHelper>().getBudgets(_userEmail),
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData) {
+                                                return const Text("Loading...");
+                                              }
+                                              final list = snapshot.data!;
+                                              if (list.isEmpty) {
+                                                return const Text("No budgets stored",
+                                                    style: TextStyle(
+                                                        fontSize: 12, color: Colors.amber));
+                                              }
+                                              return Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: list
+                                                    .map((b) => Padding(
+                                                          padding: const EdgeInsets.symmetric(
+                                                              vertical: 2.0),
+                                                          child: Text(
+                                                            "• ${b.category}: ₹${b.amount} (${b.month}/${b.year}) [id:${b.id}]",
+                                                            style: TextStyle(
+                                                                fontSize: 12,
+                                                                color: c.textPrimary),
+                                                          ),
+                                                        ))
+                                                    .toList(),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 30),
+                                  ],
                                 ),
-                                const SizedBox(height: 30),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
                   ),
 
                   // ── Tab 2: Upcoming Bills ────────────────────────
