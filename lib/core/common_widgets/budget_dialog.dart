@@ -8,6 +8,8 @@ import 'package:expense_tracker/core/di/injection_container.dart';
 
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
+import 'package:expense_tracker/features/wallet/data/models/monthly_budget_model.dart';
+
 class BudgetDialog extends StatefulWidget {
   final String? userEmail;
   final BudgetModel? initialBudget;
@@ -51,17 +53,28 @@ class _BudgetDialogState extends State<BudgetDialog> {
     if (amount <= 0) return;
 
     final now = DateTime.now();
-    final budget = BudgetModel(
-      id: widget.initialBudget?.id,
-      remoteId: widget.initialBudget?.remoteId,
-      category: widget.category,
-      amount: amount,
-      month: widget.month ?? now.month,
-      year: widget.year ?? now.year,
-      userEmail: widget.userEmail!,
-    );
-
-    await sl<DatabaseHelper>().upsertBudget(budget);
+    if (widget.category == AppStrings.total) {
+      final monthlyBudget = MonthlyBudgetModel(
+        id: widget.initialBudget?.id,
+        remoteId: widget.initialBudget?.remoteId,
+        amount: amount,
+        month: widget.month ?? now.month,
+        year: widget.year ?? now.year,
+        userEmail: widget.userEmail!,
+      );
+      await sl<DatabaseHelper>().upsertMonthlyBudget(monthlyBudget);
+    } else {
+      final budget = BudgetModel(
+        id: widget.initialBudget?.id,
+        remoteId: widget.initialBudget?.remoteId,
+        category: widget.category,
+        amount: amount,
+        month: widget.month ?? now.month,
+        year: widget.year ?? now.year,
+        userEmail: widget.userEmail!,
+      );
+      await sl<DatabaseHelper>().upsertBudget(budget);
+    }
     if (mounted) Navigator.pop(context);
   }
 

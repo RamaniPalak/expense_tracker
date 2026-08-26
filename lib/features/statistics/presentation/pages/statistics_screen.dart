@@ -6,6 +6,7 @@ import 'package:expense_tracker/features/statistics/presentation/widgets/statist
 import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_breakdown_button.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
+import 'package:expense_tracker/features/wallet/data/models/monthly_budget_model.dart';
 import 'package:expense_tracker/core/utils/report_generator.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
@@ -56,6 +57,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       });
       sl<DatabaseHelper>().refreshExpenses(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBudgets(_userEmail, syncFromRemote: true);
+      sl<DatabaseHelper>().refreshMonthlyBudgets(_userEmail, syncFromRemote: true);
       sl<DatabaseHelper>().refreshBills(_userEmail);
     }
   }
@@ -113,15 +115,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int touchedIndex = -1;
   int selectedSpendingIndex = -1;
 
-  BudgetModel _calculateTotalBudget(List<BudgetModel> allBudgets) {
-    final exact = allBudgets.firstWhere(
+  MonthlyBudgetModel _calculateTotalBudget(List<MonthlyBudgetModel> allMonthlyBudgets) {
+    final exact = allMonthlyBudgets.firstWhere(
       (b) =>
-          b.category == AppStrings.total &&
           b.month == selectedMonth &&
           b.year == selectedYear &&
           b.amount > 0,
-      orElse: () => const BudgetModel(
-        category: '',
+      orElse: () => const MonthlyBudgetModel(
         amount: -1,
         month: 0,
         year: 0,
@@ -132,8 +132,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     if (exact.amount >= 0) return exact;
 
     // Carry-forward fallback: Find the most recent previous month's total budget
-    final previousBudgets = allBudgets.where((b) {
-      if (b.category != AppStrings.total || b.amount <= 0) return false;
+    final previousBudgets = allMonthlyBudgets.where((b) {
+      if (b.amount <= 0) return false;
       if (b.year < selectedYear) return true;
       if (b.year == selectedYear && b.month < selectedMonth) return true;
       return false;
@@ -151,8 +151,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       );
     }
 
-    return BudgetModel(
-      category: AppStrings.total,
+    return MonthlyBudgetModel(
       amount: 0,
       month: selectedMonth,
       year: selectedYear,
@@ -348,9 +347,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               .where((e) => e.isIncome == isIncomeMode)
                               .toList();
 
-                          final totalBudgetObj = _calculateTotalBudget(allBudgets);
-                          final totalSpentResult = _calculateTotalSpent(allExpenses);
-                          final walletBalance = _calculateWalletBalance(allExpenses);
+                          return ValueListenableBuilder<List<MonthlyBudgetModel>>(
+                            valueListenable: sl<DatabaseHelper>().monthlyBudgetsNotifier,
+                            builder: (context, allMonthlyBudgets, _) {
+                              final totalBudgetObj = _calculateTotalBudget(allMonthlyBudgets);
+                              final totalSpentResult = _calculateTotalSpent(allExpenses);
+                              final walletBalance = _calculateWalletBalance(allExpenses);
 
                           final topSpendingList =
                               _prepareTopSpendingList(typeFilteredData, isIncomeMode);
@@ -376,7 +378,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                     showNextMonth: !isCurrentMonth,
                                     availableBalance: walletBalance,
                                     onSetBudget: () =>
-                                        _showBudgetDialog(context, allBudgets),
+                                        _showBudgetDialog(context, allMonthlyBudgets),
                                   ),
                                 ],
                                 const SizedBox(height: 20),
@@ -502,12 +504,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 30),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
 
                   // ── Tab 2: Upcoming Bills ────────────────────────
@@ -522,13 +523,24 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Future<void> _showBudgetDialog(
-      BuildContext context, List<BudgetModel> allBudgets) async {
-    final existingBudget = allBudgets
+      BuildContext context, List<MonthlyBudgetModel> allMonthlyBudgets) async {
+    final existingMonthly = allMonthlyBudgets
         .where((b) =>
-            b.category == AppStrings.total &&
             b.month == selectedMonth &&
             b.year == selectedYear)
         .firstOrNull;
+
+    final BudgetModel? existingBudget = existingMonthly != null
+        ? BudgetModel(
+            id: existingMonthly.id,
+            remoteId: existingMonthly.remoteId,
+            category: AppStrings.total,
+            amount: existingMonthly.amount,
+            month: existingMonthly.month,
+            year: existingMonthly.year,
+            userEmail: existingMonthly.userEmail,
+          )
+        : null;
 
     await showDialog(
       context: context,
@@ -536,6 +548,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         userEmail: _userEmail,
         month: selectedMonth,
         year: selectedYear,
+        category: AppStrings.total,
         initialBudget: existingBudget,
       ),
     );

@@ -2,6 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
+import 'package:expense_tracker/features/wallet/data/models/monthly_budget_model.dart';
+import 'package:expense_tracker/services/api_client.dart';
 import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
 import 'package:expense_tracker/features/categories/data/models/category_model.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
@@ -23,6 +25,7 @@ class DatabaseHelper {
   // ValueNotifiers to notify listeners of database changes
   final ValueNotifier<List<TransactionModel>> expensesNotifier = ValueNotifier([]);
   final ValueNotifier<List<BudgetModel>> budgetsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<MonthlyBudgetModel>> monthlyBudgetsNotifier = ValueNotifier([]);
   final ValueNotifier<List<BillModel>> billsNotifier = ValueNotifier([]);
   final ValueNotifier<List<CategoryModel>> categoriesNotifier = ValueNotifier([]);
   final ValueNotifier<List<GoalModel>> goalsNotifier = ValueNotifier([]);
@@ -156,6 +159,18 @@ CREATE TABLE notifications (
 )
 ''');
     }
+    if (oldVersion < 13) {
+      await db.execute('''
+CREATE TABLE IF NOT EXISTS monthly_budgets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  remoteId INTEGER,
+  amount REAL NOT NULL,
+  month INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  userEmail TEXT NOT NULL
+)
+''');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -182,6 +197,17 @@ CREATE TABLE budgets (
   id $idType,
   remoteId INTEGER,
   category $textType,
+  amount $realType,
+  month $intType,
+  year $intType,
+  userEmail $textType
+  )
+''');
+
+    await db.execute('''
+CREATE TABLE IF NOT EXISTS monthly_budgets (
+  id $idType,
+  remoteId INTEGER,
   amount $realType,
   month $intType,
   year $intType,
@@ -776,6 +802,140 @@ CREATE TABLE notifications (
       }
     } catch (e) {
       debugPrint('Budget Sync failed: $e');
+    }
+  }
+
+  // ── Whole Month Budget Operations ──────────────────────────────────────────
+
+  Future<void> upsertMonthlyBudget(MonthlyBudgetModel budget) async {
+    final cleanEmail = budget.userEmail.trim().toLowerCase();
+    final db = await instance.database;
+
+    final existing = await db.query(
+      'monthly_budgets',
+      where: 'LOWER(TRIM(userEmail)) = ? AND month = ? AND year = ?',
+      whereArgs: [cleanEmail, budget.month, budget.year],
+    );
+
+    int? localId;
+    int? currentRemoteId = budget.remoteId;
+    final normalizedBudget = budget.copyWith(userEmail: cleanEmail);
+
+    if (existing.isNotEmpty) {
+      localId = existing.first['id'] as int;
+      currentRemoteId = currentRemoteId ?? existing.first['remoteId'] as int?;
+      await db.update(
+        'monthly_budgets',
+        normalizedBudget.toMap()..remove('id'),
+        where: 'id = ?',
+        whereArgs: [localId],
+      );
+    } else {
+      localId = await db.insert('monthly_budgets', normalizedBudget.toMap());
+    }
+
+    await refreshMonthlyBudgets(cleanEmail);
+
+    try {
+      final res = await apiClient.client.budgetEntry.addMonthlyBudgetEntry(
+        cleanEmail,
+        normalizedBudget.amount,
+        normalizedBudget.month,
+        normalizedBudget.year,
+      );
+      if (res != null && res['id'] != null) {
+        await db.update(
+          'monthly_budgets',
+          {'remoteId': res['id']},
+          where: 'id = ?',
+          whereArgs: [localId],
+        );
+        await refreshMonthlyBudgets(cleanEmail);
+      }
+    } catch (e) {
+      debugPrint("Background add monthly budget remote failed: $e");
+    }
+  }
+
+  Future<List<MonthlyBudgetModel>> getMonthlyBudgets(String? email) async {
+    if (email == null || email.trim().isEmpty) return [];
+    final cleanEmail = email.trim().toLowerCase();
+    final db = await instance.database;
+    final result = await db.query(
+      'monthly_budgets',
+      where: 'LOWER(TRIM(userEmail)) = ?',
+      whereArgs: [cleanEmail],
+    );
+    return result.map((json) => MonthlyBudgetModel.fromMap(json)).toList();
+  }
+
+  Future<void> refreshMonthlyBudgets(String? email, {bool syncFromRemote = false}) async {
+    if (email == null || email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
+
+    final budgets = await getMonthlyBudgets(cleanEmail);
+    monthlyBudgetsNotifier.value = budgets;
+
+    if (syncFromRemote) {
+      syncMonthlyBudgetsWithRemote(cleanEmail).then((_) async {
+        monthlyBudgetsNotifier.value = await getMonthlyBudgets(cleanEmail);
+      }).catchError((e) => debugPrint("Background monthly budget sync error: $e"));
+    }
+  }
+
+  Future<void> syncMonthlyBudgetsWithRemote(String email) async {
+    if (email.trim().isEmpty) return;
+    final cleanEmail = email.trim().toLowerCase();
+    try {
+      final List<dynamic> remoteEntries =
+          await apiClient.client.budgetEntry.getMonthlyBudgetEntries(cleanEmail);
+      final db = await instance.database;
+
+      for (var entry in remoteEntries) {
+        final Map<String, dynamic> map = Map<String, dynamic>.from(entry as Map);
+        final remoteId = map['id'] as int?;
+        if (remoteId == null) continue;
+
+        final month = (map['month'] as num).toInt();
+        final year = (map['year'] as num).toInt();
+        final amount = (map['amount'] as num).toDouble();
+
+        final existing = await db.query(
+          'monthly_budgets',
+          where:
+              'remoteId = ? OR (LOWER(TRIM(userEmail)) = ? AND month = ? AND year = ?)',
+          whereArgs: [remoteId, cleanEmail, month, year],
+        );
+
+        if (existing.isEmpty) {
+          final model = MonthlyBudgetModel(
+            remoteId: remoteId,
+            amount: amount,
+            month: month,
+            year: year,
+            userEmail: cleanEmail,
+          );
+          await db.insert('monthly_budgets', model.toMap());
+        } else {
+          final localId = existing.first['id'] as int;
+          final model = MonthlyBudgetModel(
+            id: localId,
+            remoteId: remoteId,
+            amount: amount,
+            month: month,
+            year: year,
+            userEmail: cleanEmail,
+          );
+          await db.update(
+            'monthly_budgets',
+            model.toMap(),
+            where: 'id = ?',
+            whereArgs: [localId],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Monthly Budgets sync failed: $e');
     }
   }
 

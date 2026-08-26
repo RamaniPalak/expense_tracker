@@ -71,4 +71,68 @@ CREATE TABLE IF NOT EXISTS "budget_entry" (
       where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
     );
   }
+
+  // ── Dedicated Whole Month Budget Entry Table ─────────────────────────────
+  Future<void> _ensureMonthlyTableExists(Session session) async {
+    try {
+      await session.db.unsafeQuery('''
+CREATE TABLE IF NOT EXISTS "monthly_budget_entry" (
+    "id" bigserial PRIMARY KEY,
+    "amount" double precision NOT NULL,
+    "month" bigint NOT NULL,
+    "year" bigint NOT NULL,
+    "userEmail" text NOT NULL
+);
+''');
+    } catch (e) {
+      session.log('Auto table check warning: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> addMonthlyBudgetEntry(
+      Session session, String userEmail, double amount, int month, int year) async {
+    await _ensureMonthlyTableExists(session);
+    final cleanEmail = userEmail.trim().toLowerCase();
+
+    final existing = await session.db.unsafeQuery('''
+SELECT id FROM "monthly_budget_entry"
+WHERE LOWER(TRIM("userEmail")) = '$cleanEmail' AND "month" = $month AND "year" = $year;
+''');
+
+    if (existing.isNotEmpty) {
+      final id = existing.first.first as int;
+      await session.db.unsafeQuery('''
+UPDATE "monthly_budget_entry"
+SET "amount" = $amount
+WHERE "id" = $id;
+''');
+      return {'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year};
+    } else {
+      final result = await session.db.unsafeQuery('''
+INSERT INTO "monthly_budget_entry" ("userEmail", "amount", "month", "year")
+VALUES ('$cleanEmail', $amount, $month, $year)
+RETURNING id;
+''');
+      final id = result.first.first as int;
+      return {'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year};
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getMonthlyBudgetEntries(
+      Session session, String userEmail) async {
+    await _ensureMonthlyTableExists(session);
+    final cleanEmail = userEmail.trim().toLowerCase();
+    final result = await session.db.unsafeQuery('''
+SELECT id, "userEmail", amount, month, year FROM "monthly_budget_entry"
+WHERE LOWER(TRIM("userEmail")) = '$cleanEmail';
+''');
+
+    return result.map((row) => {
+      'id': row[0] as int,
+      'userEmail': row[1] as String,
+      'amount': (row[2] as num).toDouble(),
+      'month': (row[3] as num).toInt(),
+      'year': (row[4] as num).toInt(),
+    }).toList();
+  }
 }
