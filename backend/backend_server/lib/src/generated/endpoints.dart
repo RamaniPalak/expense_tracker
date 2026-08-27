@@ -238,6 +238,62 @@ class Endpoints extends _i1.EndpointDispatch {
             params['userEmail'],
           ),
         ),
+        'addMonthlyBudgetEntry': _i1.MethodConnector(
+          name: 'addMonthlyBudgetEntry',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'amount': _i1.ParameterDescription(
+              name: 'amount',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'month': _i1.ParameterDescription(
+              name: 'month',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'year': _i1.ParameterDescription(
+              name: 'year',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .addMonthlyBudgetEntry(
+            session,
+            params['userEmail'],
+            (params['amount'] as num).toDouble(),
+            (params['month'] as num).toInt(),
+            (params['year'] as num).toInt(),
+          ),
+        ),
+        'getMonthlyBudgetEntries': _i1.MethodConnector(
+          name: 'getMonthlyBudgetEntries',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+                  .getMonthlyBudgetEntries(
+            session,
+            params['userEmail'],
+          ),
+        ),
       },
     );
     connectors['goalEntry'] = _i1.EndpointConnector(
