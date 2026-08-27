@@ -1640,23 +1640,25 @@ CREATE TABLE notifications (
     );
 
     if (existingNotifs.isEmpty) {
+      final safeEmailPrefix = email.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
       // Seed Welcome Notification
       await db.insert(
         'notifications',
         AppNotificationModel(
-          id: 'welcome_1',
+          id: 'welcome_$safeEmailPrefix',
           title: 'Welcome to Expense Tracker 👋',
           description: 'Track your spending, manage bills, and hit your savings goals effortlessly. Tap the notification bell anytime to review your alerts!',
           timestamp: now.subtract(const Duration(minutes: 5)),
           type: NotificationType.system,
           userEmail: email,
         ).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
       await db.insert(
         'notifications',
         AppNotificationModel(
-          id: 'daily_checkin_1',
+          id: 'daily_checkin_$safeEmailPrefix',
           title: 'Daily Expense Check-In 💰',
           description: 'Don\'t forget to log today\'s expenses to keep your monthly budget and reports accurate!',
           timestamp: now,
@@ -1664,6 +1666,7 @@ CREATE TABLE notifications (
           actionRoute: '/add-expense',
           userEmail: email,
         ).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
 
