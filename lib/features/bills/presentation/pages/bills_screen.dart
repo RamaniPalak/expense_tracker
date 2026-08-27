@@ -31,7 +31,7 @@ class _BillsScreenState extends State<BillsScreen> {
   Future<void> _loadData() async {
     _userEmail = await sl<IAuthRepository>().getUserEmail();
     if (_userEmail != null) {
-      await sl<DatabaseHelper>().refreshBills(_userEmail);
+      await sl<DatabaseHelper>().refreshBills(_userEmail, syncFromRemote: true);
     }
   }
 

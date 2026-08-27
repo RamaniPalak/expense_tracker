@@ -233,6 +233,76 @@ class EndpointExpenseEntry extends _i1.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointBillEntry extends _i1.EndpointRef {
+  EndpointBillEntry(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'billEntry';
+
+  _i2.Future<String?> addBillEntry(
+    String userEmail,
+    String title,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'addBillEntry',
+        {
+          'userEmail': userEmail,
+          'title': title,
+          'amount': amount,
+          'dueDate': dueDate,
+          'endDate': endDate,
+          'category': category,
+          'isPaid': isPaid,
+          'isRecurring': isRecurring,
+        },
+      );
+
+  _i2.Future<String?> updateBillEntry(
+    int remoteId,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'updateBillEntry',
+        {
+          'remoteId': remoteId,
+          'amount': amount,
+          'dueDate': dueDate,
+          'endDate': endDate,
+          'category': category,
+          'isPaid': isPaid,
+          'isRecurring': isRecurring,
+        },
+      );
+
+  _i2.Future<bool> deleteBillEntry(int remoteId) =>
+      caller.callServerEndpoint<bool>(
+        'billEntry',
+        'deleteBillEntry',
+        {'remoteId': remoteId},
+      );
+
+  _i2.Future<String?> getBillEntries(String userEmail) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'getBillEntries',
+        {'userEmail': userEmail},
+      );
+}
+
 class Client extends _i1.ServerpodClientShared {
   Client(
     String host, {
@@ -263,6 +333,7 @@ class Client extends _i1.ServerpodClientShared {
     budgetEntry = EndpointBudgetEntry(this);
     goalEntry = EndpointGoalEntry(this);
     expenseEntry = EndpointExpenseEntry(this);
+    billEntry = EndpointBillEntry(this);
   }
 
   late final EndpointAuth auth;
@@ -273,12 +344,15 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointExpenseEntry expenseEntry;
 
+  late final EndpointBillEntry billEntry;
+
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
         'auth': auth,
         'budgetEntry': budgetEntry,
         'goalEntry': goalEntry,
         'expenseEntry': expenseEntry,
+        'billEntry': billEntry,
       };
 
   @override

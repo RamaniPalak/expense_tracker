@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class BillModel extends Equatable {
   final int? id;
+  final int? remoteId;
   final String title;
   final double amount;
   final DateTime dueDate;
@@ -13,6 +14,7 @@ class BillModel extends Equatable {
 
   const BillModel({
     this.id,
+    this.remoteId,
     required this.title,
     required this.amount,
     required this.dueDate,
@@ -26,6 +28,7 @@ class BillModel extends Equatable {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'remoteId': remoteId,
       'title': title,
       'amount': amount,
       'dueDate': dueDate.toIso8601String(),
@@ -40,6 +43,7 @@ class BillModel extends Equatable {
   factory BillModel.fromMap(Map<String, dynamic> map) {
     return BillModel(
       id: map['id'],
+      remoteId: map['remoteId'] as int?,
       title: map['title'],
       amount: (map['amount'] as num).toDouble(),
       dueDate: DateTime.parse(map['dueDate']),
@@ -53,6 +57,7 @@ class BillModel extends Equatable {
 
   BillModel copyWith({
     int? id,
+    int? remoteId,
     String? title,
     double? amount,
     DateTime? dueDate,
@@ -64,6 +69,7 @@ class BillModel extends Equatable {
   }) {
     return BillModel(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       title: title ?? this.title,
       amount: amount ?? this.amount,
       dueDate: dueDate ?? this.dueDate,
@@ -78,6 +84,7 @@ class BillModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        remoteId,
         title,
         amount,
         dueDate,
