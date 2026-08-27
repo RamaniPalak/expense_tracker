@@ -63,6 +63,17 @@ class _BudgetDialogState extends State<BudgetDialog> {
         userEmail: widget.userEmail!,
       );
       await sl<DatabaseHelper>().upsertMonthlyBudget(monthlyBudget);
+
+      final totalCategoryBudget = BudgetModel(
+        id: widget.initialBudget?.id,
+        remoteId: widget.initialBudget?.remoteId,
+        category: AppStrings.total,
+        amount: amount,
+        month: widget.month ?? now.month,
+        year: widget.year ?? now.year,
+        userEmail: widget.userEmail!,
+      );
+      await sl<DatabaseHelper>().upsertBudget(totalCategoryBudget);
     } else {
       final budget = BudgetModel(
         id: widget.initialBudget?.id,
