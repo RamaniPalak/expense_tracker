@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
@@ -837,20 +838,23 @@ CREATE TABLE notifications (
     await refreshMonthlyBudgets(cleanEmail);
 
     try {
-      final res = await apiClient.client.budgetEntry.addMonthlyBudgetEntry(
+      final String? resJson = await apiClient.client.budgetEntry.addMonthlyBudgetEntry(
         cleanEmail,
         normalizedBudget.amount,
         normalizedBudget.month,
         normalizedBudget.year,
       );
-      if (res != null && res['id'] != null) {
-        await db.update(
-          'monthly_budgets',
-          {'remoteId': res['id']},
-          where: 'id = ?',
-          whereArgs: [localId],
-        );
-        await refreshMonthlyBudgets(cleanEmail);
+      if (resJson != null && resJson.isNotEmpty) {
+        final Map<String, dynamic> res = jsonDecode(resJson) as Map<String, dynamic>;
+        if (res['id'] != null) {
+          await db.update(
+            'monthly_budgets',
+            {'remoteId': res['id'] as int},
+            where: 'id = ?',
+            whereArgs: [localId],
+          );
+          await refreshMonthlyBudgets(cleanEmail);
+        }
       }
     } catch (e) {
       debugPrint("Background add monthly budget remote failed: $e");
@@ -887,8 +891,12 @@ CREATE TABLE notifications (
     if (email.trim().isEmpty) return;
     final cleanEmail = email.trim().toLowerCase();
     try {
-      final List<dynamic> remoteEntries =
+      final String? jsonString =
           await apiClient.client.budgetEntry.getMonthlyBudgetEntries(cleanEmail);
+      if (jsonString == null || jsonString.isEmpty) return;
+
+      final List<dynamic> remoteEntries =
+          jsonDecode(jsonString) as List<dynamic>;
       final db = await instance.database;
 
       for (var entry in remoteEntries) {

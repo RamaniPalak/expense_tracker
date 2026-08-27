@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS "monthly_budget_entry" (
     }
   }
 
-  Future<Map<String, dynamic>> addMonthlyBudgetEntry(
+  Future<String> addMonthlyBudgetEntry(
       Session session, String userEmail, double amount, int month, int year) async {
     await _ensureMonthlyTableExists(session);
     final cleanEmail = userEmail.trim().toLowerCase();
@@ -106,7 +107,7 @@ UPDATE "monthly_budget_entry"
 SET "amount" = $amount
 WHERE "id" = $id;
 ''');
-      return {'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year};
+      return jsonEncode({'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year});
     } else {
       final result = await session.db.unsafeQuery('''
 INSERT INTO "monthly_budget_entry" ("userEmail", "amount", "month", "year")
@@ -114,11 +115,11 @@ VALUES ('$cleanEmail', $amount, $month, $year)
 RETURNING id;
 ''');
       final id = result.first.first as int;
-      return {'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year};
+      return jsonEncode({'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year});
     }
   }
 
-  Future<List<Map<String, dynamic>>> getMonthlyBudgetEntries(
+  Future<String> getMonthlyBudgetEntries(
       Session session, String userEmail) async {
     await _ensureMonthlyTableExists(session);
     final cleanEmail = userEmail.trim().toLowerCase();
@@ -127,12 +128,13 @@ SELECT id, "userEmail", amount, month, year FROM "monthly_budget_entry"
 WHERE LOWER(TRIM("userEmail")) = '$cleanEmail';
 ''');
 
-    return result.map((row) => {
+    final list = result.map((row) => {
       'id': row[0] as int,
       'userEmail': row[1] as String,
       'amount': (row[2] as num).toDouble(),
       'month': (row[3] as num).toInt(),
       'year': (row[4] as num).toInt(),
     }).toList();
+    return jsonEncode(list);
   }
 }

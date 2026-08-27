@@ -110,13 +110,13 @@ class EndpointBudgetEntry extends _i1.EndpointRef {
         {'userEmail': userEmail},
       );
 
-  _i2.Future<Map<String, dynamic>?> addMonthlyBudgetEntry(
+  _i2.Future<String?> addMonthlyBudgetEntry(
     String userEmail,
     double amount,
     int month,
     int year,
   ) =>
-      caller.callServerEndpoint<Map<String, dynamic>?>(
+      caller.callServerEndpoint<String>(
         'budgetEntry',
         'addMonthlyBudgetEntry',
         {
@@ -127,10 +127,10 @@ class EndpointBudgetEntry extends _i1.EndpointRef {
         },
       );
 
-  _i2.Future<List<dynamic>> getMonthlyBudgetEntries(
+  _i2.Future<String?> getMonthlyBudgetEntries(
     String userEmail,
   ) =>
-      caller.callServerEndpoint<List<dynamic>>(
+      caller.callServerEndpoint<String>(
         'budgetEntry',
         'getMonthlyBudgetEntries',
         {
