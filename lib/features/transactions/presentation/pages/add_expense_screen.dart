@@ -31,7 +31,7 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _amountController =
-      TextEditingController(text: "₹ 48.00");
+      TextEditingController();
 
   // ValueNotifiers for local UI state
   final ValueNotifier<DateTime> _selectedDate =

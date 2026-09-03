@@ -520,59 +520,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                     extra: isIncomeMode,
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: ExpansionTile(
-                                    title: const Text(
-                                      "DB Debug Panel",
-                                      style: TextStyle(
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14),
-                                    ),
-                                    children: [
-                                      Text("Active Email: $_userEmail",
-                                          style: TextStyle(
-                                              color: c.textSecondary, fontSize: 12)),
-                                      Text(
-                                          "Current Month: $selectedMonth / $selectedYear",
-                                          style: TextStyle(
-                                              color: c.textSecondary, fontSize: 12)),
-                                      const SizedBox(height: 8),
-                                      FutureBuilder<List<BudgetModel>>(
-                                        future:
-                                            sl<DatabaseHelper>().getBudgets(_userEmail),
-                                        builder: (context, snapshot) {
-                                          if (!snapshot.hasData) {
-                                            return const Text("Loading...");
-                                          }
-                                          final list = snapshot.data!;
-                                          if (list.isEmpty) {
-                                            return const Text("No budgets stored",
-                                                style: TextStyle(
-                                                    fontSize: 12, color: Colors.amber));
-                                          }
-                                          return Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: list
-                                                .map((b) => Padding(
-                                                      padding: const EdgeInsets.symmetric(
-                                                          vertical: 2.0),
-                                                      child: Text(
-                                                        "• ${b.category}: ₹${b.amount} (${b.month}/${b.year}) [id:${b.id}]",
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: c.textPrimary),
-                                                      ),
-                                                    ))
-                                                .toList(),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
                                 const SizedBox(height: 30),
+
                               ],
                             ),
                           );
