@@ -32,6 +32,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _amountController =
       TextEditingController();
+  final TextEditingController _titleController =
+      TextEditingController();
 
   // ValueNotifiers for local UI state
   final ValueNotifier<DateTime> _selectedDate =
@@ -99,6 +101,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         _scannedMerchantName =
             result.title.isNotEmpty ? result.title : null;
         _lastScanConfidence = result.confidence;
+
+        // ── Auto-fill title from merchant name if not already typed ───────────
+        if (_scannedMerchantName != null && _titleController.text.isEmpty) {
+          _titleController.text = _scannedMerchantName!;
+        }
 
         if (mounted) {
           // ── Low-confidence warning ──────────────────────────────────────────
@@ -200,7 +207,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
     final expense = TransactionModel(
       id: widget.expense?.id,
       remoteId: widget.expense?.remoteId,
-      title: _selectedCategoryVal.value,
+      title: _titleController.text.trim().isNotEmpty
+          ? _titleController.text.trim()
+          : _selectedCategoryVal.value,
       amount: amount,
       date: _selectedDate.value,
       category: _selectedCategoryVal.value,
@@ -253,6 +262,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
       _selectedDate.value = widget.expense!.date;
       _isIncomeVal.value = widget.expense!.isIncome;
 
+      // Pre-fill title — only if it differs from the category (i.e. user actually entered one)
+      final existingTitle = widget.expense!.title;
+      final existingCategory = widget.expense!.category;
+      _titleController.text =
+          existingTitle != existingCategory ? existingTitle : '';
+
       final currentList = _currentCategories;
       final exists =
           currentList.any((c) => c['name'] == widget.expense!.category);
@@ -283,6 +298,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
   @override
   void dispose() {
     _amountController.dispose();
+    _titleController.dispose();
     _controller.dispose();
     _selectedDate.dispose();
     _selectedCategoryVal.dispose();
@@ -501,6 +517,58 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                                   ),
                                 );
                               },
+                            ),
+                            const SizedBox(height: 20),
+
+                            // ── Note / Title ──
+                            _buildSectionLabel(
+                              icon: Icons.edit_note_rounded,
+                              label: 'NOTE',
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: c.card,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: c.border, width: 1.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: c.shadow,
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: TextField(
+                                controller: _titleController,
+                                maxLength: 60,
+                                textCapitalization: TextCapitalization.sentences,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: c.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'e.g. Grocery run, Netflix bill…',
+                                  hintStyle: AppTextStyles.bodyMedium.copyWith(
+                                    color: c.textSecondary.withOpacity(0.5),
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  counterText: '',
+                                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _titleController,
+                                    builder: (_, val, __) => val.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: Icon(Icons.clear_rounded,
+                                                color: c.textSecondary, size: 18),
+                                            onPressed: () =>
+                                                _titleController.clear(),
+                                          )
+                                        : const SizedBox.shrink(),
+                                  ),
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 20),
 
