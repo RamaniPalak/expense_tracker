@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
+import 'package:intl/intl.dart';
 
 /// Horizontal scrollable filter chip bar for the Transactions screen.
 class TransactionFilterBar extends StatelessWidget {
@@ -10,15 +11,39 @@ class TransactionFilterBar extends StatelessWidget {
     required this.activeFilters,
     required this.onToggle,
     required this.onClearAll,
+    this.dateFrom,
+    this.dateTo,
+    this.onDateRangeTap,
+    this.onClearDateRange,
   });
 
   final Set<String> activeFilters;
   final void Function(String filter) onToggle;
   final VoidCallback onClearAll;
 
+  // Optional date-range state — null means no date filter active
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  final VoidCallback? onDateRangeTap;
+  final VoidCallback? onClearDateRange;
+
   static const String filterIncome = 'Income';
   static const String filterExpense = 'Expense';
   static const String filterSubscription = 'Subscription';
+
+  bool get _hasDateFilter => dateFrom != null || dateTo != null;
+
+  String get _dateLabel {
+    final fmt = DateFormat('MMM d');
+    if (dateFrom != null && dateTo != null) {
+      return '${fmt.format(dateFrom!)} – ${fmt.format(dateTo!)}';
+    } else if (dateFrom != null) {
+      return 'From ${fmt.format(dateFrom!)}';
+    } else if (dateTo != null) {
+      return 'Until ${fmt.format(dateTo!)}';
+    }
+    return 'Date Range';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +53,15 @@ class TransactionFilterBar extends StatelessWidget {
       child: Row(
         children: [
           _FilterChip(
-            label: activeFilters.isEmpty
+            label: (activeFilters.isEmpty && !_hasDateFilter)
                 ? 'All'
-                : 'Clear (${activeFilters.length})',
-            isSelected: activeFilters.isEmpty,
+                : 'Clear (${activeFilters.length + (_hasDateFilter ? 1 : 0)})',
+            isSelected: activeFilters.isEmpty && !_hasDateFilter,
             selectedColor: Colors.black,
-            onTap: onClearAll,
+            onTap: () {
+              onClearAll();
+              onClearDateRange?.call();
+            },
           ),
           const SizedBox(width: 10),
           _FilterChip(
@@ -56,6 +84,15 @@ class TransactionFilterBar extends StatelessWidget {
             selectedColor: AppColors.primary,
             onTap: () => onToggle(filterSubscription),
           ),
+          if (onDateRangeTap != null) ...[
+            const SizedBox(width: 10),
+            _DateRangeChip(
+              label: _dateLabel,
+              isActive: _hasDateFilter,
+              onTap: onDateRangeTap!,
+              onClear: _hasDateFilter ? onClearDateRange : null,
+            ),
+          ],
         ],
       ),
     );
@@ -122,6 +159,78 @@ class _FilterChip extends StatelessWidget {
             color: textColor,
             fontWeight: FontWeight.bold,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A special chip for the date range filter — shows a calendar icon,
+/// the active range label, and an ✕ clear button when active.
+class _DateRangeChip extends StatelessWidget {
+  const _DateRangeChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+    this.onClear,
+  });
+
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    final bg = isActive ? AppColors.primary : c.tabBg;
+    final textColor = isActive ? Colors.white : c.textSecondary;
+    final borderColor = isActive ? AppColors.primary : c.border;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.only(
+          left: 12,
+          right: onClear != null ? 4 : 12,
+          top: 8,
+          bottom: 8,
+        ),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(60),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.date_range_rounded, size: 14, color: textColor),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (onClear != null) ...[
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: onClear,
+                child: Icon(Icons.close_rounded, size: 14, color: textColor),
+              ),
+            ],
+          ],
         ),
       ),
     );

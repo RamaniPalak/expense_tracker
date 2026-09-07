@@ -15,6 +15,7 @@ import 'package:expense_tracker/features/transactions/presentation/widgets/trans
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/core/utils/report_generator.dart';
 
+
 class AllTransactionsScreen extends StatefulWidget {
   const AllTransactionsScreen({super.key});
 
@@ -26,6 +27,10 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   String? _userEmail;
   String _searchQuery = '';
   final Set<String> _activeFilters = {};
+
+  // Date range filter state
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
 
   static const List<String> _subscriptionCategories = ['Netflix', 'Subscription'];
 
@@ -52,12 +57,56 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
 
   void _clearFilters() => setState(() => _activeFilters.clear());
 
+  void _clearDateRange() => setState(() {
+        _dateFrom = null;
+        _dateTo = null;
+      });
+
+  Future<void> _showDateRangePicker() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year + 1, 12, 31),
+      initialDateRange: (_dateFrom != null && _dateTo != null)
+          ? DateTimeRange(start: _dateFrom!, end: _dateTo!)
+          : null,
+      helpText: 'SELECT DATE RANGE',
+      saveText: 'APPLY',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+                primary: AppColors.primary,
+                onPrimary: Colors.white,
+              ),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        _dateFrom = picked.start;
+        // Include the full end day (up to 23:59:59)
+        _dateTo = DateTime(
+            picked.end.year, picked.end.month, picked.end.day, 23, 59, 59);
+      });
+    }
+  }
+
   List<TransactionModel> _applyFilters(List<TransactionModel> all) {
     return all.where((t) {
+      // Search filter
       if (_searchQuery.isNotEmpty &&
           !t.title.toLowerCase().contains(_searchQuery.toLowerCase())) {
         return false;
       }
+
+      // Date range filter
+      if (_dateFrom != null && t.date.isBefore(_dateFrom!)) return false;
+      if (_dateTo != null && t.date.isAfter(_dateTo!)) return false;
+
+      // Type / category filters
       if (_activeFilters.isEmpty) return true;
 
       if (_activeFilters.contains(TransactionFilterBar.filterIncome) && t.isIncome) {
@@ -89,6 +138,10 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
             activeFilters: _activeFilters,
             onToggle: _toggleFilter,
             onClearAll: _clearFilters,
+            dateFrom: _dateFrom,
+            dateTo: _dateTo,
+            onDateRangeTap: _showDateRangePicker,
+            onClearDateRange: _clearDateRange,
           ),
           const SizedBox(height: 4),
           Expanded(
