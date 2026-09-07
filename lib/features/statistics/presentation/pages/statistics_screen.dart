@@ -70,7 +70,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   int selectedYear = DateTime.now().year;
   int selectedMonth = DateTime.now().month;
-  final List<int> availableYears = [2024, 2025, 2026];
+  /// Generates a rolling window: 3 years back → 1 year ahead.
+  /// e.g. in 2026 → [2023, 2024, 2025, 2026, 2027]
+  List<int> get availableYears {
+    final now = DateTime.now().year;
+    return List.generate(5, (i) => now - 3 + i);
+  }
+
 
   void _changeMonth(int offset) {
     setState(() {
