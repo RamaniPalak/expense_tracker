@@ -133,7 +133,7 @@ class _HomeContentState extends State<HomeContent> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                AppStrings.goodAfternoon,
+                                AppStrings.greeting(),
                                 style: AppTextStyles.bodySmall.copyWith(
                                     color: Colors.white70, fontSize: 14),
                               ),

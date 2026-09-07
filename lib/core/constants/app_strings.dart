@@ -20,7 +20,21 @@ class AppStrings {
   static const String biometricPrompt = "Authenticate to access your expenses";
 
   // Home Screen
+  static const String goodMorning = "Good morning,";
   static const String goodAfternoon = "Good afternoon,";
+  static const String goodEvening = "Good evening,";
+
+  /// Returns a time-aware greeting based on the current hour.
+  /// Morning  : 05:00 – 11:59
+  /// Afternoon: 12:00 – 16:59
+  /// Evening  : 17:00 – 04:59 (next day)
+  static String greeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return goodMorning;
+    if (hour >= 12 && hour < 17) return goodAfternoon;
+    return goodEvening;
+  }
+
   static const String totalBalance = "Total Balance";
   static const String income = "Income";
   static const String expenses = "Expenses";
@@ -105,7 +119,8 @@ class AppStrings {
   static const String errorSubmitFailed = "Failed to save transaction. Please try again.";
 
   // Chatbot
-  static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
+  static const String geminiApiKey =
+      String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
   static const String freeLimitReached =
       "You've reached your free limit of 5 messages. Please upgrade for unlimited AI assistance!";
 
