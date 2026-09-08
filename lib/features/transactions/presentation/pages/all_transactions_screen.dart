@@ -32,7 +32,31 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
 
-  static const List<String> _subscriptionCategories = ['Netflix', 'Subscription'];
+  /// Keywords matched (case-insensitive) against the transaction's title OR
+  /// category to identify subscriptions / recurring digital services.
+  /// Covers streaming platforms, cloud services, music, SaaS, and any
+  /// category the user explicitly names with subscription-like terms.
+  static const List<String> _subscriptionKeywords = [
+    // Generic terms
+    'subscription', 'subscribe', 'recurring', 'membership', 'plan',
+    'ott', 'streaming', 'digital',
+    // Video streaming
+    'netflix', 'prime video', 'amazon prime', 'disney', 'hotstar',
+    'zee5', 'sony liv', 'jiocinema', 'mxplayer', 'voot', 'aha',
+    'apple tv', 'hbo', 'hulu', 'youtube premium', 'crunchyroll',
+    // Music
+    'spotify', 'apple music', 'gaana', 'jiosaavn', 'wynk', 'amazon music',
+    'tidal', 'deezer',
+    // Cloud / productivity
+    'icloud', 'google one', 'dropbox', 'onedrive', 'notion', 'canva',
+    'adobe', 'microsoft 365', 'office 365', 'chatgpt', 'openai',
+    'github', 'figma', 'slack', 'zoom',
+    // Gaming
+    'xbox', 'playstation', 'ps plus', 'nintendo', 'ea play', 'gamepass',
+    // Other popular SaaS / services
+    'linkedin premium', 'duolingo', 'grammarly', 'lastpass', '1password',
+  ];
+
 
   @override
   void initState() {
@@ -115,10 +139,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
       if (_activeFilters.contains(TransactionFilterBar.filterExpense) && !t.isIncome) {
         return true;
       }
-      if (_activeFilters.contains(TransactionFilterBar.filterSubscription) &&
-          _subscriptionCategories
-              .any((c) => t.category.toLowerCase().contains(c.toLowerCase()))) {
-        return true;
+      if (_activeFilters.contains(TransactionFilterBar.filterSubscription)) {
+        final titleLower = t.title.toLowerCase();
+        final categoryLower = t.category.toLowerCase();
+        final isSubscription = _subscriptionKeywords
+            .any((kw) => titleLower.contains(kw) || categoryLower.contains(kw));
+        if (isSubscription) return true;
       }
       return false;
     }).toList();
