@@ -1687,7 +1687,9 @@ CREATE TABLE notifications (
       }
     }
 
-    // 2. Check Budget Thresholds (Spending vs Monthly Budget)
+    // 2. Per-Category Budget Threshold Alerts
+    //    Uses two distinct IDs per (category, month, year) so the
+    //    "exceeded" notification can replace the earlier "warning".
     final month = now.month;
     final year = now.year;
     final budgetResult = await db.query(
@@ -1706,48 +1708,180 @@ CREATE TABLE notifications (
       final expenses = expResult.map((m) => TransactionModel.fromMap(m)).toList();
 
       for (var budget in budgets) {
-        double spent = 0.0;
-        for (var e in expenses) {
-          if (!e.isIncome && e.category.trim().toLowerCase() == budget.category.trim().toLowerCase() && e.date.month == month && e.date.year == year) {
-            spent += e.amount;
-          }
-        }
-        if (budget.amount > 0) {
-          final pct = (spent / budget.amount) * 100;
-          if (pct >= 80) {
-            final notifId = 'budget_${budget.category}_${year}_$month';
-            final existing = await db.query('notifications', where: 'id = ?', whereArgs: [notifId]);
-            final isExceeded = pct >= 100;
-            final title = isExceeded ? '🚨 Budget Exceeded: ${budget.category}' : '⚠️ Budget Warning: ${budget.category}';
-            final desc = isExceeded
-                ? 'You spent ₹${NumberFormat('#,##0').format(spent)}, exceeding your ${budget.category} budget of ₹${NumberFormat('#,##0').format(budget.amount)} by ₹${NumberFormat('#,##0').format(spent - budget.amount)}.'
-                : 'You have used ${pct.toStringAsFixed(0)}% of your ₹${NumberFormat('#,##0').format(budget.amount)} budget for ${budget.category}.';
+        // Skip the synthetic "Total" budget row — handled separately below
+        if (budget.category.trim().toLowerCase() == AppStrings.total.toLowerCase()) continue;
+        if (budget.amount <= 0) continue;
 
-            await db.insert(
-              'notifications',
-              AppNotificationModel(
-                id: notifId,
-                title: title,
-                description: desc,
-                timestamp: now,
-                type: NotificationType.budget,
-                actionRoute: '/statistics',
-                userEmail: email,
-              ).toMap(),
-              conflictAlgorithm: ConflictAlgorithm.ignore,
+        final catSpent = expenses
+            .where((e) =>
+                !e.isIncome &&
+                e.category.trim().toLowerCase() == budget.category.trim().toLowerCase() &&
+                e.date.month == month &&
+                e.date.year == year)
+            .fold(0.0, (sum, e) => sum + e.amount);
+
+        final pct = (catSpent / budget.amount) * 100;
+
+        if (pct >= 100) {
+          // ── Exceeded ──────────────────────────────────────────────────────
+          final notifId = 'budget_exceeded_${budget.category}_${year}_$month';
+          final title = '🚨 Budget Exceeded: ${budget.category}';
+          final desc =
+              'You spent ₹${NumberFormat('#,##0').format(catSpent)}, exceeding your '
+              '${budget.category} budget of ₹${NumberFormat('#,##0').format(budget.amount)} '
+              'by ₹${NumberFormat('#,##0').format(catSpent - budget.amount)}.';
+
+          final existing = await db.query('notifications',
+              where: 'id = ?', whereArgs: [notifId]);
+
+          // Replace so it always reflects the latest exceeded amount
+          await db.insert(
+            'notifications',
+            AppNotificationModel(
+              id: notifId,
+              title: title,
+              description: desc,
+              timestamp: now,
+              type: NotificationType.budget,
+              actionRoute: '/statistics',
+              userEmail: email,
+            ).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+          if (existing.isEmpty) {
+            NotificationService.instance.showBudgetAlertNotification(
+              title: title,
+              body: desc,
+              userEmail: email,
             );
+          }
+        } else if (pct >= 80) {
+          // ── 80 % Warning ─────────────────────────────────────────────────
+          final notifId = 'budget_warn_${budget.category}_${year}_$month';
+          final title = '⚠️ Budget Warning: ${budget.category} (${pct.toStringAsFixed(0)}%)';
+          final desc =
+              'You have used ${pct.toStringAsFixed(0)}% of your '
+              '₹${NumberFormat('#,##0').format(budget.amount)} ${budget.category} budget '
+              '(₹${NumberFormat('#,##0').format(catSpent)} spent).';
 
-            if (existing.isEmpty) {
-              NotificationService.instance.showBudgetAlertNotification(
-                title: title,
-                body: desc,
-                userEmail: email,
-              );
-            }
+          final existing = await db.query('notifications',
+              where: 'id = ?', whereArgs: [notifId]);
+
+          await db.insert(
+            'notifications',
+            AppNotificationModel(
+              id: notifId,
+              title: title,
+              description: desc,
+              timestamp: now,
+              type: NotificationType.budget,
+              actionRoute: '/statistics',
+              userEmail: email,
+            ).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+
+          if (existing.isEmpty) {
+            NotificationService.instance.showBudgetAlertNotification(
+              title: title,
+              body: desc,
+              userEmail: email,
+            );
           }
         }
       }
     }
+
+    // 2b. Overall Monthly Budget Threshold Alert (from monthly_budgets table)
+    final monthlyBudgetResult = await db.query(
+      'monthly_budgets',
+      where: '(LOWER(TRIM(userEmail)) = ? OR userEmail = "") AND month = ? AND year = ?',
+      whereArgs: [email, month, year],
+    );
+    if (monthlyBudgetResult.isNotEmpty) {
+      final monthlyBudget = MonthlyBudgetModel.fromMap(monthlyBudgetResult.first);
+      if (monthlyBudget.amount > 0) {
+        final expResult = await db.query(
+          'expenses',
+          where: 'LOWER(TRIM(userEmail)) = ? OR userEmail = ""',
+          whereArgs: [email],
+        );
+        final totalSpent = expResult
+            .map((m) => TransactionModel.fromMap(m))
+            .where((e) => !e.isIncome && e.date.month == month && e.date.year == year)
+            .fold(0.0, (sum, e) => sum + e.amount);
+
+        final pct = (totalSpent / monthlyBudget.amount) * 100;
+
+        if (pct >= 100) {
+          final notifId = 'monthly_budget_exceeded_${year}_$month';
+          final title = '🚨 Monthly Budget Exceeded!';
+          final desc =
+              'Total spending ₹${NumberFormat('#,##0').format(totalSpent)} has exceeded '
+              'your monthly limit of ₹${NumberFormat('#,##0').format(monthlyBudget.amount)} '
+              'by ₹${NumberFormat('#,##0').format(totalSpent - monthlyBudget.amount)}.';
+
+          final existing = await db.query('notifications',
+              where: 'id = ?', whereArgs: [notifId]);
+
+          await db.insert(
+            'notifications',
+            AppNotificationModel(
+              id: notifId,
+              title: title,
+              description: desc,
+              timestamp: now,
+              type: NotificationType.budget,
+              actionRoute: '/statistics',
+              userEmail: email,
+            ).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+          if (existing.isEmpty) {
+            NotificationService.instance.showBudgetAlertNotification(
+              title: title,
+              body: desc,
+              userEmail: email,
+            );
+          }
+        } else if (pct >= 80) {
+          final notifId = 'monthly_budget_warn_${year}_$month';
+          final title = '⚠️ Monthly Budget Warning (${pct.toStringAsFixed(0)}%)';
+          final desc =
+              'You have used ${pct.toStringAsFixed(0)}% of your monthly budget. '
+              '₹${NumberFormat('#,##0').format(totalSpent)} spent of '
+              '₹${NumberFormat('#,##0').format(monthlyBudget.amount)}.';
+
+          final existing = await db.query('notifications',
+              where: 'id = ?', whereArgs: [notifId]);
+
+          await db.insert(
+            'notifications',
+            AppNotificationModel(
+              id: notifId,
+              title: title,
+              description: desc,
+              timestamp: now,
+              type: NotificationType.budget,
+              actionRoute: '/statistics',
+              userEmail: email,
+            ).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+
+          if (existing.isEmpty) {
+            NotificationService.instance.showBudgetAlertNotification(
+              title: title,
+              body: desc,
+              userEmail: email,
+            );
+          }
+        }
+      }
+    }
+
 
     // 3. Check Goals Progress
     final goalsResult = await db.query(
