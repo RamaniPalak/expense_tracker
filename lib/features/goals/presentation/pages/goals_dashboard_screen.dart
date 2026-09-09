@@ -12,6 +12,7 @@ import 'package:expense_tracker/features/auth/domain/repositories/auth_repositor
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/routing/app_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GoalsDashboardScreen extends StatefulWidget {
   const GoalsDashboardScreen({super.key});
@@ -24,12 +25,29 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
   String _activeFilter = 'All';
   final List<String> _filters = ['All', '🚨 High Priority', 'In Progress', 'Paused ⏸️', 'Completed'];
   bool _isLoading = false;
-  bool _showGuide = true;
+  bool _showGuide = false; // default off — loaded from SharedPreferences below
+
+  static const String _guideSeenKey = 'goals_guide_seen';
 
   @override
   void initState() {
     super.initState();
+    _loadGuideState();
     _refreshGoals();
+  }
+
+  /// Reads the persisted flag. Shows the guide only on the very first visit.
+  Future<void> _loadGuideState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool(_guideSeenKey) ?? false;
+    if (mounted) setState(() => _showGuide = !seen);
+  }
+
+  /// Hides the guide and persists the flag so it never re-appears.
+  Future<void> _dismissGuide() async {
+    setState(() => _showGuide = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_guideSeenKey, true);
   }
 
   Future<void> _refreshGoals() async {
@@ -241,7 +259,7 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                               ),
                             ),
                             InkWell(
-                              onTap: () => setState(() => _showGuide = false),
+                              onTap: _dismissGuide,
                               child: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
                             ),
                           ],
