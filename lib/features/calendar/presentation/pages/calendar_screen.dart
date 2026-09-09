@@ -381,6 +381,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
 
+                // Color-coded dot legend — shown only in Month view
+                if (_viewMode == "Month")
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _legendDot(AppColors.incomeGreen),
+                        const SizedBox(width: 4),
+                        Text('Income',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white60 : Colors.black54)),
+                        const SizedBox(width: 12),
+                        _legendDot(AppColors.expenseRed),
+                        const SizedBox(width: 4),
+                        Text('Expense',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white60 : Colors.black54)),
+                      ],
+                    ),
+                  ),
+
                 // Bottom Content Area (Aggregates & List)
                 Expanded(
                   child: Container(
@@ -427,4 +451,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
   }
+
+  /// Small circle used in the color-coded legend below the calendar grid.
+  Widget _legendDot(Color color) => Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+      );
 }
+

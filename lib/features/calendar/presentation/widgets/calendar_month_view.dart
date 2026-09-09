@@ -77,17 +77,20 @@ class CalendarMonthView extends StatelessWidget {
             selectedDate!.month == cellDate.month &&
             selectedDate!.day == cellDate.day;
 
-        // Count transactions for this day
-        final txCount = allExpenses.where((e) =>
+        // Determine income / expense presence for this day separately
+        final dayTx = allExpenses.where((e) =>
             e.date.year == cellDate.year &&
             e.date.month == cellDate.month &&
-            e.date.day == cellDate.day).length;
+            e.date.day == cellDate.day);
+        final hasIncome = dayTx.any((e) => e.isIncome);
+        final hasExpense = dayTx.any((e) => !e.isIncome);
 
         return _buildDayCell(
           context,
           dayNumber: dayNumber,
           isSelected: isSelected,
-          transactionCount: txCount,
+          hasIncome: hasIncome,
+          hasExpense: hasExpense,
           onTap: () => onDateSelected(cellDate),
         );
       },
@@ -98,10 +101,12 @@ class CalendarMonthView extends StatelessWidget {
     BuildContext context, {
     required int dayNumber,
     required bool isSelected,
-    required int transactionCount,
+    required bool hasIncome,
+    required bool hasExpense,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasTx = hasIncome || hasExpense;
 
     return GestureDetector(
       onTap: onTap,
@@ -131,17 +136,40 @@ class CalendarMonthView extends StatelessWidget {
                         : (isDark ? Colors.white : AppColors.textPrimary),
                   ),
                 ),
-                if (transactionCount > 0) ...[
-                  const SizedBox(height: 1),
-                  Text(
-                    "$transactionCount",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white70
-                          : AppColors.primary,
-                    ),
+                if (hasTx) ...[
+                  const SizedBox(height: 3),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Green dot = income present
+                      if (hasIncome)
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            // Slightly lighter when the cell is selected
+                            color: isSelected
+                                ? Colors.greenAccent.shade100
+                                : AppColors.incomeGreen,
+                          ),
+                        ),
+                      // Small gap between dots when both present
+                      if (hasIncome && hasExpense) const SizedBox(width: 3),
+                      // Red dot = expense present
+                      if (hasExpense)
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? Colors.red.shade200
+                                : AppColors.expenseRed,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ],
