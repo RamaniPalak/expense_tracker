@@ -75,7 +75,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
           child: BlocConsumer<ChatbotBloc, ChatbotState>(
-  listener: (context, state) {
+            listener: (context, state) {
               if (state.status == ChatStatus.success ||
                   state.status == ChatStatus.loading) {
                 _scrollToBottom();
@@ -83,7 +83,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               if (state.status == ChatStatus.failure) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(state.errorMessage ?? AppStrings.errorGeneric),
+                    content:
+                        Text(state.errorMessage ?? AppStrings.errorGeneric),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -106,8 +107,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   Expanded(
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      itemCount: state.messages.length + (state.messages.isEmpty ? 1 : 0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 20),
+                      itemCount: state.messages.length +
+                          (state.messages.isEmpty ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (state.messages.isEmpty) {
                           return ChatBubble(
@@ -137,9 +140,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   const SizedBox(height: 12),
                   ChatInput(
                     controller: _controller,
-                    onSend: (isLoading || state.status == ChatStatus.limitReached)
-                        ? null
-                        : () => _handleSend(context),
+                    onSend:
+                        (isLoading || state.status == ChatStatus.limitReached)
+                            ? null
+                            : () => _handleSend(context),
                   ),
                 ],
               );
@@ -208,12 +212,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               children: [
                 Text(
                   'AI Assistant',
-                  style:
-                      AppTextStyles.heading2.copyWith(color: Colors.white, fontSize: 18),
+                  style: AppTextStyles.heading2
+                      .copyWith(color: Colors.white, fontSize: 18),
                 ),
                 Text(
                   isTyping ? 'Typing...' : 'Online',
-                  style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+                  style:
+                      AppTextStyles.bodySmall.copyWith(color: Colors.white70),
                 ),
               ],
             ),
@@ -323,7 +328,8 @@ class _TypingDot extends StatefulWidget {
   State<_TypingDot> createState() => _TypingDotState();
 }
 
-class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _animation;
 

@@ -31,12 +31,20 @@ Future<void> init() async {
 
   // ── Core Services (must be first — repositories depend on these) ──────────
   sl.registerLazySingleton(() => DatabaseHelper.instance);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().categoryDao);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().expenseDao);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().budgetDao);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().billDao);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().goalDao);
+  sl.registerLazySingleton(() => sl<DatabaseHelper>().notificationDao);
+
   sl.registerLazySingleton(() => AuthService());
   sl.registerLazySingleton(() => ExpenseService());
   sl.registerLazySingleton(() => BudgetService());
 
   // ── Auth DataSources ───────────────────────────────────────────────────────
-  sl.registerLazySingleton<IAuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
+  sl.registerLazySingleton<IAuthRemoteDataSource>(
+      () => AuthRemoteDataSourceImpl());
   sl.registerLazySingleton<IAuthLocalDataSource>(
       () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
 

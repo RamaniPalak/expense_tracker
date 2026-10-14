@@ -101,13 +101,15 @@ class _SyncSuccessScreenState extends State<SyncSuccessScreen>
                   children: [
                     Text(
                       '${widget.importedCount} Transactions Imported!',
-                      style: AppTextStyles.heading2.copyWith(fontSize: 22, color: c.textPrimary),
+                      style: AppTextStyles.heading2
+                          .copyWith(fontSize: 22, color: c.textPrimary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Your transactions have been saved successfully.',
-                      style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: c.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -240,7 +242,8 @@ class _BreakdownTile extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(label, style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+        Text(label,
+            style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
       ],
     );
   }

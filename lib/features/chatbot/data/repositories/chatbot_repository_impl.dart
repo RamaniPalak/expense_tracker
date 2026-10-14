@@ -43,8 +43,7 @@ class ChatbotRepositoryImpl implements IChatbotRepository {
           if (transactions.isNotEmpty) {
             final recent = transactions
                 .take(15)
-                .map((e) =>
-                    '${e.title} (${e.category}): ₹${e.amount} '
+                .map((e) => '${e.title} (${e.category}): ₹${e.amount} '
                     '${e.isIncome ? 'income' : 'expense'} '
                     'on ${e.date.toIso8601String().split('T')[0]}')
                 .join('\n');

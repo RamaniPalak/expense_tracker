@@ -11,7 +11,7 @@ import 'package:expense_tracker/core/constants/app_strings.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
 import 'package:expense_tracker/features/wallet/data/models/budget_model.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
-import 'package:expense_tracker/features/statistics/presentation/widgets/statistics_helper.dart';
+import 'package:expense_tracker/core/constants/category_config.dart';
 
 class CategoryBreakdownScreen extends StatefulWidget {
   /// Pass true for income mode, false for expense mode
@@ -78,7 +78,10 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
   BudgetModel? _findMostRecentPreviousCategoryBudget(
       List<BudgetModel> allBudgets, String category) {
     final previous = allBudgets.where((b) {
-      if (b.category.trim().toLowerCase() != category.trim().toLowerCase() || b.amount <= 0) return false;
+      if (b.category.trim().toLowerCase() != category.trim().toLowerCase() ||
+          b.amount <= 0) {
+        return false;
+      }
       if (b.year < _selectedYear) return true;
       if (b.year == _selectedYear && b.month < _selectedMonth) return true;
       return false;
@@ -122,21 +125,22 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
     final list = catTotals.entries
         .map((entry) => {'category': entry.key, 'amount': entry.value})
         .toList();
-    list.sort((a, b) =>
-        (b['amount'] as double).compareTo(a['amount'] as double));
+    list.sort(
+        (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
     return list;
   }
 
   String _buildSummaryText(List<Map<String, dynamic>> list, double total) {
     if (list.isEmpty) return "No transactions this month.";
-    final topNames = list.take(3).map((e) => e['category'] as String).join(', ');
+    final topNames =
+        list.take(3).map((e) => e['category'] as String).join(', ');
     final sign = _isIncome ? '+' : '-';
     return "$topNames made up 100% of your total ${_isIncome ? 'income' : 'expense'} this month.\n"
         "$sign${NumberFormat('#,##0.00').format(total)} ₹";
   }
 
-  Future<void> _showCategoryBudgetDialog(
-      BuildContext context, String category, BudgetModel? existingBudget) async {
+  Future<void> _showCategoryBudgetDialog(BuildContext context, String category,
+      BudgetModel? existingBudget) async {
     await showDialog(
       context: context,
       builder: (ctx) => BudgetDialog(
@@ -165,14 +169,16 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
           return ValueListenableBuilder<List<BudgetModel>>(
             valueListenable: sl<DatabaseHelper>().budgetsNotifier,
             builder: (context, allBudgets, _) {
-              final categoryList = _buildCategoryList(allTransactions, allBudgets);
+              final categoryList =
+                  _buildCategoryList(allTransactions, allBudgets);
               final total = categoryList.fold(
                   0.0, (sum, e) => sum + (e['amount'] as double));
 
               return Column(
                 children: [
                   // ── Header ──────────────────────────────────────────────
-                  _buildHeader(context, monthLabel, isCurrentMonth, categoryList, total),
+                  _buildHeader(
+                      context, monthLabel, isCurrentMonth, categoryList, total),
 
                   // ── Category list ────────────────────────────────────────
                   Expanded(
@@ -188,21 +194,32 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
                                   : 0.0;
                               final delay = index * 0.08;
 
-                              final catBudget = allBudgets.where((b) =>
-                                  b.category.trim().toLowerCase() == (item['category'] as String).trim().toLowerCase() &&
-                                  b.month == _selectedMonth &&
-                                  b.year == _selectedYear).firstOrNull ??
-                                  _findMostRecentPreviousCategoryBudget(allBudgets, item['category'] as String);
+                              final catBudget = allBudgets
+                                      .where((b) =>
+                                          b.category.trim().toLowerCase() ==
+                                              (item['category'] as String)
+                                                  .trim()
+                                                  .toLowerCase() &&
+                                          b.month == _selectedMonth &&
+                                          b.year == _selectedYear)
+                                      .firstOrNull ??
+                                  _findMostRecentPreviousCategoryBudget(
+                                      allBudgets, item['category'] as String);
 
                               return _CategoryTile(
-                                key: ValueKey('$_selectedMonth-$_selectedYear-${item['category']}'),
+                                key: ValueKey(
+                                    '$_selectedMonth-$_selectedYear-${item['category']}'),
                                 category: item['category'] as String,
                                 amount: item['amount'] as double,
                                 percentage: pct,
                                 isIncome: _isIncome,
                                 budget: catBudget,
-                                color: StatisticsHelper.getCategoryColor(item['category'] as String, isIncome: _isIncome),
-                                icon: StatisticsHelper.getCategoryIcon(item['category'] as String, isIncome: _isIncome),
+                                color: CategoryConfig.getColor(
+                                    item['category'] as String,
+                                    isIncome: _isIncome),
+                                icon: CategoryConfig.getIcon(
+                                    item['category'] as String,
+                                    isIncome: _isIncome),
                                 parentController: _animController,
                                 delay: delay.clamp(0.0, 0.8),
                                 onTap: _isIncome
@@ -393,9 +410,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            _isIncome
-                ? Icons.trending_up_rounded
-                : Icons.receipt_long_rounded,
+            _isIncome ? Icons.trending_up_rounded : Icons.receipt_long_rounded,
             size: 64,
             color: c.textSecondary.withAlpha(80),
           ),
@@ -403,8 +418,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen>
           Text(
             "No ${_isIncome ? 'income' : 'expense'} transactions\nfor this month.",
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: c.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
           ),
         ],
       ),
@@ -451,8 +465,8 @@ class _CategoryTile extends StatelessWidget {
 
     final fadeAnimation = CurvedAnimation(
       parent: parentController,
-      curve: Interval(delay, (delay + 0.3).clamp(0.0, 1.0),
-          curve: Curves.easeOut),
+      curve:
+          Interval(delay, (delay + 0.3).clamp(0.0, 1.0), curve: Curves.easeOut),
     );
 
     final amountLabel =
@@ -468,7 +482,8 @@ class _CategoryTile extends StatelessWidget {
     final double progressPercent;
 
     if (hasBudget) {
-      subtitleLabel = "₹${NumberFormat('#,##0').format(amount)} of ₹${NumberFormat('#,##0').format(budgetLimit)}";
+      subtitleLabel =
+          "₹${NumberFormat('#,##0').format(amount)} of ₹${NumberFormat('#,##0').format(budgetLimit)}";
       rightSubLabel = remaining >= 0
           ? "₹${NumberFormat('#,##0').format(remaining)} left"
           : "Over by ₹${NumberFormat('#,##0').format(remaining.abs())}";
@@ -491,7 +506,9 @@ class _CategoryTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: (hasBudget && remaining < 0 ? AppColors.expenseRed : color).withAlpha(15),
+                color:
+                    (hasBudget && remaining < 0 ? AppColors.expenseRed : color)
+                        .withAlpha(15),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -512,12 +529,17 @@ class _CategoryTile extends StatelessWidget {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: (hasBudget && remaining < 0 ? AppColors.expenseRed : color).withAlpha(30),
+                      color: (hasBudget && remaining < 0
+                              ? AppColors.expenseRed
+                              : color)
+                          .withAlpha(30),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(
                       icon,
-                      color: hasBudget && remaining < 0 ? AppColors.expenseRed : color,
+                      color: hasBudget && remaining < 0
+                          ? AppColors.expenseRed
+                          : color,
                       size: 22,
                     ),
                   ),
@@ -542,9 +564,13 @@ class _CategoryTile extends StatelessWidget {
                             if (!isIncome) ...[
                               const SizedBox(width: 6),
                               Icon(
-                                hasBudget ? Icons.edit_rounded : Icons.add_circle_outline_rounded,
+                                hasBudget
+                                    ? Icons.edit_rounded
+                                    : Icons.add_circle_outline_rounded,
                                 size: 14,
-                                color: hasBudget ? AppColors.primary : c.textSecondary.withAlpha(150),
+                                color: hasBudget
+                                    ? AppColors.primary
+                                    : c.textSecondary.withAlpha(150),
                               ),
                             ],
                           ],
@@ -554,9 +580,13 @@ class _CategoryTile extends StatelessWidget {
                           Text(
                             subtitleLabel,
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: hasBudget ? c.textSecondary : c.textSecondary.withAlpha(140),
+                              color: hasBudget
+                                  ? c.textSecondary
+                                  : c.textSecondary.withAlpha(140),
                               fontSize: 12,
-                              fontWeight: hasBudget ? FontWeight.w500 : FontWeight.normal,
+                              fontWeight: hasBudget
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -570,7 +600,9 @@ class _CategoryTile extends StatelessWidget {
                       Text(
                         amountLabel,
                         style: TextStyle(
-                          color: isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
+                          color: isIncome
+                              ? AppColors.incomeGreen
+                              : AppColors.expenseRed,
                           fontWeight: FontWeight.bold,
                           fontSize: 13.5,
                         ),
@@ -581,8 +613,11 @@ class _CategoryTile extends StatelessWidget {
                         style: AppTextStyles.bodySmall.copyWith(
                           color: hasBudget && remaining < 0
                               ? AppColors.expenseRed
-                              : (hasBudget ? AppColors.incomeGreen : c.textSecondary),
-                          fontWeight: hasBudget ? FontWeight.w600 : FontWeight.normal,
+                              : (hasBudget
+                                  ? AppColors.incomeGreen
+                                  : c.textSecondary),
+                          fontWeight:
+                              hasBudget ? FontWeight.w600 : FontWeight.normal,
                           fontSize: 12,
                         ),
                       ),
@@ -625,7 +660,9 @@ class _CategoryTile extends StatelessWidget {
                       builder: (context, _) {
                         return Container(
                           height: 6,
-                          width: constraints.maxWidth * clampedProgress * barAnimation.value,
+                          width: constraints.maxWidth *
+                              clampedProgress *
+                              barAnimation.value,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -663,8 +700,7 @@ class _NavArrow extends StatelessWidget {
   final VoidCallback? onTap;
   final bool disabled;
 
-  const _NavArrow(
-      {required this.icon, this.onTap, this.disabled = false});
+  const _NavArrow({required this.icon, this.onTap, this.disabled = false});
 
   @override
   Widget build(BuildContext context) {

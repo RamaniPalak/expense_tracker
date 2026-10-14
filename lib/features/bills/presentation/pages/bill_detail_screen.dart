@@ -6,7 +6,8 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
-import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 
@@ -30,8 +31,10 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
   }
 
   int get _diffDays {
-    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final due = DateTime(_bill.dueDate.year, _bill.dueDate.month, _bill.dueDate.day);
+    final today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final due =
+        DateTime(_bill.dueDate.year, _bill.dueDate.month, _bill.dueDate.day);
     return due.difference(today).inDays;
   }
 
@@ -125,7 +128,7 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
 
     await sl<DatabaseHelper>().updateBill(_bill.copyWith(isPaid: true));
 
-    final transaction = TransactionModel(
+    final transaction = TransactionEntity(
       title: 'Paid: ${_bill.title}',
       amount: _bill.amount,
       date: DateTime.now(),
@@ -133,10 +136,11 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
       isIncome: false,
       userEmail: _bill.userEmail,
     );
-    await sl<DatabaseHelper>().insertExpense(transaction);
+    await sl<ITransactionRepository>().addTransaction(transaction);
 
     if (_bill.isRecurring) {
-      final nextMonth = DateTime(_bill.dueDate.year, _bill.dueDate.month + 1, 1);
+      final nextMonth =
+          DateTime(_bill.dueDate.year, _bill.dueDate.month + 1, 1);
       final lastDay = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
       final nextDue = DateTime(
         nextMonth.year,
@@ -239,7 +243,8 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
-                          icon: Icon(Icons.edit_outlined, color: textColor, size: 18),
+                          icon: Icon(Icons.edit_outlined,
+                              color: textColor, size: 18),
                           onPressed: _showEditSheet,
                         ),
                       )
@@ -263,12 +268,13 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                             color: _statusColor.withOpacity(0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Text('🧾', style: TextStyle(fontSize: 20)),
+                          child:
+                              const Text('🧾', style: TextStyle(fontSize: 20)),
                         ),
                         const SizedBox(width: 12),
                         Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.white.withOpacity(0.08)
@@ -288,12 +294,13 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                     const SizedBox(height: 16),
 
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF151828) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                        border: Border.all(
+                            color: isDark ? Colors.white12 : Colors.black12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +308,9 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                           Text(
                             _bill.title.toUpperCase(),
                             style: AppTextStyles.heading1.copyWith(
-                                color: textColor, fontSize: 16, letterSpacing: -0.5),
+                                color: textColor,
+                                fontSize: 16,
+                                letterSpacing: -0.5),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -314,11 +323,11 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Next payment',
-                                  style: AppTextStyles.bodyMedium
-                                      .copyWith(color: textSubColor, fontSize: 13)),
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                      color: textSubColor, fontSize: 13)),
                               Text('₹ ${_bill.amount.toStringAsFixed(0)}',
-                                  style: AppTextStyles.heading2
-                                      .copyWith(color: textColor, fontSize: 15)),
+                                  style: AppTextStyles.heading2.copyWith(
+                                      color: textColor, fontSize: 15)),
                             ],
                           ),
                           const SizedBox(height: 6),
@@ -326,11 +335,13 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Expected date',
-                                  style: AppTextStyles.bodyMedium
-                                      .copyWith(color: textSubColor, fontSize: 13)),
-                              Text(DateFormat('MMM dd, yyyy').format(_bill.dueDate),
-                                  style: AppTextStyles.heading2
-                                      .copyWith(color: textColor, fontSize: 15)),
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                      color: textSubColor, fontSize: 13)),
+                              Text(
+                                  DateFormat('MMM dd, yyyy')
+                                      .format(_bill.dueDate),
+                                  style: AppTextStyles.heading2.copyWith(
+                                      color: textColor, fontSize: 15)),
                             ],
                           ),
                         ],
@@ -358,8 +369,8 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
     );
   }
 
-  Widget _buildTimelineList(List<_TimelineEntry> entries, dynamic c, bool isDark,
-      Color bgColor, Color textColor, Color textSubColor) {
+  Widget _buildTimelineList(List<_TimelineEntry> entries, dynamic c,
+      bool isDark, Color bgColor, Color textColor, Color textSubColor) {
     return Stack(
       children: [
         // The continuous dashed line
@@ -368,7 +379,8 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
           top: 24,
           bottom: 24,
           child: CustomPaint(
-            painter: _DashedLinePainter(color: isDark ? Colors.white24 : Colors.black26),
+            painter: _DashedLinePainter(
+                color: isDark ? Colors.white24 : Colors.black26),
           ),
         ),
         Column(
@@ -413,7 +425,8 @@ class _BillDetailScreenState extends State<BillDetailScreen> {
                       isDark: isDark,
                       textColor: textColor,
                       textSubColor: textSubColor,
-                      onMarkPaid: (!_bill.isPaid && e.isCurrent) ? _markAsPaid : null,
+                      onMarkPaid:
+                          (!_bill.isPaid && e.isCurrent) ? _markAsPaid : null,
                       isMarkingPaid: _isMarkingPaid,
                     ),
                   ),
@@ -477,8 +490,9 @@ class _TimelineCard extends StatelessWidget {
         ? (isDark ? const Color(0xFF1B2236) : const Color(0xFFF0FAF9))
         : Colors.transparent;
 
-    final borderColor =
-        entry.isCurrent ? statusColor : (isDark ? Colors.white24 : Colors.black26);
+    final borderColor = entry.isCurrent
+        ? statusColor
+        : (isDark ? Colors.white24 : Colors.black26);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -517,7 +531,8 @@ class _TimelineCard extends StatelessWidget {
               ),
               if (isPaid)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.incomeGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
@@ -530,14 +545,17 @@ class _TimelineCard extends StatelessWidget {
                 )
               else if (entry.isCurrent)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text('Current',
                       style: TextStyle(
-                          fontSize: 10, color: statusColor, fontWeight: FontWeight.bold)),
+                          fontSize: 10,
+                          color: statusColor,
+                          fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -566,9 +584,10 @@ class _TimelineCard extends StatelessWidget {
                   onPressed: isMarkingPaid ? null : onMarkPaid,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                   child: isMarkingPaid

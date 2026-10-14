@@ -25,8 +25,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))
-      ..repeat(reverse: true);
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
 
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(0, 0.04),
@@ -72,8 +73,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: Stack(
         children: [
           CustomPaint(
-            size: Size(
-                MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+            size: Size(MediaQuery.of(context).size.width,
+                MediaQuery.of(context).size.height),
             painter: BackgroundPainter(),
           ),
           SafeArea(
@@ -81,7 +82,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               children: [
                 // Top header row with Skip
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -97,7 +99,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           ),
                         )
                       else
-                        const SizedBox(height: 48), // Spacer to maintain alignment
+                        const SizedBox(
+                            height: 48), // Spacer to maintain alignment
                     ],
                   ),
                 ),
@@ -121,7 +124,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
                 // Footer Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0, vertical: 24),
                   child: Column(
                     children: [
                       // Page Indicators
@@ -134,7 +138,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
                       // Action Button
                       PrimaryButton(
-                        text: _currentPage == _numPages - 1 ? "Get Started" : "Next",
+                        text: _currentPage == _numPages - 1
+                            ? "Get Started"
+                            : "Next",
                         onPressed: () {
                           if (_currentPage < _numPages - 1) {
                             _pageController.nextPage(
@@ -256,8 +262,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       Align(
                         alignment: Alignment.centerRight,
                         child: Container(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.tabBackground,
                             borderRadius: const BorderRadius.only(
@@ -279,8 +285,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
                           decoration: const BoxDecoration(
                             gradient: AppColors.mainGradient,
                             borderRadius: BorderRadius.only(
@@ -288,7 +294,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                               bottomLeft: Radius.circular(16),
                               bottomRight: Radius.circular(16),
                             ),
-                           ),
+                          ),
                           child: Text(
                             "You spent ₹5,400 on Food this month. This is 15% less than last month! 📉",
                             style: AppTextStyles.bodySmall.copyWith(
@@ -494,11 +500,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     top: 10,
                     right: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.success.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                        border: Border.all(
+                            color: AppColors.success.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -643,7 +651,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   subtitle,
                   style: AppTextStyles.bodySmall.copyWith(
                     fontSize: 12,
-                    color: isDue ? AppColors.expenseRed : AppColors.textSecondary,
+                    color:
+                        isDue ? AppColors.expenseRed : AppColors.textSecondary,
                   ),
                 ),
               ],

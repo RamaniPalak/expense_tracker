@@ -35,3 +35,30 @@ class SignupRequested extends AuthEvent {
 class LogoutRequested extends AuthEvent {}
 
 class AuthCheckStatusRequested extends AuthEvent {}
+
+/// Triggers OTP dispatch for the given email.
+class ForgotPasswordRequested extends AuthEvent {
+  final String email;
+
+  const ForgotPasswordRequested({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+/// Verifies OTP and sets a new password for the given email.
+class VerifyOtpAndResetPasswordRequested extends AuthEvent {
+  final String email;
+  final String otp;
+  final String newPassword;
+
+  const VerifyOtpAndResetPasswordRequested({
+    required this.email,
+    required this.otp,
+    required this.newPassword,
+  });
+
+  @override
+  List<Object?> get props => [email, otp, newPassword];
+}
+

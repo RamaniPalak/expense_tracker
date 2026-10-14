@@ -123,6 +123,7 @@ class StationaryCenterDockedFabLocation extends FloatingActionButtonLocation {
       materialBannerSize: scaffoldGeometry.materialBannerSize,
       floatingActionButtonSize: scaffoldGeometry.floatingActionButtonSize,
     );
-    return FloatingActionButtonLocation.centerDocked.getOffset(modifiedGeometry);
+    return FloatingActionButtonLocation.centerDocked
+        .getOffset(modifiedGeometry);
   }
 }

@@ -15,7 +15,6 @@ import 'package:expense_tracker/features/transactions/presentation/widgets/trans
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/core/utils/report_generator.dart';
 
-
 class AllTransactionsScreen extends StatefulWidget {
   const AllTransactionsScreen({super.key});
 
@@ -56,7 +55,6 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     // Other popular SaaS / services
     'linkedin premium', 'duolingo', 'grammarly', 'lastpass', '1password',
   ];
-
 
   @override
   void initState() {
@@ -133,10 +131,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
       // Type / category filters
       if (_activeFilters.isEmpty) return true;
 
-      if (_activeFilters.contains(TransactionFilterBar.filterIncome) && t.isIncome) {
+      if (_activeFilters.contains(TransactionFilterBar.filterIncome) &&
+          t.isIncome) {
         return true;
       }
-      if (_activeFilters.contains(TransactionFilterBar.filterExpense) && !t.isIncome) {
+      if (_activeFilters.contains(TransactionFilterBar.filterExpense) &&
+          !t.isIncome) {
         return true;
       }
       if (_activeFilters.contains(TransactionFilterBar.filterSubscription)) {
@@ -188,13 +188,14 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   AppBar _buildAppBar(BuildContext context, DynamicColors c) {
     return AppBar(
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: context.appColors.textPrimary, size: 20),
+        icon: Icon(Icons.arrow_back_ios,
+            color: context.appColors.textPrimary, size: 20),
         onPressed: () => context.pop(),
       ),
       title: Text(
         'My Transactions',
-        style: AppTextStyles.heading2.copyWith(
-            color: context.appColors.textPrimary, fontSize: 20),
+        style: AppTextStyles.heading2
+            .copyWith(color: context.appColors.textPrimary, fontSize: 20),
       ),
       backgroundColor: context.appColors.background,
       elevation: 0,
@@ -231,7 +232,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                     final filtered = _applyFilters(state.transactions);
                     if (filtered.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No transactions to export.')),
+                        const SnackBar(
+                            content: Text('No transactions to export.')),
                       );
                       return;
                     }
@@ -242,7 +244,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Transactions are still loading...')),
+                      const SnackBar(
+                          content: Text('Transactions are still loading...')),
                     );
                   }
                 },
@@ -250,7 +253,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                   message: 'Export PDF',
                   child: Padding(
                     padding: EdgeInsets.all(6),
-                    child: Icon(Icons.download_rounded, color: Colors.white, size: 16),
+                    child: Icon(Icons.download_rounded,
+                        color: Colors.white, size: 16),
                   ),
                 ),
               ),
@@ -287,7 +291,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                   message: 'Sync Transactions',
                   child: Padding(
                     padding: EdgeInsets.all(6),
-                    child: Icon(Icons.sync_rounded, color: Colors.white, size: 16),
+                    child:
+                        Icon(Icons.sync_rounded, color: Colors.white, size: 16),
                   ),
                 ),
               ),
@@ -319,7 +324,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
           onChanged: (value) => setState(() => _searchQuery = value),
           decoration: InputDecoration(
             hintText: 'Search transactions...',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
+            hintStyle:
+                AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
             prefixIcon: Icon(Icons.search, color: c.textSecondary),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),

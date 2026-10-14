@@ -17,8 +17,18 @@ class CalendarYearView extends StatelessWidget {
   });
 
   static const List<String> _monthsList = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
   ];
 
   @override
@@ -36,11 +46,12 @@ class CalendarYearView extends StatelessWidget {
       itemBuilder: (context, index) {
         final monthIndex = index + 1; // 1 to 12
         final isSelected = selectedMonthIndex == monthIndex;
-        
+
         // Count transactions in this month
-        final txCount = allExpenses.where((e) =>
-            e.date.year == currentYear &&
-            e.date.month == monthIndex).length;
+        final txCount = allExpenses
+            .where(
+                (e) => e.date.year == currentYear && e.date.month == monthIndex)
+            .length;
 
         return _buildMonthCell(
           context,
@@ -94,7 +105,8 @@ class CalendarYearView extends StatelessWidget {
               if (transactionCount > 0) ...[
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withOpacity(0.25)

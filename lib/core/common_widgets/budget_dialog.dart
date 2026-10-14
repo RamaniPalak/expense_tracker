@@ -91,7 +91,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
 
   Future<void> _deleteBudget() async {
     if (widget.initialBudget?.id == null || widget.userEmail == null) return;
-    await sl<DatabaseHelper>().deleteBudget(widget.initialBudget!.id!, widget.userEmail!);
+    await sl<DatabaseHelper>()
+        .deleteBudget(widget.initialBudget!.id!, widget.userEmail!);
     if (mounted) Navigator.pop(context);
   }
 
@@ -105,7 +106,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         isTotal ? AppStrings.budgetPlanTitle : "${widget.category} Budget",
-        style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+        style:
+            AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -115,7 +117,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
             isTotal
                 ? AppStrings.budgetPlanSub
                 : "Set a spending limit for the ${widget.category} category this month to track your expenses.",
-            style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.4),
+            style:
+                TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.4),
           ),
           const SizedBox(height: 20),
           TextField(
@@ -135,7 +138,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
                 borderRadius: BorderRadius.circular(12),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 2),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -149,7 +153,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
             onPressed: _deleteBudget,
             child: const Text(
               "Delete",
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: AppColors.error, fontWeight: FontWeight.w600),
             ),
           ),
         TextButton(
@@ -163,10 +168,13 @@ class _BudgetDialogState extends State<BudgetDialog> {
           onPressed: _saveBudget,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
-          child: const Text(AppStrings.save, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: const Text(AppStrings.save,
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

@@ -4,6 +4,9 @@ import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/theme/theme_provider.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/core/common_widgets/budget_dialog.dart';
@@ -31,9 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── Notification settings state ─────────────────────────────────────────
   bool _dailyReminderEnabled = false;
-  bool _billReminderEnabled  = true;
-  TimeOfDay _reminderTime    = const TimeOfDay(hour: 20, minute: 0);
-  bool _notifSettingsLoaded  = false;
+  bool _billReminderEnabled = true;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
+  bool _notifSettingsLoaded = false;
 
   @override
   void initState() {
@@ -43,13 +46,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUser() async {
-    final email     = await sl<IAuthRepository>().getUserEmail();
-    final name      = await sl<IAuthRepository>().getUserName();
+    final email = await sl<IAuthRepository>().getUserEmail();
+    final name = await sl<IAuthRepository>().getUserName();
     final imagePath = await sl<IAuthRepository>().getUserImagePath();
     if (mounted) {
       setState(() {
-        _userEmail     = email;
-        _userName      = name;
+        _userEmail = email;
+        _userName = name;
         _userImagePath = imagePath;
       });
     }
@@ -57,17 +60,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── Load notification settings from SharedPreferences ─────────────────────
   Future<void> _loadNotificationSettings() async {
-    final ns     = NotificationService.instance;
-    final daily  = await ns.isDailyReminderEnabled();
-    final bill   = await ns.isBillReminderEnabled();
-    final hour   = await ns.getDailyReminderHour();
+    final ns = NotificationService.instance;
+    final daily = await ns.isDailyReminderEnabled();
+    final bill = await ns.isBillReminderEnabled();
+    final hour = await ns.getDailyReminderHour();
     final minute = await ns.getDailyReminderMinute();
     if (mounted) {
       setState(() {
         _dailyReminderEnabled = daily;
-        _billReminderEnabled  = bill;
-        _reminderTime         = TimeOfDay(hour: hour, minute: minute);
-        _notifSettingsLoaded  = true;
+        _billReminderEnabled = bill;
+        _reminderTime = TimeOfDay(hour: hour, minute: minute);
+        _notifSettingsLoaded = true;
       });
     }
   }
@@ -82,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (picked != null && mounted) {
       setState(() => _reminderTime = picked);
       await NotificationService.instance.setDailyReminderTime(
-        hour:   picked.hour,
+        hour: picked.hour,
         minute: picked.minute,
       );
     }
@@ -96,33 +99,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "Logout",
-          style: AppTextStyles.heading2.copyWith(color: context.appColors.textPrimary),
+          style: AppTextStyles.heading2
+              .copyWith(color: context.appColors.textPrimary),
         ),
         content: Text(
           "Are you sure you want to log out of your account?",
-          style: AppTextStyles.bodyMedium.copyWith(color: context.appColors.textSecondary),
+          style: AppTextStyles.bodyMedium
+              .copyWith(color: context.appColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text("Cancel", style: TextStyle(color: context.appColors.textSecondary)),
+            child: Text("Cancel",
+                style: TextStyle(color: context.appColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.expenseRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text("Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text("Logout",
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
 
     if (confirm == true && context.mounted) {
-      await sl<IAuthRepository>().logout();
+      context.read<AuthBloc>().add(LogoutRequested());
       if (context.mounted) {
-        context.go(RoutePaths.onboarding);
+        context.go(RoutePaths.login);
       }
     }
   }
@@ -226,7 +235,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: AppColors.incomeGreen,
                             onTap: () async {
                               final now = DateTime.now();
-                              final allBudgets = await sl<DatabaseHelper>().getBudgets(_userEmail);
+                              final allBudgets = await sl<DatabaseHelper>()
+                                  .getBudgets(_userEmail);
                               final existingBudget = allBudgets
                                   .where((b) =>
                                       b.category == AppStrings.total &&
@@ -250,7 +260,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildMenuItem(
                             icon: Icons.category_outlined,
                             title: "Categories",
-                            subtitle: "Add, edit or delete expense & income categories",
+                            subtitle:
+                                "Add, edit or delete expense & income categories",
                             color: Colors.teal,
                             onTap: () {
                               context.push(RoutePaths.editCategories);
@@ -266,12 +277,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (_userEmail != null) {
                                 showDialog(
                                   context: context,
-                                  builder: (ctx) => ChangePasswordDialog(userEmail: _userEmail!),
+                                  builder: (ctx) => ChangePasswordDialog(
+                                      userEmail: _userEmail!),
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text("User details not loaded yet. Please try again."),
+                                    content: Text(
+                                        "User details not loaded yet. Please try again."),
                                   ),
                                 );
                               }
@@ -296,7 +309,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildMenuItem(
                             icon: Icons.alarm_rounded,
                             title: 'Daily Expense Reminder',
-                            subtitle: 'Get a nudge to log your expenses every day',
+                            subtitle:
+                                'Get a nudge to log your expenses every day',
                             color: AppColors.primary,
                             trailing: _notifSettingsLoaded
                                 ? Transform.scale(
@@ -304,9 +318,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     child: Switch(
                                       value: _dailyReminderEnabled,
                                       onChanged: (val) async {
-                                        setState(() => _dailyReminderEnabled = val);
+                                        setState(
+                                            () => _dailyReminderEnabled = val);
                                         await NotificationService.instance
-                                            .setDailyReminderEnabled(enabled: val);
+                                            .setDailyReminderEnabled(
+                                                enabled: val);
                                       },
                                       activeColor: AppColors.primary,
                                       activeTrackColor:
@@ -336,15 +352,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildMenuItem(
                               icon: Icons.notifications_active_rounded,
                               title: 'Test Notification Now',
-                              subtitle: 'Tap to trigger instant local notification banner',
+                              subtitle:
+                                  'Tap to trigger instant local notification banner',
                               color: Colors.teal,
                               onTap: () async {
-                                await NotificationService.instance.requestPermissions();
-                                await NotificationService.instance.showInstantTestNotification();
+                                await NotificationService.instance
+                                    .requestPermissions();
+                                await NotificationService.instance
+                                    .showInstantTestNotification();
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Instant test notification triggered! Check status bar & notification bell.'),
+                                      content: Text(
+                                          'Instant test notification triggered! Check status bar & notification bell.'),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -365,16 +385,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     child: Switch(
                                       value: _billReminderEnabled,
                                       onChanged: (val) async {
-                                        setState(() => _billReminderEnabled = val);
+                                        setState(
+                                            () => _billReminderEnabled = val);
                                         await NotificationService.instance
-                                            .setBillReminderEnabled(enabled: val);
+                                            .setBillReminderEnabled(
+                                                enabled: val);
                                         // If turning back ON, reschedule all
                                         // existing unpaid bills
                                         if (val && _userEmail != null) {
-                                          final bills = await sl<DatabaseHelper>()
-                                              .getBills(_userEmail);
+                                          final bills =
+                                              await sl<DatabaseHelper>()
+                                                  .getBills(_userEmail);
                                           for (final bill in bills) {
-                                            if (!bill.isPaid && bill.id != null) {
+                                            if (!bill.isPaid &&
+                                                bill.id != null) {
                                               final dueDate = bill.dueDate;
                                               final reminderDate = DateTime(
                                                 dueDate.year,
@@ -426,9 +450,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 10),
                         _buildSectionCard([
                           _buildMenuItem(
-                            icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                            icon: isDark
+                                ? Icons.dark_mode_rounded
+                                : Icons.light_mode_rounded,
                             title: "Dark Mode",
-                            subtitle: isDark ? "On — using dark colors" : "Off — using light colors",
+                            subtitle: isDark
+                                ? "On — using dark colors"
+                                : "Off — using light colors",
                             color: Colors.deepPurple,
                             trailing: Transform.scale(
                               scale: 0.8,
@@ -436,7 +464,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 value: isDark,
                                 onChanged: (_) => themeProvider.toggleTheme(),
                                 activeColor: AppColors.primary,
-                                activeTrackColor: AppColors.primary.withOpacity(0.3),
+                                activeTrackColor:
+                                    AppColors.primary.withOpacity(0.3),
                               ),
                             ),
                           ),
@@ -467,7 +496,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStickyCurvedHeader(BuildContext context) {
     final c = context.appColors;
     return Container(
-      height: 236, // height of header container (190 curved background + offset avatar)
+      height:
+          236, // height of header container (190 curved background + offset avatar)
       width: double.infinity,
       color: c.background,
       child: Stack(
@@ -490,12 +520,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 10),
                     child: Column(
                       children: [
                         Row(
                           children: [
-                            const SizedBox(width: 38), // Balance notification icon size to keep title centered
+                            const SizedBox(
+                                width:
+                                    38), // Balance notification icon size to keep title centered
                             Expanded(
                               child: Center(
                                 child: Text(
@@ -514,8 +547,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: AppColors.white.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.notifications_none_rounded,
-                                  color: AppColors.white, size: 22),
+                              child: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: AppColors.white,
+                                  size: 22),
                             ),
                           ],
                         ),
@@ -726,11 +761,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            trailing ?? Icon(
-              Icons.chevron_right_rounded,
-              color: c.textSecondary.withOpacity(0.6),
-              size: 22,
-            ),
+            trailing ??
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: c.textSecondary.withOpacity(0.6),
+                  size: 22,
+                ),
           ],
         ),
       ),

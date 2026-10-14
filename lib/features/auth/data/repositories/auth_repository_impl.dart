@@ -55,13 +55,13 @@ class AuthRepositoryImpl implements IAuthRepository {
       print('=== AUTH LOGIN ERROR ===');
       print('Error: $e');
       print('Stacktrace: $st');
-      print('========================');
       return Left('Login Error: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<String, void>> register(String name, String email, String password) async {
+  Future<Either<String, void>> register(
+      String name, String email, String password) async {
     try {
       final success = await remoteDataSource.register(name, email, password);
       if (success) {
@@ -75,9 +75,11 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
-  Future<Either<String, void>> changePassword(String email, String oldPassword, String newPassword) async {
+  Future<Either<String, void>> changePassword(
+      String email, String oldPassword, String newPassword) async {
     try {
-      final success = await remoteDataSource.changePassword(email, oldPassword, newPassword);
+      final success = await remoteDataSource.changePassword(
+          email, oldPassword, newPassword);
       if (success) {
         return const Right(null);
       }
@@ -135,7 +137,8 @@ class AuthRepositoryImpl implements IAuthRepository {
       finalImagePath = await CloudinaryService.uploadImage(File(imagePath));
     }
 
-    final updatedUser = await remoteDataSource.updateProfile(email, name, finalImagePath);
+    final updatedUser =
+        await remoteDataSource.updateProfile(email, name, finalImagePath);
     if (updatedUser == null) {
       throw Exception("Failed to sync profile to server.");
     }
@@ -145,5 +148,35 @@ class AuthRepositoryImpl implements IAuthRepository {
   @override
   Future<String?> getUserImagePath() async {
     return await localDataSource.getCachedImagePath();
+  }
+
+  @override
+  Future<Either<String, String>> requestPasswordReset(String email) async {
+    try {
+      final otp = await remoteDataSource.requestPasswordReset(
+          email.trim().toLowerCase());
+      if (otp != null) {
+        return Right(otp);
+      }
+      return const Left('No account found with this email address.');
+    } catch (e) {
+      return Left(_friendlyError(e));
+    }
+  }
+
+  @override
+  Future<Either<String, void>> verifyOtpAndResetPassword(
+      String email, String otp, String newPassword) async {
+    try {
+      final success = await remoteDataSource.verifyOtpAndResetPassword(
+          email.trim().toLowerCase(), otp, newPassword);
+      if (success) {
+        return const Right(null);
+      }
+      return const Left(
+          'Invalid or expired OTP. Please request a new one.');
+    } catch (e) {
+      return Left(_friendlyError(e));
+    }
   }
 }

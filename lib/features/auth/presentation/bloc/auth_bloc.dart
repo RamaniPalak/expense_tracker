@@ -11,6 +11,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginRequested>(_onLoginRequested);
     on<SignupRequested>(_onSignupRequested);
     on<LogoutRequested>(_onLogoutRequested);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
+    on<VerifyOtpAndResetPasswordRequested>(_onVerifyOtpAndResetPassword);
   }
 
   Future<void> _onAuthCheckStatusRequested(
@@ -42,14 +44,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    final result = await authRepository.register(event.name, event.email, event.password);
+    final result =
+        await authRepository.register(event.name, event.email, event.password);
     await result.fold(
       (failure) async => emit(AuthFailure(message: failure)),
       (success) async {
         // Auto-login after successful signup so the user lands on home directly
-        final loginResult = await authRepository.login(event.email, event.password);
+        final loginResult =
+            await authRepository.login(event.email, event.password);
         loginResult.fold(
-          (failure) => emit(AuthSuccess(message: "Account created! Please log in.")),
+          (failure) =>
+              emit(AuthSuccess(message: "Account created! Please log in.")),
           (success) => emit(Authenticated(email: event.email)),
         );
       },
@@ -63,4 +68,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await authRepository.logout();
     emit(Unauthenticated());
   }
+
+  /// Step 1: Request an OTP for the given email.
+  Future<void> _onForgotPasswordRequested(
+    ForgotPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await authRepository.requestPasswordReset(event.email);
+    result.fold(
+      (failure) => emit(AuthFailure(message: failure)),
+      (otp) => emit(PasswordResetOtpSent(email: event.email, otp: otp)),
+    );
+  }
+
+  /// Step 2: Verify OTP and set the new password.
+  Future<void> _onVerifyOtpAndResetPassword(
+    VerifyOtpAndResetPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await authRepository.verifyOtpAndResetPassword(
+      event.email,
+      event.otp,
+      event.newPassword,
+    );
+    result.fold(
+      (failure) => emit(AuthFailure(message: failure)),
+      (_) => emit(PasswordResetSuccess()),
+    );
+  }
 }
+

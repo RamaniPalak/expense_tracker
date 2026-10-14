@@ -35,7 +35,10 @@ class ProfileHelper {
                         ),
                         const Text(
                           "Profile",
-                          style: TextStyle(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: AppColors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
                         ),
                         Container(
                           padding: const EdgeInsets.all(8),
@@ -128,8 +131,8 @@ class ProfileHelper {
             const SizedBox(width: 16),
             Text(
               title,
-              style: AppTextStyles.bodyLarge.copyWith(
-                  color: c.textPrimary, fontWeight: FontWeight.w500),
+              style: AppTextStyles.bodyLarge
+                  .copyWith(color: c.textPrimary, fontWeight: FontWeight.w500),
             ),
           ],
         ),

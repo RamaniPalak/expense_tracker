@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
-import 'package:expense_tracker/features/transactions/presentation/widgets/add_expense_helper.dart';
+import 'package:expense_tracker/core/constants/category_config.dart';
 
 class StatisticsHelper {
   static Widget buildHeader({
@@ -23,7 +23,8 @@ class StatisticsHelper {
             child: Center(
               child: Text(
                 AppStrings.statistics,
-                style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+                style: AppTextStyles.heading2
+                    .copyWith(fontSize: 20, color: c.textPrimary),
               ),
             ),
           ),
@@ -53,26 +54,36 @@ class StatisticsHelper {
     required String selectedFilter,
     required Function(String) onSelect,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: filters.map((filter) {
           final isSelected = filter == selectedFilter;
-          return Expanded(
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
             child: GestureDetector(
               onTap: () => onSelect(filter),
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.symmetric(vertical: 10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.secondary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.secondary
+                        : AppColors.textSecondary.withOpacity(0.2),
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   filter,
-                  style: AppTextStyles.bodyMedium.copyWith(
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontSize: 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                     color:
                         isSelected ? AppColors.white : AppColors.textSecondary,
                   ),
@@ -93,25 +104,27 @@ class StatisticsHelper {
   }) {
     final c = context.appColors;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: c.border),
-        borderRadius: BorderRadius.circular(12),
+        color: c.card.withOpacity(0.6),
+        border: Border.all(color: c.border.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedType,
           dropdownColor: c.card,
-          icon: Icon(Icons.keyboard_arrow_down,
-              color: c.textPrimary),
+          icon: Icon(Icons.keyboard_arrow_down, color: c.textPrimary, size: 18),
           elevation: 16,
-          style:
-              AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+          style: AppTextStyles.bodySmall.copyWith(
+              color: c.textPrimary, fontWeight: FontWeight.w600, fontSize: 12),
           onChanged: onChanged,
           items: types.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value, style: TextStyle(color: c.textPrimary)),
+              child: Text(value,
+                  style: TextStyle(color: c.textPrimary, fontSize: 12)),
             );
           }).toList(),
         ),
@@ -122,15 +135,16 @@ class StatisticsHelper {
   static Widget buildSpendingHeader({required BuildContext context}) {
     final c = context.appColors;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             AppStrings.topSpending,
-            style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
+            style: AppTextStyles.heading2
+                .copyWith(fontSize: 16, color: c.textPrimary),
           ),
-          Icon(Icons.import_export, color: c.textSecondary),
+          Icon(Icons.import_export, color: c.textSecondary, size: 20),
         ],
       ),
     );
@@ -147,18 +161,19 @@ class StatisticsHelper {
   }) {
     final c = context.appColors;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isHighlighted ? AppColors.primary : c.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isHighlighted ? Colors.transparent : c.border.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color:
+                isHighlighted ? Colors.transparent : c.border.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: isHighlighted 
-              ? AppColors.primary.withOpacity(0.3) 
-              : c.shadow,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color:
+                isHighlighted ? AppColors.primary.withOpacity(0.3) : c.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           )
         ],
       ),
@@ -167,15 +182,19 @@ class StatisticsHelper {
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: isHighlighted ? Colors.white24 : AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isHighlighted
+                      ? Colors.white24
+                      : AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: isHighlighted ? Colors.white : AppColors.primary),
+                child: Icon(icon,
+                    size: 20,
+                    color: isHighlighted ? Colors.white : AppColors.primary),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +202,7 @@ class StatisticsHelper {
                     Text(
                       title,
                       style: AppTextStyles.bodyLarge.copyWith(
-                        fontSize: 16,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: isHighlighted ? Colors.white : c.textPrimary,
                       ),
@@ -191,7 +210,7 @@ class StatisticsHelper {
                     Text(
                       date,
                       style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 13,
+                        fontSize: 11,
                         color: isHighlighted ? Colors.white70 : c.textSecondary,
                       ),
                     ),
@@ -201,7 +220,7 @@ class StatisticsHelper {
               Text(
                 amount,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  fontSize: 16,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: isHighlighted ? Colors.white : AppColors.expenseRed,
                 ),
@@ -209,26 +228,28 @@ class StatisticsHelper {
             ],
           ),
           if (progress != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: progress.clamp(0.0, 1.0),
                 backgroundColor: isHighlighted ? Colors.white24 : c.tabBg,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  progress >= 1.0 ? Colors.orangeAccent : (isHighlighted ? Colors.white : AppColors.primary),
+                  progress >= 1.0
+                      ? Colors.orangeAccent
+                      : (isHighlighted ? Colors.white : AppColors.primary),
                 ),
-                minHeight: 8,
+                minHeight: 6,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "${(progress * 100).toInt()}% ${AppStrings.used}",
                   style: AppTextStyles.bodySmall.copyWith(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: isHighlighted ? Colors.white70 : c.textSecondary,
                   ),
                 ),
@@ -236,8 +257,10 @@ class StatisticsHelper {
                   Text(
                     AppStrings.exceeded,
                     style: AppTextStyles.bodySmall.copyWith(
-                      fontSize: 11,
-                      color: isHighlighted ? Colors.orangeAccent : AppColors.expenseRed,
+                      fontSize: 10,
+                      color: isHighlighted
+                          ? Colors.orangeAccent
+                          : AppColors.expenseRed,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -264,19 +287,20 @@ class StatisticsHelper {
     final isOverBudget = totalSpent > totalBudget && totalBudget > 0;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        gradient: isOverBudget 
-            ? const LinearGradient(colors: [AppColors.expenseRed, Color(0xFFFF8E8E)]) 
+        gradient: isOverBudget
+            ? const LinearGradient(
+                colors: [AppColors.expenseRed, Color(0xFFFF8E8E)])
             : AppColors.cardGradient,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: (isOverBudget ? AppColors.expenseRed : AppColors.secondary)
-                .withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+                .withOpacity(0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -287,30 +311,30 @@ class StatisticsHelper {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                    onPressed: onPreviousMonth,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  GestureDetector(
+                    onTap: onPreviousMonth,
+                    child: const Icon(Icons.chevron_left,
+                        color: Colors.white70, size: 18),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      monthYear,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  const SizedBox(width: 4),
+                  Text(
+                    monthYear,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                  if (showNextMonth)
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                      onPressed: onNextMonth,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                  if (showNextMonth) ...[
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: onNextMonth,
+                      child: const Icon(Icons.chevron_right,
+                          color: Colors.white70, size: 18),
                     ),
+                  ],
                 ],
               ),
               GestureDetector(
@@ -320,14 +344,17 @@ class StatisticsHelper {
                     context: context,
                     builder: (ctx) => AlertDialog(
                       backgroundColor: c.card,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                       title: Row(
                         children: [
-                          const Icon(Icons.info_outline, color: AppColors.primary),
+                          const Icon(Icons.info_outline,
+                              color: AppColors.primary),
                           const SizedBox(width: 10),
                           Text(
-                            AppStrings.budgetInfo, 
-                            style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+                            AppStrings.budgetInfo,
+                            style: AppTextStyles.heading2
+                                .copyWith(color: c.textPrimary, fontSize: 18),
                           ),
                         ],
                       ),
@@ -336,17 +363,24 @@ class StatisticsHelper {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppStrings.budgetDescription, 
-                            style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
+                            AppStrings.budgetDescription,
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: c.textSecondary),
                           ),
                           const SizedBox(height: 15),
-                          _buildInfoRow(context, AppStrings.budgetTarget, "₹ ${totalBudget.toStringAsFixed(2)}"),
-                          _buildInfoRow(context, AppStrings.actualSpent, "₹ ${totalSpent.toStringAsFixed(2)}"),
-                          _buildInfoRow(context, AppStrings.remaining, "₹ ${(totalBudget - totalSpent).clamp(0, double.infinity).toStringAsFixed(2)}", isBold: true),
+                          _buildInfoRow(context, AppStrings.budgetTarget,
+                              "₹ ${totalBudget.toStringAsFixed(2)}"),
+                          _buildInfoRow(context, AppStrings.actualSpent,
+                              "₹ ${totalSpent.toStringAsFixed(2)}"),
+                          _buildInfoRow(context, AppStrings.remaining,
+                              "₹ ${(totalBudget - totalSpent).clamp(0, double.infinity).toStringAsFixed(2)}",
+                              isBold: true),
                           Divider(height: 30, color: c.divider),
                           Text(
-                            AppStrings.budgetTip, 
-                            style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic, color: c.textSecondary),
+                            AppStrings.budgetTip,
+                            style: AppTextStyles.bodySmall.copyWith(
+                                fontStyle: FontStyle.italic,
+                                color: c.textSecondary),
                           ),
                         ],
                       ),
@@ -354,19 +388,22 @@ class StatisticsHelper {
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),
                           child: Text(
-                            AppStrings.gotIt, 
-                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                            AppStrings.gotIt,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
                   );
                 },
-                child: const Icon(Icons.info_outline, color: Colors.white70, size: 22),
+                child: const Icon(Icons.info_outline,
+                    color: Colors.white70, size: 18),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 5),
           if (totalBudget > 0) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -379,13 +416,16 @@ class StatisticsHelper {
                     children: [
                       Text(
                         AppStrings.budgetTarget,
-                        style: AppTextStyles.bodySmall.copyWith(color: Colors.white70, fontSize: 10),
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: Colors.white70, fontSize: 9),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         "₹ ${totalBudget.toStringAsFixed(2)}",
-                        style: AppTextStyles.heading1
-                            .copyWith(color: Colors.white, fontSize: 24),
+                        style: AppTextStyles.heading2.copyWith(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -400,13 +440,16 @@ class StatisticsHelper {
                       children: [
                         Text(
                           AppStrings.walletBalance,
-                          style: AppTextStyles.bodySmall.copyWith(color: Colors.white70, fontSize: 10),
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: Colors.white70, fontSize: 9),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           "₹ ${availableBalance.toStringAsFixed(2)}",
-                          style: AppTextStyles.heading2
-                              .copyWith(color: Colors.white, fontSize: 18),
+                          style: AppTextStyles.bodySmall.copyWith(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -415,14 +458,15 @@ class StatisticsHelper {
                 ],
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
                     "${AppStrings.spent}: ₹ ${totalSpent.toStringAsFixed(2)}",
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white),
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: Colors.white, fontSize: 10),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -430,23 +474,23 @@ class StatisticsHelper {
                 Expanded(
                   child: Text(
                     "${AppStrings.remaining}: ₹ ${(totalBudget - totalSpent).clamp(0, double.infinity).toStringAsFixed(2)}",
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: Colors.white70, fontSize: 10),
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
                 value: progress.clamp(0.0, 1.0),
                 backgroundColor: Colors.white.withAlpha(51),
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverBudget ? Colors.orangeAccent : Colors.white
-                ),
-                minHeight: 10,
+                    isOverBudget ? Colors.orangeAccent : Colors.white),
+                minHeight: 5,
               ),
             ),
           ] else ...[
@@ -464,7 +508,8 @@ class StatisticsHelper {
                       backgroundColor: Colors.white24,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text(AppStrings.setMonthlyBudget),
                   ),
@@ -474,7 +519,7 @@ class StatisticsHelper {
           ],
           if (isOverBudget)
             Padding(
-              padding: const EdgeInsets.only(top: 8.0),
+              padding: const EdgeInsets.only(top: 4.0),
               child: Text(
                 AppStrings.budgetWarning,
                 style: AppTextStyles.bodySmall.copyWith(
@@ -489,7 +534,8 @@ class StatisticsHelper {
     );
   }
 
-  static Widget _buildInfoRow(BuildContext context, String label, String value, {bool isBold = false}) {
+  static Widget _buildInfoRow(BuildContext context, String label, String value,
+      {bool isBold = false}) {
     final c = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -497,10 +543,11 @@ class StatisticsHelper {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: c.textSecondary)),
-          Text(value, style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isBold ? AppColors.primary : c.textPrimary,
-          )),
+          Text(value,
+              style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: isBold ? AppColors.primary : c.textPrimary,
+              )),
         ],
       ),
     );
@@ -521,68 +568,82 @@ class StatisticsHelper {
     final text = isIncrease ? "Spending increased by" : "Spending decreased by";
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.border.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25)),
         boxShadow: [
           BoxShadow(
-            color: color.withAlpha(25),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withAlpha(20),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Row(
         children: [
+          // Colored trend icon
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: color.withAlpha(25),
-              shape: BoxShape.circle,
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
+          // Label + % change
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   text,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: c.textSecondary,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
                 Text(
                   "${difference.abs().toStringAsFixed(1)}% vs last month",
-                  style: AppTextStyles.heading2.copyWith(
+                  style: AppTextStyles.bodyMedium.copyWith(
                     color: color,
-                    fontSize: 16,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "Last Month",
-                style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: c.textSecondary),
-              ),
-              Text(
-                "₹ ${previousTotal.toStringAsFixed(0)}",
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: c.textPrimary,
+          // Last month chip
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: c.tabBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Last Month",
+                  style: AppTextStyles.bodySmall.copyWith(
+                      fontSize: 9, color: c.textSecondary),
                 ),
-              ),
-            ],
+                Text(
+                  "₹ ${previousTotal.toStringAsFixed(0)}",
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: c.textPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -590,10 +651,10 @@ class StatisticsHelper {
   }
 
   static Color getCategoryColor(String category, {bool isIncome = false}) {
-    return AddExpenseHelper.getCategoryColor(category, isIncome: isIncome);
+    return CategoryConfig.getColor(category, isIncome: isIncome);
   }
 
   static IconData getCategoryIcon(String category, {bool isIncome = false}) {
-    return AddExpenseHelper.getCategoryIcon(category, isIncome: isIncome);
+    return CategoryConfig.getIcon(category, isIncome: isIncome);
   }
 }

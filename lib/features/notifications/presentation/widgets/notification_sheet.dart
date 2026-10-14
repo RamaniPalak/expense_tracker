@@ -172,9 +172,11 @@ class NotificationSheet extends StatelessWidget {
                       ),
                       onSelected: (value) async {
                         if (value == 'test_notif') {
-                          await NotificationService().showBudgetAlertNotification(
+                          await NotificationService()
+                              .showBudgetAlertNotification(
                             title: '🔔 Test Notification',
-                            body: 'Notifications are working perfectly on your device!',
+                            body:
+                                'Notifications are working perfectly on your device!',
                             userEmail: userEmail ?? '',
                           );
                         } else if (value == 'mark_read') {
@@ -282,7 +284,8 @@ class NotificationSheet extends StatelessWidget {
                   );
                 }
 
-                final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
+                final bottomPadding =
+                    MediaQuery.of(context).padding.bottom + 32;
 
                 return ListView.separated(
                   padding: EdgeInsets.only(

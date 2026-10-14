@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
-import 'package:expense_tracker/features/transactions/presentation/widgets/add_expense_helper.dart';
+import 'package:expense_tracker/core/constants/category_config.dart';
 
 class CalendarTransactionTile extends StatefulWidget {
   final TransactionModel tx;
@@ -17,7 +17,8 @@ class CalendarTransactionTile extends StatefulWidget {
   });
 
   @override
-  State<CalendarTransactionTile> createState() => _CalendarTransactionTileState();
+  State<CalendarTransactionTile> createState() =>
+      _CalendarTransactionTileState();
 }
 
 class _CalendarTransactionTileState extends State<CalendarTransactionTile>
@@ -70,14 +71,16 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
   Widget build(BuildContext context) {
     final c = context.appColors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final catColor = AddExpenseHelper.getCategoryColor(widget.tx.category, isIncome: widget.tx.isIncome);
-    final icon = AddExpenseHelper.getCategoryIcon(widget.tx.category, isIncome: widget.tx.isIncome);
+    final catColor = CategoryConfig.getColor(widget.tx.category,
+        isIncome: widget.tx.isIncome);
+    final icon = CategoryConfig.getIcon(widget.tx.category,
+        isIncome: widget.tx.isIncome);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
       child: Stack(
         children: [
@@ -87,8 +90,9 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 6),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF13172E) : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(16),
+                color:
+                    isDark ? const Color(0xFF13172E) : const Color(0xFFE2E8F0),
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -103,18 +107,22 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                     child: Container(
                       width: 58,
                       height: 52,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+                          Icon(Icons.edit_outlined,
+                              color: Colors.white, size: 20),
                           SizedBox(height: 2),
                           Text(
                             'Edit',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -131,18 +139,22 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                     child: Container(
                       width: 58,
                       height: 52,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.expenseRed,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
+                          Icon(Icons.delete_outline_rounded,
+                              color: Colors.white, size: 20),
                           SizedBox(height: 2),
                           Text(
                             'Delete',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -177,8 +189,10 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1B203E) : const Color(0xFFF1F3F6),
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDark
+                      ? const Color(0xFF1B203E)
+                      : const Color(0xFFF1F3F6),
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
                   boxShadow: [
                     BoxShadow(
                       color: c.shadow,
@@ -194,7 +208,8 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                       height: 48,
                       decoration: BoxDecoration(
                         color: catColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(12)),
                       ),
                       child: Icon(
                         icon,
@@ -222,7 +237,8 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: catColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
@@ -237,7 +253,9 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Icon(Icons.swipe_left_rounded, size: 14, color: c.textSecondary.withAlpha(120)),
+                              Icon(Icons.swipe_left_rounded,
+                                  size: 14,
+                                  color: c.textSecondary.withAlpha(120)),
                             ],
                           ),
                         ],
@@ -249,7 +267,9 @@ class _CalendarTransactionTileState extends State<CalendarTransactionTile>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: widget.tx.isIncome ? AppColors.incomeGreen : c.textPrimary,
+                        color: widget.tx.isIncome
+                            ? AppColors.incomeGreen
+                            : c.textPrimary,
                       ),
                     ),
                   ],

@@ -114,7 +114,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 40),
                       TextFormField(
                         controller: _nameController,
-                        style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: c.textPrimary),
                         decoration: _inputDecoration(
                           context: context,
                           hint: "Full Name",
@@ -131,7 +132,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: c.textPrimary),
                         decoration: _inputDecoration(
                           context: context,
                           hint: "Email Address",
@@ -156,8 +158,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           return TextFormField(
                             controller: _passwordController,
                             obscureText: !isVisible,
-                            style:
-                                AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: c.textPrimary),
                             decoration: _inputDecoration(
                               context: context,
                               hint: "Password",
@@ -165,7 +167,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             ).copyWith(
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  isVisible ? Icons.visibility : Icons.visibility_off,
+                                  isVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                   color: c.textSecondary,
                                 ),
                                 onPressed: () {
@@ -223,7 +227,9 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   InputDecoration _inputDecoration(
-      {required BuildContext context, required String hint, required IconData icon}) {
+      {required BuildContext context,
+      required String hint,
+      required IconData icon}) {
     final c = context.appColors;
     return InputDecoration(
       hintText: hint,

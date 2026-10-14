@@ -39,7 +39,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
   Future<void> _fetchCategories() async {
     if (_userEmail == null) return;
     setState(() => _isLoading = true);
-    final list = await DatabaseHelper.instance.getCategories(_userEmail!, isIncome: _isIncome);
+    final list = await DatabaseHelper.instance
+        .getCategories(_userEmail!, isIncome: _isIncome);
     if (mounted) {
       setState(() {
         _categories = list;
@@ -138,16 +139,21 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: !_isIncome ? c.primary : Colors.transparent,
+                                  color: !_isIncome
+                                      ? c.primary
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Center(
                                   child: Text(
                                     "Expense",
                                     style: TextStyle(
-                                      color: !_isIncome ? Colors.white : c.textSecondary,
+                                      color: !_isIncome
+                                          ? Colors.white
+                                          : c.textSecondary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
@@ -166,16 +172,21 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: _isIncome ? c.primary : Colors.transparent,
+                                  color: _isIncome
+                                      ? c.primary
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Center(
                                   child: Text(
                                     "Income",
                                     style: TextStyle(
-                                      color: _isIncome ? Colors.white : c.textSecondary,
+                                      color: _isIncome
+                                          ? Colors.white
+                                          : c.textSecondary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
@@ -218,7 +229,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                     Expanded(
                       child: _isLoading
                           ? Center(
-                              child: CircularProgressIndicator(color: c.primary),
+                              child:
+                                  CircularProgressIndicator(color: c.primary),
                             )
                           : _categories.isEmpty
                               ? Center(
@@ -230,7 +242,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                               : ListView.separated(
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: _categories.length,
-                                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 10),
                                   itemBuilder: (context, idx) {
                                     final cat = _categories[idx];
                                     return InkWell(
@@ -241,7 +254,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                                             horizontal: 16, vertical: 12),
                                         decoration: BoxDecoration(
                                           color: c.card,
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                           border: Border.all(
                                             color: c.border.withOpacity(0.4),
                                             width: 1,
@@ -254,13 +268,16 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                                               width: 44,
                                               height: 44,
                                               decoration: BoxDecoration(
-                                                color: cat.color.withOpacity(0.18),
-                                                borderRadius: BorderRadius.circular(14),
+                                                color:
+                                                    cat.color.withOpacity(0.18),
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
                                               ),
                                               child: Center(
                                                 child: Text(
                                                   cat.emoji,
-                                                  style: const TextStyle(fontSize: 22),
+                                                  style: const TextStyle(
+                                                      fontSize: 22),
                                                 ),
                                               ),
                                             ),
@@ -268,7 +285,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                                             Expanded(
                                               child: Text(
                                                 cat.name,
-                                                style: AppTextStyles.bodyMedium.copyWith(
+                                                style: AppTextStyles.bodyMedium
+                                                    .copyWith(
                                                   color: c.textPrimary,
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 15,
@@ -277,7 +295,8 @@ class _EditCategoriesScreenState extends State<EditCategoriesScreen> {
                                             ),
                                             Icon(
                                               Icons.chevron_right_rounded,
-                                              color: c.textSecondary.withOpacity(0.6),
+                                              color: c.textSecondary
+                                                  .withOpacity(0.6),
                                               size: 22,
                                             ),
                                           ],

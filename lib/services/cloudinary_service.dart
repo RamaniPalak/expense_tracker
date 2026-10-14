@@ -30,7 +30,8 @@ class CloudinaryService {
       return secureUrl;
     } else {
       final error = _parseCloudinaryError(responseBody);
-      throw Exception('Cloudinary upload failed (${ streamedResponse.statusCode}): $error');
+      throw Exception(
+          'Cloudinary upload failed (${streamedResponse.statusCode}): $error');
     }
   }
 

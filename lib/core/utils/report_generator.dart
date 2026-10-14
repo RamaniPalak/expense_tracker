@@ -188,7 +188,8 @@ class ReportGenerator {
   }) async {
     try {
       final pdf = pw.Document();
-      final dateStr = DateFormat('MMM dd, yyyy', 'en_US').format(DateTime.now());
+      final dateStr =
+          DateFormat('MMM dd, yyyy', 'en_US').format(DateTime.now());
 
       // Calculations
       double totalIncome = 0.0;
@@ -213,7 +214,8 @@ class ReportGenerator {
               padding: const pw.EdgeInsets.only(bottom: 2.0 * PdfPageFormat.mm),
               decoration: const pw.BoxDecoration(
                   border: pw.Border(
-                      bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
+                      bottom:
+                          pw.BorderSide(width: 0.5, color: PdfColors.grey))),
               child: pw.Text('Expense Tracker - Transactions',
                   style: pw.TextStyle(color: PdfColors.grey, fontSize: 10)),
             );
@@ -275,20 +277,23 @@ class ReportGenerator {
                     children: [
                       pw.Text(
                         'Filters: ${activeFilters.isEmpty ? "All" : activeFilters.join(", ")}',
-                        style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                        style: const pw.TextStyle(
+                            fontSize: 10, color: PdfColors.grey800),
                       ),
                       if (searchQuery != null && searchQuery.isNotEmpty) ...[
                         pw.SizedBox(height: 2),
                         pw.Text(
                           'Search Query: "$searchQuery"',
-                          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                          style: const pw.TextStyle(
+                              fontSize: 10, color: PdfColors.grey800),
                         ),
                       ],
                     ],
                   ),
                   pw.Text(
                     'Total Record Count: ${transactions.length}',
-                    style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.grey800),
                   ),
                 ],
               ),
@@ -312,8 +317,7 @@ class ReportGenerator {
                               style: const pw.TextStyle(
                                   color: PdfColors.green900, fontSize: 10)),
                           pw.SizedBox(height: 4),
-                          pw.Text(
-                              '+ ₹${totalIncome.toStringAsFixed(2)}',
+                          pw.Text('+ ₹${totalIncome.toStringAsFixed(2)}',
                               style: pw.TextStyle(
                                   color: PdfColors.green900,
                                   fontWeight: pw.FontWeight.bold,
@@ -338,8 +342,7 @@ class ReportGenerator {
                               style: const pw.TextStyle(
                                   color: PdfColors.red900, fontSize: 10)),
                           pw.SizedBox(height: 4),
-                          pw.Text(
-                              '- ₹${totalExpense.toStringAsFixed(2)}',
+                          pw.Text('- ₹${totalExpense.toStringAsFixed(2)}',
                               style: pw.TextStyle(
                                   color: PdfColors.red900,
                                   fontWeight: pw.FontWeight.bold,
@@ -353,9 +356,13 @@ class ReportGenerator {
                     child: pw.Container(
                       padding: const pw.EdgeInsets.all(10),
                       decoration: pw.BoxDecoration(
-                        color: netBalance >= 0 ? PdfColors.blue50 : PdfColors.orange50,
+                        color: netBalance >= 0
+                            ? PdfColors.blue50
+                            : PdfColors.orange50,
                         border: pw.Border.all(
-                            color: netBalance >= 0 ? PdfColors.blue300 : PdfColors.orange300),
+                            color: netBalance >= 0
+                                ? PdfColors.blue300
+                                : PdfColors.orange300),
                         borderRadius: pw.BorderRadius.circular(6),
                       ),
                       child: pw.Column(
@@ -363,13 +370,17 @@ class ReportGenerator {
                         children: [
                           pw.Text('Net Balance',
                               style: pw.TextStyle(
-                                  color: netBalance >= 0 ? PdfColors.blue900 : PdfColors.orange900,
+                                  color: netBalance >= 0
+                                      ? PdfColors.blue900
+                                      : PdfColors.orange900,
                                   fontSize: 10)),
                           pw.SizedBox(height: 4),
                           pw.Text(
                               '${netBalance >= 0 ? "+" : "-"} ₹${netBalance.abs().toStringAsFixed(2)}',
                               style: pw.TextStyle(
-                                  color: netBalance >= 0 ? PdfColors.blue900 : PdfColors.orange900,
+                                  color: netBalance >= 0
+                                      ? PdfColors.blue900
+                                      : PdfColors.orange900,
                                   fontWeight: pw.FontWeight.bold,
                                   fontSize: 14)),
                         ],
@@ -383,14 +394,16 @@ class ReportGenerator {
               // Table Title
               pw.Text(
                 'Transaction Details',
-                style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                style:
+                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 10),
 
               // Transaction Table
               pw.Table(
                 border: pw.TableBorder.symmetric(
-                  inside: const pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+                  inside:
+                      const pw.BorderSide(color: PdfColors.grey300, width: 0.5),
                 ),
                 columnWidths: const {
                   0: pw.FlexColumnWidth(2.2), // Date
@@ -427,12 +440,16 @@ class ReportGenerator {
                         _buildDataCell(t.category),
                         _buildDataCell(
                           t.isIncome ? 'Income' : 'Expense',
-                          textColor: t.isIncome ? PdfColors.green800 : PdfColors.red800,
+                          textColor: t.isIncome
+                              ? PdfColors.green800
+                              : PdfColors.red800,
                         ),
                         _buildDataCell(
                           '${t.isIncome ? "+" : "-"} ₹${t.amount.toStringAsFixed(2)}',
                           align: pw.TextAlign.right,
-                          textColor: t.isIncome ? PdfColors.green800 : PdfColors.red800,
+                          textColor: t.isIncome
+                              ? PdfColors.green800
+                              : PdfColors.red800,
                           isBold: true,
                         ),
                       ],
@@ -448,7 +465,8 @@ class ReportGenerator {
               margin: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
               child: pw.Text(
                 'Page ${context.pageNumber} of ${context.pagesCount}',
-                style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 10),
+                style:
+                    const pw.TextStyle(color: PdfColors.grey500, fontSize: 10),
               ),
             );
           },
@@ -464,7 +482,8 @@ class ReportGenerator {
     }
   }
 
-  static pw.Widget _buildHeaderCell(String text, {pw.TextAlign align = pw.TextAlign.left}) {
+  static pw.Widget _buildHeaderCell(String text,
+      {pw.TextAlign align = pw.TextAlign.left}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: pw.Text(

@@ -41,7 +41,8 @@ class GoalModel {
   double get remainingAmount =>
       targetAmount > currentAmount ? targetAmount - currentAmount : 0.0;
 
-  bool get isCompleted => currentAmount >= targetAmount || status == 'Completed';
+  bool get isCompleted =>
+      currentAmount >= targetAmount || status == 'Completed';
 
   bool get isPaused => status == 'Paused';
 
@@ -61,7 +62,8 @@ class GoalModel {
   int get daysRemaining {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final deadline = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final deadline =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
     return deadline.difference(today).inDays;
   }
 
@@ -70,7 +72,8 @@ class GoalModel {
     final days = daysRemaining;
     if (days <= 0) return remainingAmount;
     final months = (days / 30.44).ceil();
-    return (remainingAmount / (months > 0 ? months : 1)).clamp(0.0, remainingAmount);
+    return (remainingAmount / (months > 0 ? months : 1))
+        .clamp(0.0, remainingAmount);
   }
 
   Map<String, dynamic> toMap() {

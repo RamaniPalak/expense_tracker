@@ -44,12 +44,13 @@ class StatisticsSpendingList extends StatelessWidget {
                         context: context,
                         icon: item['icon'],
                         title: item['title'],
-                        date: DateFormat('MMM dd, yyyy').format(item['latestDate']),
+                        date: DateFormat('MMM dd, yyyy')
+                            .format(item['latestDate']),
                         amount:
                             "${isIncomeMode ? '+' : '-'} ₹ ${item['amount'].toStringAsFixed(2)}",
                         isHighlighted: index == selectedSpendingIndex,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 );

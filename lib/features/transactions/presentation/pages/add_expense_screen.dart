@@ -30,10 +30,8 @@ class AddExpenseScreen extends StatefulWidget {
 
 class _AddExpenseScreenState extends State<AddExpenseScreen>
     with SingleTickerProviderStateMixin {
-  final TextEditingController _amountController =
-      TextEditingController();
-  final TextEditingController _titleController =
-      TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
 
   // ValueNotifiers for local UI state
   final ValueNotifier<DateTime> _selectedDate =
@@ -98,8 +96,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         );
 
         // ── Store merchant name & confidence ──────────────────────────────────
-        _scannedMerchantName =
-            result.title.isNotEmpty ? result.title : null;
+        _scannedMerchantName = result.title.isNotEmpty ? result.title : null;
         _lastScanConfidence = result.confidence;
 
         // ── Auto-fill title from merchant name if not already typed ───────────
@@ -178,7 +175,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
         .replaceAll('₹', '')
         .replaceAll(' ', '')
         .replaceAll(',', '.');
-    
+
     final amount = double.tryParse(amountStr) ?? 0.0;
 
     if (amount <= 0) {
@@ -350,8 +347,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
               );
 
               if (isIncome && incomeAmount > 0 && _userEmail != null) {
-                DatabaseHelper.instance.getGoals(_userEmail).then((goals) async {
-                  final activeGoals = goals.where((g) => !g.isCompleted).toList();
+                DatabaseHelper.instance
+                    .getGoals(_userEmail)
+                    .then((goals) async {
+                  final activeGoals =
+                      goals.where((g) => !g.isCompleted).toList();
                   if (activeGoals.isNotEmpty && context.mounted) {
                     await AllocateIncomeSheet.show(
                       context,
@@ -417,18 +417,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                               valueListenable: _isIncomeVal,
                               builder: (context, isIncome, _) {
                                 return AddExpenseHelper.buildTabSwitcher(
-                                  context: context,
-                                  isIncome: isIncome,
-                                  onToggle: (val) {
-                                    if (_isIncomeVal.value == val) return;
-                                    _isIncomeVal.value = val;
-                                    _selectedCategoryVal.value = val
-                                        ? AddExpenseHelper.incomeCategories[0]
-                                            ['name']
-                                        : AddExpenseHelper.expenseCategories[0]
-                                            ['name'];
-                                  }
-                                );
+                                    context: context,
+                                    isIncome: isIncome,
+                                    onToggle: (val) {
+                                      if (_isIncomeVal.value == val) return;
+                                      _isIncomeVal.value = val;
+                                      _selectedCategoryVal.value = val
+                                          ? AddExpenseHelper.incomeCategories[0]
+                                              ['name']
+                                          : AddExpenseHelper
+                                              .expenseCategories[0]['name'];
+                                    });
                               },
                             ),
                             const SizedBox(height: 20),
@@ -451,14 +450,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                             ValueListenableBuilder<String>(
                               valueListenable: _selectedCategoryVal,
                               builder: (context, category, _) {
-                                final emoji = AddExpenseHelper.getCategoryEmoji(category);
-                                final pastelColor = AddExpenseHelper.getCategoryPastelColor(category, isIncome: _isIncomeVal.value);
+                                final emoji =
+                                    AddExpenseHelper.getCategoryEmoji(category);
+                                final pastelColor =
+                                    AddExpenseHelper.getCategoryPastelColor(
+                                        category,
+                                        isIncome: _isIncomeVal.value);
                                 return GestureDetector(
                                   onTap: () async {
                                     final result = await Navigator.push<String>(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => SelectCategoryScreen(
+                                        builder: (context) =>
+                                            SelectCategoryScreen(
                                           isIncome: _isIncomeVal.value,
                                           selectedCategory: category,
                                         ),
@@ -469,11 +473,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                                     }
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
                                     decoration: BoxDecoration(
                                       color: c.card,
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: c.border, width: 1.5),
+                                      border: Border.all(
+                                          color: c.border, width: 1.5),
                                       boxShadow: [
                                         BoxShadow(
                                           color: c.shadow,
@@ -489,19 +495,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                                           height: 36,
                                           decoration: BoxDecoration(
                                             color: pastelColor,
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
                                           ),
                                           child: Center(
                                             child: Text(
                                               emoji,
-                                              style: const TextStyle(fontSize: 18),
+                                              style:
+                                                  const TextStyle(fontSize: 18),
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Text(
                                           category,
-                                          style: AppTextStyles.bodyMedium.copyWith(
+                                          style:
+                                              AppTextStyles.bodyMedium.copyWith(
                                             color: c.textPrimary,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -542,7 +551,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                               child: TextField(
                                 controller: _titleController,
                                 maxLength: 60,
-                                textCapitalization: TextCapitalization.sentences,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   color: c.textPrimary,
                                   fontWeight: FontWeight.w500,
@@ -556,12 +566,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
                                   contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   counterText: '',
-                                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                  suffixIcon:
+                                      ValueListenableBuilder<TextEditingValue>(
                                     valueListenable: _titleController,
                                     builder: (_, val, __) => val.text.isNotEmpty
                                         ? IconButton(
                                             icon: Icon(Icons.clear_rounded,
-                                                color: c.textSecondary, size: 18),
+                                                color: c.textSecondary,
+                                                size: 18),
                                             onPressed: () =>
                                                 _titleController.clear(),
                                           )

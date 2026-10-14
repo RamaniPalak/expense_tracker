@@ -114,7 +114,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         return Image.network(
           _selectedImagePath!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Icon(Icons.person, size: 50, color: c.textSecondary),
+          errorBuilder: (_, __, ___) =>
+              Icon(Icons.person, size: 50, color: c.textSecondary),
         );
       }
       final file = File(_selectedImagePath!);
@@ -142,7 +143,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               style: AppTextStyles.heading2.copyWith(color: c.textPrimary),
             ),
             const SizedBox(height: 24),
-            
+
             // Profile Image Picker
             GestureDetector(
               onTap: _pickImage,
@@ -185,9 +186,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Name Input
             TextField(
               controller: _nameController,
@@ -204,9 +205,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                 prefixIcon: Icon(Icons.person_outline, color: c.textSecondary),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Action Buttons
             Row(
               children: [
@@ -221,7 +222,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                     ),
                     child: Text(
                       "Cancel",
-                      style: TextStyle(color: c.textSecondary, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: c.textSecondary, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -238,19 +240,21 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                       ),
                       elevation: 0,
                     ),
-                    child: _isLoading 
+                    child: _isLoading
                         ? Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const SizedBox(
-                                width: 18, 
-                                height: 18, 
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2),
                               ),
                               const SizedBox(height: 4),
                               const Text(
                                 "Uploading...",
-                                style: TextStyle(color: Colors.white, fontSize: 11),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 11),
                               ),
                             ],
                           )

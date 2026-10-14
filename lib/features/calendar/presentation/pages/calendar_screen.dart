@@ -8,6 +8,7 @@ import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:expense_tracker/features/calendar/presentation/widgets/calendar_transaction_tile.dart';
 import 'package:expense_tracker/features/calendar/presentation/widgets/calendar_summary_card.dart';
 import 'package:expense_tracker/features/calendar/presentation/widgets/calendar_view_mode_sheet.dart';
@@ -24,11 +25,12 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   String? _userEmail;
   String _viewMode = "Month"; // "Month" or "Year"
-  
+
   // State for Month View
-  DateTime _currentMonthYear = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _currentMonthYear =
+      DateTime(DateTime.now().year, DateTime.now().month);
   DateTime? _selectedDate;
-  
+
   // State for Year View
   int _currentYear = DateTime.now().year;
   int _selectedMonthIndex = DateTime.now().month; // 1 to 12
@@ -63,8 +65,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete Transaction?', style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete "${tx.title}" (₹${tx.amount.toStringAsFixed(2)})?'),
+        title: Text('Delete Transaction?',
+            style:
+                TextStyle(color: c.textPrimary, fontWeight: FontWeight.bold)),
+        content: Text(
+            'Are you sure you want to delete "${tx.title}" (₹${tx.amount.toStringAsFixed(2)})?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -72,7 +77,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.expenseRed,
+                foregroundColor: Colors.white),
             child: const Text('Delete'),
           ),
         ],
@@ -80,7 +87,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
 
     if (confirm == true && tx.id != null) {
-      await sl<DatabaseHelper>().deleteExpense(tx.id!, _userEmail);
+      await sl<ITransactionRepository>()
+          .deleteTransaction(tx.id!, _userEmail, tx.remoteId);
     }
   }
 
@@ -112,10 +120,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return 'th';
     }
     switch (day % 10) {
-      case 1:  return 'st';
-      case 2:  return 'nd';
-      case 3:  return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
 
@@ -145,14 +157,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             if (_viewMode == "Month") {
               // Get all transactions for the current month
-              final monthTransactions = allExpenses.where((tx) =>
-                  tx.date.year == _currentMonthYear.year &&
-                  tx.date.month == _currentMonthYear.month).toList();
+              final monthTransactions = allExpenses
+                  .where((tx) =>
+                      tx.date.year == _currentMonthYear.year &&
+                      tx.date.month == _currentMonthYear.month)
+                  .toList();
 
               if (_selectedDate != null) {
                 // Transactions for the selected day in Month View
-                displayTransactions = monthTransactions.where((tx) =>
-                    tx.date.day == _selectedDate!.day).toList();
+                displayTransactions = monthTransactions
+                    .where((tx) => tx.date.day == _selectedDate!.day)
+                    .toList();
               } else {
                 // All transactions in Month View when no single date is tapped
                 displayTransactions = monthTransactions;
@@ -167,9 +182,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               }
             } else {
               // Transactions for the selected month in Year View
-              displayTransactions = allExpenses.where((tx) =>
-                  tx.date.year == _currentYear &&
-                  tx.date.month == _selectedMonthIndex).toList();
+              displayTransactions = allExpenses
+                  .where((tx) =>
+                      tx.date.year == _currentYear &&
+                      tx.date.month == _selectedMonthIndex)
+                  .toList();
 
               for (var tx in displayTransactions) {
                 if (tx.isIncome) {
@@ -226,7 +243,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               } else {
                 DateTime? lastDate;
                 for (var tx in displayTransactions) {
-                  final txDate = DateTime(tx.date.year, tx.date.month, tx.date.day);
+                  final txDate =
+                      DateTime(tx.date.year, tx.date.month, tx.date.day);
                   if (lastDate == null || txDate != lastDate) {
                     listItems.add(
                       Padding(
@@ -258,7 +276,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 // Header (Title & INR Badge)
                 Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 2),
+                  padding: const EdgeInsets.only(
+                      left: 20, right: 20, top: 10, bottom: 2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -273,7 +292,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       // INR Badge Chip (static as currency is Rupee)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(100),
@@ -293,12 +313,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // Selector Navigation Row (< Name >)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 18),
+                        icon: const Icon(Icons.arrow_back_ios_new,
+                            color: AppColors.primary, size: 18),
                         onPressed: () => _navigateOffset(-1),
                       ),
                       const SizedBox(width: 12),
@@ -317,7 +339,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           children: [
                             Text(
                               _viewMode == "Month"
-                                  ? DateFormat('MMMM yyyy').format(_currentMonthYear)
+                                  ? DateFormat('MMMM yyyy')
+                                      .format(_currentMonthYear)
                                   : "$_currentYear",
                               style: TextStyle(
                                 fontSize: 15,
@@ -326,13 +349,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 20),
+                            const Icon(Icons.keyboard_arrow_down,
+                                color: AppColors.primary, size: 20),
                           ],
                         ),
                       ),
                       const SizedBox(width: 12),
                       IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 18),
+                        icon: const Icon(Icons.arrow_forward_ios,
+                            color: AppColors.primary, size: 18),
                         onPressed: () => _navigateOffset(1),
                       ),
                     ],
@@ -384,7 +409,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 // Color-coded dot legend — shown only in Month view
                 if (_viewMode == "Month")
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -393,14 +419,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         Text('Income',
                             style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? Colors.white60 : Colors.black54)),
+                                color:
+                                    isDark ? Colors.white60 : Colors.black54)),
                         const SizedBox(width: 12),
                         _legendDot(AppColors.expenseRed),
                         const SizedBox(width: 4),
                         Text('Expense',
                             style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? Colors.white60 : Colors.black54)),
+                                color:
+                                    isDark ? Colors.white60 : Colors.black54)),
                       ],
                     ),
                   ),
@@ -409,9 +437,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Expanded(
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(left: 18, right: 18, top: 12),
+                    padding:
+                        const EdgeInsets.only(left: 18, right: 18, top: 12),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F132B) : const Color(0xFFF9FAFC),
+                      color: isDark
+                          ? const Color(0xFF0F132B)
+                          : const Color(0xFFF9FAFC),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(24),
                         topRight: Radius.circular(24),
@@ -432,7 +463,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           savings: totalSavings,
                         ),
                         const SizedBox(height: 10),
-                        
+
                         // Transaction List with bottom padding so items aren't hidden by bottom bar
                         Expanded(
                           child: ListView(
@@ -459,4 +490,3 @@ class _CalendarScreenState extends State<CalendarScreen> {
         decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       );
 }
-

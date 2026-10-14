@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:expense_tracker/core/constants/category_config.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class AddExpenseHelper {
@@ -139,215 +140,18 @@ class AddExpenseHelper {
     },
   ];
 
-  static String getCategoryEmoji(String category) {
-    switch (category) {
-      case AppStrings.catAutomobile:
-        return "🚗";
-      case AppStrings.catBills:
-        return "🔌";
-      case AppStrings.catCharges:
-        return "🏛️";
-      case AppStrings.catEducation:
-        return "📚";
-      case AppStrings.catEntertainment:
-        return "🎭";
-      case AppStrings.catFoodDining:
-        return "🍔";
-      case AppStrings.catGifts:
-        return "🎁";
-      case AppStrings.catHealth:
-        return "💪";
-      case AppStrings.catBonus:
-        return "🌈";
-      case AppStrings.catCommission:
-        return "🎉";
-      case AppStrings.catInterestNew:
-        return "🌱";
-      case AppStrings.catInvestments:
-        return "🚀";
-      case AppStrings.catReceivedOthers:
-        return "📦";
-      case AppStrings.catRentalIncome:
-        return "🛏️";
-      case AppStrings.catSalaryNew:
-        return "💼";
-      case AppStrings.catSellingAssets:
-        return "💰";
-      case AppStrings.catOther:
-        return "🧩";
-      case "Netflix":
-        return "🎬";
-      case "Food":
-        return "🍔";
-      case "Transport":
-        return "🚗";
-      case "Shopping":
-        return "🛍️";
-      case "Upwork":
-        return "💻";
-      case "Freelance":
-        return "💻";
-      default:
-        return "🏷️";
-    }
-  }
+  static String getCategoryEmoji(String category) =>
+      CategoryConfig.getEmoji(category);
 
-  static Color getCategoryColor(String category, {bool isIncome = false}) {
-    switch (category) {
-      case AppStrings.catAutomobile:
-        return const Color(0xFFEF4444);
-      case AppStrings.catBills:
-        return const Color(0xFF06B6D4);
-      case AppStrings.catCharges:
-        return const Color(0xFF84CC16);
-      case AppStrings.catEducation:
-        return const Color(0xFFEC4899);
-      case AppStrings.catEntertainment:
-        return const Color(0xFF10B981);
-      case AppStrings.catFoodDining:
-        return const Color(0xFFF59E0B);
-      case AppStrings.catGifts:
-        return const Color(0xFF0EA5E9);
-      case AppStrings.catHealth:
-        return const Color(0xFF8B5CF6);
-      case AppStrings.catBonus:
-        return const Color(0xFFF43F5E);
-      case AppStrings.catCommission:
-        return const Color(0xFF06B6D4);
-      case AppStrings.catInterestNew:
-        return const Color(0xFF22C55E);
-      case AppStrings.catInvestments:
-        return const Color(0xFFEAB308);
-      case AppStrings.catReceivedOthers:
-        return const Color(0xFF6366F1);
-      case AppStrings.catRentalIncome:
-        return const Color(0xFFF97316);
-      case AppStrings.catSalaryNew:
-        return const Color(0xFF22C55E);
-      case AppStrings.catSellingAssets:
-        return const Color(0xFF0EA5E9);
-      case AppStrings.catOther:
-        return const Color(0xFF64748B);
-      case "Netflix":
-        return const Color(0xFFFF4B4B);
-      case "Food":
-        return const Color(0xFFFF9F0A);
-      case "Transport":
-        return const Color(0xFF5E5CE6);
-      case "Shopping":
-        return const Color(0xFFFF69B4);
-      case "Upwork":
-        return const Color(0xFF14A800);
-      case "Freelance":
-        return Colors.teal;
-      default:
-        return isIncome ? AppColors.incomeGreen : AppColors.expenseRed;
-    }
-  }
+  static Color getCategoryColor(String category, {bool isIncome = false}) =>
+      CategoryConfig.getColor(category, isIncome: isIncome);
 
-  static Color getCategoryPastelColor(String category, {bool isIncome = false}) {
-    switch (category) {
-      case AppStrings.catAutomobile:
-        return const Color(0xFFFFEAEA);
-      case AppStrings.catBills:
-        return const Color(0xFFE2FAFC);
-      case AppStrings.catCharges:
-        return const Color(0xFFF2FCD0);
-      case AppStrings.catEducation:
-        return const Color(0xFFFFE8EC);
-      case AppStrings.catEntertainment:
-        return const Color(0xFFE2FBE9);
-      case AppStrings.catFoodDining:
-        return const Color(0xFFFFF1D6);
-      case AppStrings.catGifts:
-        return const Color(0xFFE0F2FE);
-      case AppStrings.catHealth:
-        return const Color(0xFFF3E8FF);
-      case AppStrings.catBonus:
-        return const Color(0xFFFFEAEF);
-      case AppStrings.catCommission:
-        return const Color(0xFFE0F9FF);
-      case AppStrings.catInterestNew:
-        return const Color(0xFFE2FBE9);
-      case AppStrings.catInvestments:
-        return const Color(0xFFFFF7E0);
-      case AppStrings.catReceivedOthers:
-        return const Color(0xFFE0E7FF);
-      case AppStrings.catRentalIncome:
-        return const Color(0xFFFFEDD5);
-      case AppStrings.catSalaryNew:
-        return const Color(0xFFDCFCE7);
-      case AppStrings.catSellingAssets:
-        return const Color(0xFFE0F2FE);
-      case AppStrings.catOther:
-        return const Color(0xFFF1F5F9);
-      case "Netflix":
-        return const Color(0xFFFFEAEA);
-      case "Food":
-        return const Color(0xFFFFF1D6);
-      case "Transport":
-        return const Color(0xFFE8E8FF);
-      case "Shopping":
-        return const Color(0xFFFFEAEF);
-      case "Upwork":
-        return const Color(0xFFE2FBE9);
-      case "Freelance":
-        return const Color(0xFFE0F2FE);
-      default:
-        return isIncome ? const Color(0xFFDCFCE7) : const Color(0xFFFFEAEA);
-    }
-  }
+  static Color getCategoryPastelColor(String category,
+          {bool isIncome = false}) =>
+      CategoryConfig.getPastelColor(category, isIncome: isIncome);
 
-  static IconData getCategoryIcon(String category, {bool isIncome = false}) {
-    switch (category) {
-      case AppStrings.catAutomobile:
-        return Icons.directions_car_filled_rounded;
-      case AppStrings.catBills:
-        return Icons.electrical_services_rounded;
-      case AppStrings.catCharges:
-        return Icons.account_balance_rounded;
-      case AppStrings.catEducation:
-        return Icons.school_rounded;
-      case AppStrings.catEntertainment:
-        return Icons.theater_comedy_rounded;
-      case AppStrings.catFoodDining:
-        return Icons.fastfood_rounded;
-      case AppStrings.catGifts:
-        return Icons.card_giftcard_rounded;
-      case AppStrings.catHealth:
-        return Icons.fitness_center_rounded;
-      case AppStrings.catBonus:
-        return Icons.celebration_rounded;
-      case AppStrings.catCommission:
-        return Icons.percent_rounded;
-      case AppStrings.catInterestNew:
-        return Icons.trending_up_rounded;
-      case AppStrings.catInvestments:
-        return Icons.rocket_launch_rounded;
-      case AppStrings.catReceivedOthers:
-        return Icons.inventory_2_rounded;
-      case AppStrings.catRentalIncome:
-        return Icons.home_rounded;
-      case AppStrings.catSalaryNew:
-        return Icons.work_rounded;
-      case AppStrings.catSellingAssets:
-        return Icons.monetization_on_rounded;
-      case "Netflix":
-        return Icons.movie_outlined;
-      case "Food":
-        return Icons.fastfood_outlined;
-      case "Transport":
-        return Icons.directions_car_outlined;
-      case "Shopping":
-        return Icons.shopping_bag_outlined;
-      case "Upwork":
-        return Icons.work_outline;
-      case "Freelance":
-        return Icons.computer_outlined;
-      default:
-        return isIncome ? Icons.add_circle_outline : Icons.shopping_cart_outlined;
-    }
-  }
+  static IconData getCategoryIcon(String category, {bool isIncome = false}) =>
+      CategoryConfig.getIcon(category, isIncome: isIncome);
 
   static Widget buildHeader({
     required BuildContext context,
@@ -479,9 +283,7 @@ class AddExpenseHelper {
                     Icon(
                       Icons.arrow_upward_rounded,
                       size: 14,
-                      color: !isIncome
-                          ? AppColors.expenseRed
-                          : c.textSecondary,
+                      color: !isIncome ? AppColors.expenseRed : c.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -523,9 +325,7 @@ class AddExpenseHelper {
                     Icon(
                       Icons.arrow_downward_rounded,
                       size: 14,
-                      color: isIncome
-                          ? AppColors.incomeGreen
-                          : c.textSecondary,
+                      color: isIncome ? AppColors.incomeGreen : c.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -605,8 +405,8 @@ class AddExpenseHelper {
                           padding: EdgeInsets.all(12),
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
                           ),
                         )
                       : Icon(
@@ -752,7 +552,6 @@ class AddExpenseHelper {
     );
   }
 
-
   static Widget buildDropdownField({
     required BuildContext context,
     required String value,
@@ -832,8 +631,8 @@ class AddExpenseHelper {
                   const SizedBox(width: 12),
                   Text(
                     category['name'],
-                    style: AppTextStyles.bodyLarge
-                        .copyWith(color: c.textPrimary),
+                    style:
+                        AppTextStyles.bodyLarge.copyWith(color: c.textPrimary),
                   ),
                 ],
               ),
@@ -855,7 +654,8 @@ class AddExpenseHelper {
       decoration: BoxDecoration(
         color: c.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.35), width: 1.5),
+        border:
+            Border.all(color: AppColors.primary.withOpacity(0.35), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.08),
@@ -868,12 +668,14 @@ class AddExpenseHelper {
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         style: AppTextStyles.heading2.copyWith(
-            color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.bold),
+            color: AppColors.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "₹ 0.00",
-          hintStyle: AppTextStyles.heading2
-              .copyWith(color: AppColors.primary.withOpacity(0.3), fontSize: 20),
+          hintStyle: AppTextStyles.heading2.copyWith(
+              color: AppColors.primary.withOpacity(0.3), fontSize: 20),
           suffixIcon: GestureDetector(
             onTap: onClear,
             child: Container(
@@ -976,9 +778,8 @@ class AddExpenseHelper {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: hasFile
-                      ? AppColors.primary.withOpacity(0.15)
-                      : c.tabBg,
+                  color:
+                      hasFile ? AppColors.primary.withOpacity(0.15) : c.tabBg,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

@@ -72,11 +72,17 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
     super.initState();
     final g = widget.goal;
     _titleController = TextEditingController(text: g?.title ?? '');
-    _targetAmountController = TextEditingController(text: g != null ? g.targetAmount.toStringAsFixed(0) : '');
-    _currentAmountController = TextEditingController(text: g != null ? g.currentAmount.toStringAsFixed(0) : '0');
+    _targetAmountController = TextEditingController(
+        text: g != null ? g.targetAmount.toStringAsFixed(0) : '');
+    _currentAmountController = TextEditingController(
+        text: g != null ? g.currentAmount.toStringAsFixed(0) : '0');
     _productUrlController = TextEditingController(text: g?.productUrl ?? '');
-    _autoDepositController = TextEditingController(text: g != null && g.autoDepositAmount > 0 ? g.autoDepositAmount.toStringAsFixed(0) : '');
-    _targetDate = g?.targetDate ?? DateTime.now().add(const Duration(days: 180));
+    _autoDepositController = TextEditingController(
+        text: g != null && g.autoDepositAmount > 0
+            ? g.autoDepositAmount.toStringAsFixed(0)
+            : '');
+    _targetDate =
+        g?.targetDate ?? DateTime.now().add(const Duration(days: 180));
     _category = g?.category ?? 'General';
     _priority = g?.priority ?? 'Medium';
     _selectedIcon = g != null
@@ -123,7 +129,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
       final userEmail = await sl<IAuthRepository>().getUserEmail() ?? '';
       final title = _titleController.text.trim();
       final targetAmount = double.parse(_targetAmountController.text.trim());
-      final currentAmount = double.tryParse(_currentAmountController.text.trim()) ?? 0.0;
+      final currentAmount =
+          double.tryParse(_currentAmountController.text.trim()) ?? 0.0;
 
       final goalModel = GoalModel(
         id: widget.goal?.id,
@@ -137,8 +144,11 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
         userEmail: userEmail,
         priority: _priority,
         status: widget.goal?.status ?? 'Active',
-        productUrl: _productUrlController.text.trim().isEmpty ? null : _productUrlController.text.trim(),
-        autoDepositAmount: double.tryParse(_autoDepositController.text.trim()) ?? 0.0,
+        productUrl: _productUrlController.text.trim().isEmpty
+            ? null
+            : _productUrlController.text.trim(),
+        autoDepositAmount:
+            double.tryParse(_autoDepositController.text.trim()) ?? 0.0,
       );
 
       if (widget.goal == null) {
@@ -179,7 +189,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
         ),
         title: Text(
           isEditing ? 'Edit Goal' : 'Create Savings Goal',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+          style: AppTextStyles.heading2
+              .copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
       ),
@@ -196,7 +207,10 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: c.border),
                 boxShadow: [
-                  BoxShadow(color: c.shadow, blurRadius: 10, offset: const Offset(0, 3)),
+                  BoxShadow(
+                      color: c.shadow,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3)),
                 ],
               ),
               child: Row(
@@ -216,7 +230,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _titleController.text.isEmpty ? 'Goal Name' : _titleController.text,
+                          _titleController.text.isEmpty
+                              ? 'Goal Name'
+                              : _titleController.text,
                           style: AppTextStyles.bodyLarge.copyWith(
                             fontWeight: FontWeight.bold,
                             color: c.textPrimary,
@@ -225,7 +241,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'Target Date: ${DateFormat('MMM dd, yyyy').format(_targetDate)}',
-                          style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: c.textSecondary),
                         ),
                       ],
                     ),
@@ -237,7 +254,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 24),
 
             // Title Input
-            Text('Goal Name', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Goal Name',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
@@ -246,9 +265,12 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
               decoration: InputDecoration(
                 hintText: 'e.g. Emergency Fund or MacBook Pro',
                 prefixIcon: const Icon(Icons.stars_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Please enter a goal name' : null,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? 'Please enter a goal name'
+                  : null,
             ),
 
             const SizedBox(height: 18),
@@ -260,20 +282,27 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Target Amount', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+                      Text('Target Amount',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: c.textPrimary)),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _targetAmountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         onChanged: (_) => setState(() {}),
                         style: TextStyle(color: c.textPrimary),
                         decoration: InputDecoration(
                           prefixText: '₹ ',
                           hintText: '50000',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16)),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter target';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter target';
+                          }
                           final val = double.tryParse(v.trim());
                           if (val == null || val <= 0) return 'Invalid';
                           return null;
@@ -287,17 +316,22 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Already Saved', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+                      Text('Already Saved',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: c.textPrimary)),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _currentAmountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         onChanged: (_) => setState(() {}),
                         style: TextStyle(color: c.textPrimary),
                         decoration: InputDecoration(
                           prefixText: '₹ ',
                           hintText: '0',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16)),
                         ),
                       ),
                     ],
@@ -309,13 +343,16 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 18),
 
             // Target Date Picker Tile
-            Text('Target Date', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Target Date',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             InkWell(
               onTap: _pickDate,
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   border: Border.all(color: c.border),
                   borderRadius: BorderRadius.circular(16),
@@ -326,10 +363,12 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                     const SizedBox(width: 12),
                     Text(
                       DateFormat('MMMM dd, yyyy').format(_targetDate),
-                      style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary, fontWeight: FontWeight.w600),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                          color: c.textPrimary, fontWeight: FontWeight.w600),
                     ),
                     const Spacer(),
-                    Icon(Icons.edit_calendar_rounded, size: 18, color: c.primary),
+                    Icon(Icons.edit_calendar_rounded,
+                        size: 18, color: c.primary),
                   ],
                 ),
               ),
@@ -338,14 +377,21 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             // Live Monthly Saving Pace Calculation Card
             Builder(
               builder: (context) {
-                final target = double.tryParse(_targetAmountController.text.trim()) ?? 0.0;
-                final current = double.tryParse(_currentAmountController.text.trim()) ?? 0.0;
-                final remaining = (target - current).clamp(0.0, double.infinity);
-                if (target <= 0 || remaining <= 0) return const SizedBox.shrink();
+                final target =
+                    double.tryParse(_targetAmountController.text.trim()) ?? 0.0;
+                final current =
+                    double.tryParse(_currentAmountController.text.trim()) ??
+                        0.0;
+                final remaining =
+                    (target - current).clamp(0.0, double.infinity);
+                if (target <= 0 || remaining <= 0) {
+                  return const SizedBox.shrink();
+                }
 
                 final now = DateTime.now();
                 final today = DateTime(now.year, now.month, now.day);
-                final deadline = DateTime(_targetDate.year, _targetDate.month, _targetDate.day);
+                final deadline = DateTime(
+                    _targetDate.year, _targetDate.month, _targetDate.day);
                 final days = deadline.difference(today).inDays;
                 final months = (days / 30.44).ceil().clamp(1, 120);
                 final monthlyPace = remaining / months;
@@ -361,7 +407,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.speed_rounded, color: _selectedColor, size: 24),
+                      Icon(Icons.speed_rounded,
+                          color: _selectedColor, size: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -369,11 +416,17 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                           children: [
                             Text(
                               'Target Saving Pace',
-                              style: TextStyle(color: _selectedColor, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(
+                                  color: _selectedColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12),
                             ),
                             Text(
                               'Save ₹${NumberFormat.currency(symbol: '', decimalDigits: 0).format(monthlyPace)} / month for $months ${months == 1 ? 'month' : 'months'} to hit your goal on time.',
-                              style: AppTextStyles.bodySmall.copyWith(color: c.textPrimary, fontSize: 12, height: 1.3),
+                              style: AppTextStyles.bodySmall.copyWith(
+                                  color: c.textPrimary,
+                                  fontSize: 12,
+                                  height: 1.3),
                             ),
                           ],
                         ),
@@ -387,7 +440,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 18),
 
             // Category Dropdown
-            Text('Category', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Category',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: _category,
@@ -395,7 +450,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
               style: TextStyle(color: c.textPrimary),
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.category_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
               items: _categories.map((cat) {
                 return DropdownMenuItem(value: cat, child: Text(cat));
@@ -408,7 +464,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 18),
 
             // Priority Selector
-            Text('Goal Priority', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Goal Priority',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -418,15 +476,22 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: _priority == 'High' ? AppColors.expenseRed : c.surface,
+                        color: _priority == 'High'
+                            ? AppColors.expenseRed
+                            : c.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: _priority == 'High' ? AppColors.expenseRed : c.border),
+                        border: Border.all(
+                            color: _priority == 'High'
+                                ? AppColors.expenseRed
+                                : c.border),
                       ),
                       child: Center(
                         child: Text(
                           '🚨 High',
                           style: TextStyle(
-                            color: _priority == 'High' ? Colors.white : c.textPrimary,
+                            color: _priority == 'High'
+                                ? Colors.white
+                                : c.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -441,15 +506,22 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: _priority == 'Medium' ? AppColors.primary : c.surface,
+                        color: _priority == 'Medium'
+                            ? AppColors.primary
+                            : c.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: _priority == 'Medium' ? AppColors.primary : c.border),
+                        border: Border.all(
+                            color: _priority == 'Medium'
+                                ? AppColors.primary
+                                : c.border),
                       ),
                       child: Center(
                         child: Text(
                           '⭐ Medium',
                           style: TextStyle(
-                            color: _priority == 'Medium' ? Colors.white : c.textPrimary,
+                            color: _priority == 'Medium'
+                                ? Colors.white
+                                : c.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -466,13 +538,16 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                       decoration: BoxDecoration(
                         color: _priority == 'Low' ? c.border : c.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: _priority == 'Low' ? c.border : c.border),
+                        border: Border.all(
+                            color: _priority == 'Low' ? c.border : c.border),
                       ),
                       child: Center(
                         child: Text(
                           '🎯 Low',
                           style: TextStyle(
-                            color: _priority == 'Low' ? c.textPrimary : c.textSecondary,
+                            color: _priority == 'Low'
+                                ? c.textPrimary
+                                : c.textSecondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -486,7 +561,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 18),
 
             // Product Link / URL (Optional)
-            Text('Product Link (optional)', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Product Link (optional)',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             TextFormField(
               controller: _productUrlController,
@@ -495,31 +572,38 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
               decoration: InputDecoration(
                 hintText: 'https://amazon.in/dp/...',
                 prefixIcon: const Icon(Icons.link_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
 
             const SizedBox(height: 18),
 
             // Auto-Deposit Plan
-            Text('Monthly Auto-Deposit Plan (optional)', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Monthly Auto-Deposit Plan (optional)',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 8),
             TextFormField(
               controller: _autoDepositController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(color: c.textPrimary),
               decoration: InputDecoration(
                 prefixText: '₹ ',
                 hintText: 'e.g. 5000 / month',
                 prefixIcon: const Icon(Icons.autorenew_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
 
             const SizedBox(height: 20),
 
             // Icon Selector
-            Text('Select Icon', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Select Icon',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 12,
@@ -534,7 +618,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                     decoration: BoxDecoration(
                       color: isSelected ? _selectedColor : c.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isSelected ? _selectedColor : c.border),
+                      border: Border.all(
+                          color: isSelected ? _selectedColor : c.border),
                     ),
                     child: Icon(
                       ic,
@@ -549,7 +634,9 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
             const SizedBox(height: 20),
 
             // Color Selector
-            Text('Select Color Accent', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary)),
+            Text('Select Color Accent',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold, color: c.textPrimary)),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -568,10 +655,17 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                         width: 3,
                       ),
                       boxShadow: isSelected
-                          ? [BoxShadow(color: cl.withAlpha(120), blurRadius: 8, offset: const Offset(0, 2))]
+                          ? [
+                              BoxShadow(
+                                  color: cl.withAlpha(120),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2))
+                            ]
                           : [],
                     ),
-                    child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+                    child: isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 18)
+                        : null,
                   ),
                 );
               }).toList(),
@@ -588,7 +682,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _selectedColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
                 child: _isLoading

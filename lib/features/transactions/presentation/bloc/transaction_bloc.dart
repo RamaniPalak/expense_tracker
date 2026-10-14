@@ -7,7 +7,8 @@ import 'transaction_state.dart';
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final ITransactionRepository transactionRepository;
 
-  TransactionBloc({required this.transactionRepository}) : super(TransactionInitial()) {
+  TransactionBloc({required this.transactionRepository})
+      : super(TransactionInitial()) {
     on<LoadTransactions>(_onLoadTransactions);
     on<AddTransaction>(_onAddTransaction);
     on<UpdateTransaction>(_onUpdateTransaction);
@@ -24,7 +25,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       (failure) => emit(TransactionFailure(failure)),
       (transactions) {
         // Convert entities back to models for UI if needed, or just use entities
-        final models = transactions.map((e) => TransactionModel.fromEntity(e)).toList();
+        final models =
+            transactions.map((e) => TransactionModel.fromEntity(e)).toList();
         emit(TransactionLoaded(models));
       },
     );
@@ -35,11 +37,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     emit(TransactionLoading());
-    final result = await transactionRepository.addTransaction(event.transaction);
+    final result =
+        await transactionRepository.addTransaction(event.transaction);
     result.fold(
       (failure) => emit(TransactionFailure(failure)),
       (_) {
-        emit(const TransactionOperationSuccess("Transaction Added Successfully"));
+        emit(const TransactionOperationSuccess(
+            "Transaction Added Successfully"));
         // After add, reload
         add(LoadTransactions(event.transaction.userEmail));
       },
@@ -51,11 +55,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     emit(TransactionLoading());
-    final result = await transactionRepository.updateTransaction(event.transaction);
+    final result =
+        await transactionRepository.updateTransaction(event.transaction);
     result.fold(
       (failure) => emit(TransactionFailure(failure)),
       (_) {
-        emit(const TransactionOperationSuccess("Transaction Updated Successfully"));
+        emit(const TransactionOperationSuccess(
+            "Transaction Updated Successfully"));
         // After update, reload
         add(LoadTransactions(event.transaction.userEmail));
       },
@@ -74,7 +80,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     if (event.remoteId != null) {
       rId = int.tryParse(event.remoteId!);
     }
-    
+
     final result = await transactionRepository.deleteTransaction(
       event.transactionId,
       event.userEmail,
@@ -83,7 +89,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     result.fold(
       (failure) => emit(TransactionFailure(failure)),
       (_) {
-        emit(const TransactionOperationSuccess("Transaction Deleted Successfully"));
+        emit(const TransactionOperationSuccess(
+            "Transaction Deleted Successfully"));
         // After delete, reload
         add(LoadTransactions(event.userEmail));
       },

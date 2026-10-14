@@ -29,8 +29,8 @@ class AuthEndpoint extends Endpoint {
     return user;
   }
 
-  Future<bool> changePassword(
-      Session session, String email, String oldPassword, String newPassword) async {
+  Future<bool> changePassword(Session session, String email, String oldPassword,
+      String newPassword) async {
     // Check old password
     var user = await User.db.findFirstRow(
       session,
@@ -59,8 +59,69 @@ class AuthEndpoint extends Endpoint {
 
     user.name = name;
     user.imagePath = imagePath;
-    
+
     await User.db.updateRow(session, user);
     return user;
   }
+
+  /// Initiates a password reset for the given email.
+  /// Returns a 6-digit OTP string if the email is registered, or null if not found.
+  /// In production, this OTP should be sent via email (SMTP / SendGrid / etc.).
+  Future<String?> requestPasswordReset(Session session, String email) async {
+    final user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.email.equals(email.trim().toLowerCase()),
+    );
+
+    if (user == null) {
+      // Return null to indicate email not found
+      return null;
+    }
+
+    // Generate a 6-digit OTP
+    final otp = (100000 + (DateTime.now().millisecondsSinceEpoch % 900000))
+        .toString()
+        .substring(0, 6);
+
+    // Store OTP in the resetOtp field and set expiry (15 minutes from now)
+    user.resetOtp = otp;
+    user.resetOtpExpiry = DateTime.now().add(const Duration(minutes: 15));
+    await User.db.updateRow(session, user);
+
+    // TODO: In production, send this OTP via email (SMTP / SendGrid / Firebase etc.)
+    // For now, return the OTP directly so the client can display it for demo purposes.
+    return otp;
+  }
+
+  /// Verifies the OTP and updates the password if valid.
+  /// Returns true on success, false if OTP is wrong or expired.
+  Future<bool> verifyOtpAndResetPassword(
+    Session session,
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    final user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.email.equals(email.trim().toLowerCase()),
+    );
+
+    if (user == null) return false;
+
+    // Validate OTP exists and is not expired
+    if (user.resetOtp == null ||
+        user.resetOtpExpiry == null ||
+        user.resetOtp != otp ||
+        DateTime.now().isAfter(user.resetOtpExpiry!)) {
+      return false;
+    }
+
+    // Update password and clear OTP
+    user.password = newPassword;
+    user.resetOtp = null;
+    user.resetOtpExpiry = null;
+    await User.db.updateRow(session, user);
+    return true;
+  }
 }
+

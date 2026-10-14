@@ -36,7 +36,8 @@ class GoalCard extends StatelessWidget {
           color: c.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isCompleted ? AppColors.incomeGreen.withAlpha(120) : c.border,
+            color:
+                isCompleted ? AppColors.incomeGreen.withAlpha(120) : c.border,
             width: isCompleted ? 1.5 : 1,
           ),
           boxShadow: [
@@ -83,32 +84,47 @@ class GoalCard extends StatelessWidget {
                           if (goal.priority == 'High')
                             Container(
                               margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.expenseRed.withAlpha(30),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text('🚨 High', style: TextStyle(color: AppColors.expenseRed, fontSize: 10, fontWeight: FontWeight.bold)),
+                              child: const Text('🚨 High',
+                                  style: TextStyle(
+                                      color: AppColors.expenseRed,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold)),
                             )
                           else if (goal.priority == 'Low')
                             Container(
                               margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: c.border,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text('🎯 Low', style: TextStyle(color: c.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
+                              child: Text('🎯 Low',
+                                  style: TextStyle(
+                                      color: c.textSecondary,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold)),
                             ),
                           if (goal.isPaused)
                             Container(
                               margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF59E0B).withAlpha(30),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text('Paused ⏸️', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 10, fontWeight: FontWeight.bold)),
+                              child: const Text('Paused ⏸️',
+                                  style: TextStyle(
+                                      color: Color(0xFFF59E0B),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold)),
                             ),
                           Expanded(
                             child: Text(
@@ -126,7 +142,8 @@ class GoalCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isCompleted
                         ? AppColors.incomeGreen.withAlpha(35)
@@ -134,7 +151,9 @@ class GoalCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isCompleted ? 'Done 🎉' : (goal.isPaused ? 'Paused' : '$percent%'),
+                    isCompleted
+                        ? 'Done 🎉'
+                        : (goal.isPaused ? 'Paused' : '$percent%'),
                     style: TextStyle(
                       color: isCompleted ? AppColors.incomeGreen : color,
                       fontWeight: FontWeight.bold,
@@ -203,7 +222,8 @@ class GoalCard extends StatelessWidget {
                     backgroundColor: color,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

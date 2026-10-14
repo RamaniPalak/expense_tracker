@@ -37,10 +37,12 @@ class FCMService {
   String? get fcmToken => _token;
 
   // ── Notification Channel for FCM High Priority Banners ─────────────────────
-  static const AndroidNotificationChannel _fcmChannel = AndroidNotificationChannel(
+  static const AndroidNotificationChannel _fcmChannel =
+      AndroidNotificationChannel(
     'fcm_push_channel',
     'Remote Notifications',
-    description: 'High priority channel for remote push notifications (Saving Goals, Reminders)',
+    description:
+        'High priority channel for remote push notifications (Saving Goals, Reminders)',
     importance: Importance.max,
     playSound: true,
   );
@@ -92,7 +94,8 @@ class FCMService {
       sound: true,
       provisional: false,
     );
-    debugPrint('[FCMService] Permission status: ${settings.authorizationStatus}');
+    debugPrint(
+        '[FCMService] Permission status: ${settings.authorizationStatus}');
     return settings;
   }
 
@@ -106,23 +109,32 @@ class FCMService {
         await prefs.setString(kFcmTokenKey, _token!);
       }
     } catch (e) {
-      debugPrint('[FCMService] FCM Token fetch note: Firebase app default initialization needed when google-services.json is configured: $e');
+      debugPrint(
+          '[FCMService] FCM Token fetch note: Firebase app default initialization needed when google-services.json is configured: $e');
     }
     return _token;
   }
 
   /// Create local notification channel for Android foreground display
   Future<void> _createNotificationChannel() async {
-    final androidImpl = _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.createNotificationChannel(_fcmChannel);
   }
 
   /// Handle incoming foreground messages by displaying a local notification banner
   void _handleForegroundMessage(RemoteMessage message) {
-    debugPrint('[FCMService] Foreground message received: ${message.notification?.title}');
-    final title = message.notification?.title ?? message.data['title'] ?? message.data['subject'] ?? 'Notification';
-    final body = message.notification?.body ?? message.data['body'] ?? message.data['message'] ?? '';
+    debugPrint(
+        '[FCMService] Foreground message received: ${message.notification?.title}');
+    final title = message.notification?.title ??
+        message.data['title'] ??
+        message.data['subject'] ??
+        'Notification';
+    final body = message.notification?.body ??
+        message.data['body'] ??
+        message.data['message'] ??
+        '';
     final android = message.notification?.android;
 
     _localNotifications.show(
@@ -186,7 +198,8 @@ class FCMService {
     switch (type) {
       case 'SAVING_GOAL':
         final goalId = data['goalId'];
-        debugPrint('[FCMService] Navigate to Saving Goal detail for ID: $goalId');
+        debugPrint(
+            '[FCMService] Navigate to Saving Goal detail for ID: $goalId');
         break;
       case 'BILL_REMINDER':
         debugPrint('[FCMService] Navigate to Bills screen');

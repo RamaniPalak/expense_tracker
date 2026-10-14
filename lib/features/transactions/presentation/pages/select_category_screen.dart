@@ -46,7 +46,8 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
   Future<void> _fetchCategories() async {
     if (_userEmail == null) return;
     setState(() => _isLoading = true);
-    final list = await DatabaseHelper.instance.getCategories(_userEmail!, isIncome: widget.isIncome);
+    final list = await DatabaseHelper.instance
+        .getCategories(_userEmail!, isIncome: widget.isIncome);
     if (mounted) {
       setState(() {
         _categories = list;
@@ -103,7 +104,8 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -141,7 +143,8 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -165,13 +168,15 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                   : SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 8),
                         decoration: BoxDecoration(
                           color: c.card,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
+                              color:
+                                  Colors.black.withOpacity(isDark ? 0.3 : 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -198,7 +203,8 @@ class _SelectCategoryScreenState extends State<SelectCategoryScreen> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
                                     // Icon container with pastel background

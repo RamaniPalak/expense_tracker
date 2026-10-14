@@ -59,7 +59,8 @@ class AppStrings {
   static const String exceeded = "Exceeded!";
   static const String noData = "No data for this period";
   static const String noBudgetSet = "No budget set for this month";
-  static const String budgetWarning = "Warning: You have exceeded your monthly limit!";
+  static const String budgetWarning =
+      "Warning: You have exceeded your monthly limit!";
   static const String setMonthlyBudget = "Set Monthly Budget";
   static const String budgetDescription =
       "This overview reflects your recurring monthly limits:";
@@ -116,7 +117,8 @@ class AppStrings {
   // Error Messages
   static const String errorInvalidAmount = "Please enter a valid amount";
   static const String errorGeneric = "Something went wrong. Please try again.";
-  static const String errorSubmitFailed = "Failed to save transaction. Please try again.";
+  static const String errorSubmitFailed =
+      "Failed to save transaction. Please try again.";
 
   // Chatbot
   static const String geminiApiKey =

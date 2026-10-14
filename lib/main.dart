@@ -26,7 +26,8 @@ void main() async {
     await Firebase.initializeApp();
     await FCMService.instance.init();
   } catch (e) {
-    debugPrint('[main] Firebase initialization note: Add google-services.json / GoogleService-Info.plist for live FCM push: $e');
+    debugPrint(
+        '[main] Firebase initialization note: Add google-services.json / GoogleService-Info.plist for live FCM push: $e');
   }
 
   await NotificationService.instance.init();

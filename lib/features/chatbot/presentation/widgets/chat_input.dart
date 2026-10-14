@@ -16,7 +16,7 @@ class ChatInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEnabled = onSend != null;
     final c = context.appColors;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -62,25 +62,28 @@ class ChatInput extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: isEnabled 
-                      ? const LinearGradient(
-                          colors: [AppColors.secondary, AppColors.primary],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : const LinearGradient(
-                          colors: [Colors.grey, Colors.blueGrey],
-                        ),
+                    gradient: isEnabled
+                        ? const LinearGradient(
+                            colors: [AppColors.secondary, AppColors.primary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : const LinearGradient(
+                            colors: [Colors.grey, Colors.blueGrey],
+                          ),
                     shape: BoxShape.circle,
-                    boxShadow: isEnabled ? [
-                      const BoxShadow(
-                        color: AppColors.primary,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
-                    ] : [],
+                    boxShadow: isEnabled
+                        ? [
+                            const BoxShadow(
+                              color: AppColors.primary,
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ]
+                        : [],
                   ),
-                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
+                  child: const Icon(Icons.send_rounded,
+                      color: Colors.white, size: 24),
                 ),
               ),
             ),

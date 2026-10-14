@@ -38,11 +38,9 @@ class DynamicColors {
 
   // ── Borders / Dividers ───────────────────────────────────────────────────
 
-  Color get divider =>
-      isDark ? const Color(0xFF253460) : AppColors.greyLight;
+  Color get divider => isDark ? const Color(0xFF253460) : AppColors.greyLight;
 
-  Color get border =>
-      isDark ? const Color(0xFF253460) : AppColors.greyLight;
+  Color get border => isDark ? const Color(0xFF253460) : AppColors.greyLight;
 
   // ── Shadows ──────────────────────────────────────────────────────────────
 

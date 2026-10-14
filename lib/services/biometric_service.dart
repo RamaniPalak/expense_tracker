@@ -49,14 +49,13 @@ class BiometricService {
       final bool authenticated = await _auth.authenticate(
         localizedReason: reason,
         options: const AuthenticationOptions(
-          biometricOnly: false,   // Allow fallback so it doesn't fail on weak biometrics
-          stickyAuth: true,       // Keep prompt open if app loses focus
+          biometricOnly:
+              false, // Allow fallback so it doesn't fail on weak biometrics
+          stickyAuth: true, // Keep prompt open if app loses focus
           useErrorDialogs: true,
         ),
       );
-      return authenticated
-          ? BiometricResult.success
-          : BiometricResult.failed;
+      return authenticated ? BiometricResult.success : BiometricResult.failed;
     } on PlatformException catch (e) {
       if (e.code == auth_error.notAvailable) {
         return BiometricResult.notAvailable;

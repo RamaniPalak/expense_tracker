@@ -17,13 +17,14 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   });
 
   @override
-  Future<Either<String, List<TransactionEntity>>> getTransactions(String? email) async {
+  Future<Either<String, List<TransactionEntity>>> getTransactions(
+      String? email) async {
     if (email == null) return const Left("User email is null");
-    
+
     try {
       // Load local data immediately for better UX
       final localData = await databaseHelper.getExpenses(email);
-      
+
       // Perform sync in background
       databaseHelper.syncWithRemote(email).then((_) {
         // Data will be updated on next reload or via notifier
@@ -36,9 +37,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<Either<String, void>> addTransaction(TransactionEntity transaction) async {
+  Future<Either<String, void>> addTransaction(
+      TransactionEntity transaction) async {
     try {
-      // Save local first with remote ID null (Offline-first approach)
       final model = TransactionModel(
         title: transaction.title,
         amount: transaction.amount,
@@ -49,11 +50,8 @@ class TransactionRepositoryImpl implements ITransactionRepository {
         remoteId: null,
       );
 
-      final db = await databaseHelper.database;
-      final localId = await db.insert('expenses', model.toMap());
-      
-      // Update local notifier cache immediately to refresh UI
-      await databaseHelper.refreshExpenses(transaction.userEmail);
+      // Save locally via databaseHelper: triggers notifiers and budget alert checks
+      final localId = await databaseHelper.insertExpense(model);
 
       // Perform remote sync in the background without blocking the UI
       final remoteEntry = ExpenseEntry(
@@ -67,27 +65,11 @@ class TransactionRepositoryImpl implements ITransactionRepository {
 
       remoteService.addExpense(remoteEntry).then((savedRemote) async {
         if (savedRemote != null && savedRemote.id != null) {
-          // Update the local record with the remote ID
-          final updatedModel = TransactionModel(
-            id: localId,
-            remoteId: savedRemote.id,
-            title: transaction.title,
-            amount: transaction.amount,
-            date: transaction.date,
-            category: transaction.category,
-            isIncome: transaction.isIncome,
-            userEmail: transaction.userEmail,
-           );
-
-          await db.update(
-            'expenses',
-            updatedModel.toMap(),
-            where: 'id = ?',
-            whereArgs: [localId],
-          );
+          await databaseHelper.updateExpenseRemoteId(localId, savedRemote.id!);
         }
-      }).catchError((e) => debugPrint("Background addExpense remote sync failed: $e"));
-      
+      }).catchError(
+          (e) => debugPrint("Background addExpense remote sync failed: $e"));
+
       return const Right(null);
     } catch (e) {
       return Left(e.toString());
@@ -95,22 +77,53 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<Either<String, void>> deleteTransaction(int id, String? email, int? remoteId) async {
+  Future<Either<String, int>> addTransactions(
+      List<TransactionEntity> transactions) async {
+    if (transactions.isEmpty) return const Right(0);
+
     try {
-      final db = await databaseHelper.database;
-      await db.delete(
-        'expenses',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      int importedCount = 0;
+      for (final transaction in transactions) {
+        final result = await addTransaction(transaction);
+        if (result.isRight()) {
+          importedCount++;
+        }
+      }
+      return Right(importedCount);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 
-      // Update local notifier cache immediately
-      await databaseHelper.refreshExpenses(email);
+  @override
+  Future<bool> isDuplicateTransaction({
+    required double amount,
+    required bool isIncome,
+    required DateTime date,
+    required String userEmail,
+  }) async {
+    return await databaseHelper.isDuplicateTransaction(
+      amount: amount,
+      isIncome: isIncome,
+      date: date,
+      userEmail: userEmail,
+    );
+  }
 
-      if (remoteId != null) {
+  @override
+  Future<Either<String, void>> deleteTransaction(
+      int id, String? email, int? remoteId) async {
+    try {
+      // If remoteId was not provided by caller, look it up before deleting locally
+      int? effectiveRemoteId = remoteId;
+      effectiveRemoteId ??= await databaseHelper.getExpenseRemoteId(id);
+
+      await databaseHelper.deleteExpense(id, email);
+
+      if (effectiveRemoteId != null) {
         // Perform remote deletion in the background without blocking the UI
-        remoteService.deleteExpense(remoteId).catchError(
-            (e) => debugPrint("Background deleteExpense remote sync failed: $e"));
+        remoteService.deleteExpense(effectiveRemoteId).catchError((e) =>
+            debugPrint("Background deleteExpense remote sync failed: $e"));
       }
 
       return const Right(null);
@@ -120,7 +133,8 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<Either<String, void>> updateTransaction(TransactionEntity transaction) async {
+  Future<Either<String, void>> updateTransaction(
+      TransactionEntity transaction) async {
     try {
       final model = TransactionModel.fromEntity(transaction);
       final db = await databaseHelper.database;
@@ -148,8 +162,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
         );
 
         remoteService.updateExpense(remoteEntry).catchError(
-          (e) => debugPrint('Background updateExpense remote sync failed: $e'),
-        );
+              (e) =>
+                  debugPrint('Background updateExpense remote sync failed: $e'),
+            );
       }
 
       return const Right(null);
@@ -157,5 +172,4 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       return Left(e.toString());
     }
   }
-
 }

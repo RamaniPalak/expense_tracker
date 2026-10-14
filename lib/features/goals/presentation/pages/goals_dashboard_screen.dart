@@ -23,7 +23,13 @@ class GoalsDashboardScreen extends StatefulWidget {
 
 class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
   String _activeFilter = 'All';
-  final List<String> _filters = ['All', '🚨 High Priority', 'In Progress', 'Paused ⏸️', 'Completed'];
+  final List<String> _filters = [
+    'All',
+    '🚨 High Priority',
+    'In Progress',
+    'Paused ⏸️',
+    'Completed'
+  ];
   bool _isLoading = false;
   bool _showGuide = false; // default off — loaded from SharedPreferences below
 
@@ -55,7 +61,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
     try {
       final userEmail = await sl<IAuthRepository>().getUserEmail();
       if (userEmail != null && userEmail.isNotEmpty) {
-        await DatabaseHelper.instance.refreshGoals(userEmail, syncFromRemote: true);
+        await DatabaseHelper.instance
+            .refreshGoals(userEmail, syncFromRemote: true);
       }
     } catch (e) {
       debugPrint("Error refreshing goals: $e");
@@ -106,7 +113,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
         ),
         title: Text(
           'Savings Goals',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+          style: AppTextStyles.heading2
+              .copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
         actions: [
@@ -125,9 +133,13 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
           }
 
           final filteredGoals = _applyFilter(goals);
-          final totalTarget = goals.fold<double>(0, (sum, g) => sum + g.targetAmount);
-          final totalSaved = goals.fold<double>(0, (sum, g) => sum + g.currentAmount);
-          final overallProgress = totalTarget > 0 ? (totalSaved / totalTarget).clamp(0.0, 1.0) : 0.0;
+          final totalTarget =
+              goals.fold<double>(0, (sum, g) => sum + g.targetAmount);
+          final totalSaved =
+              goals.fold<double>(0, (sum, g) => sum + g.currentAmount);
+          final overallProgress = totalTarget > 0
+              ? (totalSaved / totalTarget).clamp(0.0, 1.0)
+              : 0.0;
           final overallPercent = (overallProgress * 100).toInt();
 
           return RefreshIndicator(
@@ -168,7 +180,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                               children: [
                                 Text(
                                   'Total Savings Target',
-                                  style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+                                  style: AppTextStyles.bodySmall
+                                      .copyWith(color: Colors.white70),
                                 ),
                                 const SizedBox(height: 2),
                                 FittedBox(
@@ -186,7 +199,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.white.withAlpha(45),
                               borderRadius: BorderRadius.circular(20),
@@ -209,7 +223,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                           value: overallProgress,
                           minHeight: 6,
                           backgroundColor: Colors.white.withAlpha(51),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -218,11 +233,13 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                         children: [
                           Text(
                             '${goals.length} Total Goals',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12),
                           ),
                           Text(
                             '${goals.where((g) => g.isCompleted).length} Completed',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12),
                           ),
                         ],
                       ),
@@ -239,7 +256,10 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: c.primary.withAlpha(60)),
                       boxShadow: [
-                        BoxShadow(color: c.shadow, blurRadius: 6, offset: const Offset(0, 2)),
+                        BoxShadow(
+                            color: c.shadow,
+                            blurRadius: 6,
+                            offset: const Offset(0, 2)),
                       ],
                     ),
                     child: Column(
@@ -247,7 +267,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.lightbulb_rounded, color: Color(0xFFF59E0B), size: 22),
+                            const Icon(Icons.lightbulb_rounded,
+                                color: Color(0xFFF59E0B), size: 22),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -260,7 +281,8 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                             ),
                             InkWell(
                               onTap: _dismissGuide,
-                              child: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
+                              child: Icon(Icons.close_rounded,
+                                  size: 18, color: c.textSecondary),
                             ),
                           ],
                         ),
@@ -269,7 +291,10 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                           '• Set deadlines & target amounts to get a live monthly saving recommendation.\n'
                           '• Prioritize goals (🚨 High Priority) to automatically allocate income when payday arrives.\n'
                           '• Track individual deposits and pause/resume goals anytime.',
-                          style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, height: 1.4, fontSize: 12),
+                          style: AppTextStyles.bodySmall.copyWith(
+                              color: c.textSecondary,
+                              height: 1.4,
+                              fontSize: 12),
                         ),
                       ],
                     ),
@@ -289,11 +314,13 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.only(right: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected ? c.primary : c.surface,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: isSelected ? c.primary : c.border),
+                            border: Border.all(
+                                color: isSelected ? c.primary : c.border),
                           ),
                           child: Text(
                             f,
@@ -328,17 +355,20 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                             color: c.primary.withAlpha(25),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.savings_outlined, size: 54, color: c.primary),
+                          child: Icon(Icons.savings_outlined,
+                              size: 54, color: c.primary),
                         ),
                         const SizedBox(height: 20),
                         Text(
                           'No Savings Goals Found',
-                          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+                          style: AppTextStyles.heading2
+                              .copyWith(fontSize: 20, color: c.textPrimary),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Set financial targets like Emergency Fund, Buy a Car, or Vacation and track your progress easily.',
-                          style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: c.textSecondary, height: 1.4),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
@@ -349,8 +379,10 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: c.primary,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                           ),
                         ),
                       ],
@@ -365,9 +397,11 @@ class _GoalsDashboardScreenState extends State<GoalsDashboardScreen> {
                       final goal = filteredGoals[index];
                       return GoalCard(
                         goal: goal,
-                        onTap: () => context.push(RoutePaths.goalDetail, extra: goal),
+                        onTap: () =>
+                            context.push(RoutePaths.goalDetail, extra: goal),
                         onDepositTap: () async {
-                          final res = await AddContributionDialog.show(context, goal: goal, isDeposit: true);
+                          final res = await AddContributionDialog.show(context,
+                              goal: goal, isDeposit: true);
                           if (res == true) {
                             await _refreshGoals();
                           }

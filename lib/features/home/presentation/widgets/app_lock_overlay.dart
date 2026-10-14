@@ -13,10 +13,11 @@ class AppLockOverlay extends StatefulWidget {
   State<AppLockOverlay> createState() => _AppLockOverlayState();
 }
 
-class _AppLockOverlayState extends State<AppLockOverlay> with WidgetsBindingObserver {
+class _AppLockOverlayState extends State<AppLockOverlay>
+    with WidgetsBindingObserver {
   bool _isLocked = false;
   bool _isAuthenticating = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -49,13 +50,13 @@ class _AppLockOverlayState extends State<AppLockOverlay> with WidgetsBindingObse
 
   Future<void> _unlockApp() async {
     if (!_isLocked || _isAuthenticating) return;
-    
+
     setState(() {
       _isAuthenticating = true;
     });
 
     final result = await BiometricService.authenticate();
-    
+
     if (mounted) {
       setState(() {
         _isAuthenticating = false;
@@ -81,7 +82,7 @@ class _AppLockOverlayState extends State<AppLockOverlay> with WidgetsBindingObse
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   Material(
+                  Material(
                     color: Colors.transparent,
                     child: Column(
                       children: [
@@ -109,7 +110,8 @@ class _AppLockOverlayState extends State<AppLockOverlay> with WidgetsBindingObse
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                       onPressed: _unlockApp,
                       icon: const Icon(Icons.fingerprint),

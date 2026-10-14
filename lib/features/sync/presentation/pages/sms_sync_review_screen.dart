@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
+import 'package:android_sms_reader/android_sms_reader.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:expense_tracker/core/constants/app_colors.dart';
@@ -9,9 +9,9 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/features/sync/data/sources/sms_parser_service.dart';
 import 'package:expense_tracker/features/sync/data/models/parsed_sms_transaction.dart';
-import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
-import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
@@ -27,7 +27,9 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   bool _isLoading = false;
   bool _hasPermission = false;
   bool _permissionRequested = false;
-  final SmsQuery _query = SmsQuery();
+  // True when the user has selected "Never ask again" — tapping "Grant Permission"
+  // would do nothing, so we instead show an "Open App Settings" button.
+  bool _isPermanentlyDenied = false;
 
   String _activeFilter = 'All';
   final List<String> _filters = ['All', 'Debit', 'Credit'];
@@ -39,57 +41,95 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   }
 
   Future<void> _checkPermissionAndFetchSms() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    final status = await Permission.sms.status;
-    if (status.isGranted) {
-      setState(() {
-        _hasPermission = true;
-        _permissionRequested = true;
-      });
-      await _fetchSms();
-    } else {
+    try {
+      final granted = await AndroidSMSReader.requestPermissions();
+      if (granted) {
+        setState(() {
+          _hasPermission = true;
+          _permissionRequested = true;
+          _isPermanentlyDenied = false;
+        });
+        await _fetchSms();
+      } else {
+        // Distinguish "just denied" from "permanently denied (Never ask again)"
+        final permanentlyDenied = await Permission.sms.isPermanentlyDenied;
+        setState(() {
+          _hasPermission = false;
+          _permissionRequested = true;
+          _isPermanentlyDenied = permanentlyDenied;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
       setState(() {
         _hasPermission = false;
         _permissionRequested = true;
+        _isPermanentlyDenied = false;
         _isLoading = false;
       });
     }
   }
 
   Future<void> _requestPermission() async {
-    final status = await Permission.sms.request();
-    setState(() {
-      _hasPermission = status.isGranted;
-      _permissionRequested = true;
-    });
-    if (status.isGranted) {
-      await _fetchSms();
+    try {
+      final granted = await AndroidSMSReader.requestPermissions();
+      if (granted) {
+        setState(() {
+          _hasPermission = true;
+          _permissionRequested = true;
+          _isPermanentlyDenied = false;
+        });
+        await _fetchSms();
+      } else {
+        final permanentlyDenied = await Permission.sms.isPermanentlyDenied;
+        setState(() {
+          _hasPermission = false;
+          _permissionRequested = true;
+          _isPermanentlyDenied = permanentlyDenied;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _hasPermission = false;
+        _permissionRequested = true;
+        _isPermanentlyDenied = false;
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> _fetchSms() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     try {
-      final messages = await _query.querySms(
-        kinds: [SmsQueryKind.inbox],
-        count: 100,
+      // Fetch up to 500 inbox messages — far more complete than the old 100 limit.
+      // android_sms_reader supports native filtering/pagination via start+count.
+      final messages = await AndroidSMSReader.fetchMessages(
+        type: AndroidSMSType.inbox,
+        start: 0,
+        count: 500,
       );
-      final parsed = SmsParserService.parseMessages(messages);
+
+      // Map AndroidSMSMessage → package-agnostic SmsData for the parser
+      final smsDataList = messages
+          .map((m) => SmsData(
+                address: m.address,
+                body: m.body,
+                date: DateTime.fromMillisecondsSinceEpoch(m.date),
+              ))
+          .toList();
+
+      final parsed = SmsParserService.parseMessages(smsDataList);
       setState(() {
         _transactions.clear();
         _transactions.addAll(parsed);
       });
     } catch (e) {
-      debugPrint("Error fetching SMS: $e");
+      debugPrint('Error fetching SMS: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -97,38 +137,93 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
     final selectedList = _transactions.where((t) => t.selected).toList();
     if (selectedList.isEmpty) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final userEmail = await sl<IAuthRepository>().getUserEmail() ?? '';
+      final txRepo = sl<ITransactionRepository>();
+
+      int importedCount = 0;
+      int skippedCount = 0;
+      final List<TransactionEntity> toImport = [];
+
       for (var parsed in selectedList) {
-        final transaction = TransactionModel(
+        // ── Duplicate guard ──────────────────────────────────────────────────
+        final isDuplicate = await txRepo.isDuplicateTransaction(
+          amount: parsed.amount,
+          isIncome: parsed.isCredit,
+          date: parsed.date,
+          userEmail: userEmail,
+        );
+
+        if (isDuplicate) {
+          skippedCount++;
+          continue; // Skip — already in the DB
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+        toImport.add(TransactionEntity(
           title: parsed.merchant,
           amount: parsed.amount,
           date: parsed.date,
           category: parsed.category,
           isIncome: parsed.isCredit,
           userEmail: userEmail,
-        );
-        await sl<DatabaseHelper>().insertExpense(transaction);
+        ));
       }
 
-      if (mounted) {
-        context.push(RoutePaths.syncSuccess, extra: selectedList.length);
+      if (toImport.isNotEmpty) {
+        final result = await txRepo.addTransactions(toImport);
+        importedCount = result.getOrElse(() => 0);
+      }
+
+      if (!mounted) return;
+
+      if (importedCount > 0) {
+        // Navigate to success screen only when at least one was imported
+        context.push(
+          RoutePaths.syncSuccess,
+          extra: importedCount,
+        );
+
+        // If some were silently skipped, show a follow-up note
+        if (skippedCount > 0) {
+          Future.delayed(const Duration(milliseconds: 400), () {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '$skippedCount transaction${skippedCount == 1 ? '' : 's'} '
+                    'already existed and were skipped.',
+                  ),
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          });
+        }
+      } else {
+        // All selected transactions were duplicates — stay on screen and inform user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'All $skippedCount selected transaction${skippedCount == 1 ? '' : 's'} '
+              'already exist in your records.',
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+          ),
+        );
       }
     } catch (e) {
-      debugPrint("Error importing transactions: $e");
+      debugPrint('Error importing transactions: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to import transactions: $e')),
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -180,7 +275,8 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filtered;
-    final allSelected = filtered.isNotEmpty && filtered.every((t) => t.selected);
+    final allSelected =
+        filtered.isNotEmpty && filtered.every((t) => t.selected);
     final c = context.appColors;
 
     return Scaffold(
@@ -194,7 +290,8 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
         ),
         title: Text(
           'Bank SMS',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+          style: AppTextStyles.heading2
+              .copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
       ),
@@ -227,10 +324,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [
-                AppColors.cardGradientStart,
-                AppColors.cardGradientEnd
-              ],
+              colors: [AppColors.cardGradientStart, AppColors.cardGradientEnd],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -308,9 +402,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                     color: isSelected ? c.primary : c.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected
-                          ? c.primary
-                          : c.border,
+                      color: isSelected ? c.primary : c.border,
                     ),
                     boxShadow: isSelected
                         ? [
@@ -324,8 +416,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                   child: Text(
                     f,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color:
-                          isSelected ? Colors.white : c.textPrimary,
+                      color: isSelected ? Colors.white : c.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -348,14 +439,10 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: t.selected
-                      ? c.primary.withAlpha(20)
-                      : c.surface,
+                  color: t.selected ? c.primary.withAlpha(20) : c.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: t.selected
-                        ? c.primary.withAlpha(100)
-                        : c.border,
+                    color: t.selected ? c.primary.withAlpha(100) : c.border,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -371,12 +458,13 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                   leading: _buildBankAvatar(t.bank),
                   title: Text(
                     t.merchant,
-                    style: AppTextStyles.bodyMedium
-                        .copyWith(fontWeight: FontWeight.w600, color: c.textPrimary),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600, color: c.textPrimary),
                   ),
                   subtitle: Text(
                     '${t.bank} • ${t.category} • ${DateFormat('MMM dd, yyyy').format(t.date)}',
-                    style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: c.textSecondary),
+                    style: AppTextStyles.bodySmall
+                        .copyWith(fontSize: 12, color: c.textSecondary),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -398,14 +486,10 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: t.selected
-                                ? c.primary
-                                : Colors.transparent,
+                            color: t.selected ? c.primary : Colors.transparent,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: t.selected
-                                      ? c.primary
-                                      : c.border,
+                              color: t.selected ? c.primary : c.border,
                               width: 2,
                             ),
                           ),
@@ -430,9 +514,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             color: c.surface,
             boxShadow: [
               BoxShadow(
-                  color: c.shadow,
-                  blurRadius: 16,
-                  offset: const Offset(0, -4))
+                  color: c.shadow, blurRadius: 16, offset: const Offset(0, -4))
             ],
           ),
           child: SizedBox(
@@ -462,6 +544,89 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
 
   Widget _buildPermissionWarning() {
     final c = context.appColors;
+
+    if (_isPermanentlyDenied) {
+      // ── Permanently denied (Never ask again) ────────────────────────────────
+      // The system dialog will never appear again. The ONLY path forward is
+      // sending the user to the App Settings page to enable SMS manually.
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha(30),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'SMS Permission Blocked',
+                style: AppTextStyles.heading1
+                    .copyWith(fontSize: 22, color: c.textPrimary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You previously selected "Never ask again". To enable SMS syncing, '
+                'please open App Settings → Permissions → SMS and set it to Allow.',
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: c.textSecondary, height: 1.5),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              // Primary CTA — deep-links to this app's system settings page
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await openAppSettings();
+                    // Re-check permission when user returns from Settings
+                    if (mounted) await _checkPermissionAndFetchSms();
+                  },
+                  icon:
+                      const Icon(Icons.settings_outlined, color: Colors.white),
+                  label: const Text(
+                    'Open App Settings',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Secondary CTA — re-checks status in case user granted in Settings
+              TextButton(
+                onPressed: _checkPermissionAndFetchSms,
+                child: Text(
+                  'I already enabled it — Try Again',
+                  style: TextStyle(
+                    color: c.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // ── Standard denial (first time / dialog dismissed) ──────────────────────
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -482,14 +647,17 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              "SMS Access Required",
-              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
+              'SMS Access Required',
+              style: AppTextStyles.heading1
+                  .copyWith(fontSize: 22, color: c.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              "This app scans your local SMS inbox to identify banking alerts and securely sync your transactions. Please grant SMS permissions.",
-              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
+              'This app scans your local SMS inbox to identify banking alerts '
+              'and securely sync your transactions. Please grant SMS permission.',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: c.textSecondary, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -500,7 +668,7 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
                 onPressed: _requestPermission,
                 icon: const Icon(Icons.security, color: Colors.white),
                 label: const Text(
-                  "Grant Permission",
+                  'Grant Permission',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -541,13 +709,15 @@ class _SmsSyncReviewScreenState extends State<SmsSyncReviewScreen> {
             const SizedBox(height: 24),
             Text(
               "No Transactions Found",
-              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
+              style: AppTextStyles.heading1
+                  .copyWith(fontSize: 22, color: c.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              "We searched your last 100 inbox SMS messages but couldn't find any transaction alerts from supported banks (SBI, HDFC, ICICI, etc.).",
-              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
+              "We searched your last 500 inbox SMS messages but couldn't find any transaction alerts from supported banks (SBI, HDFC, ICICI, Axis, Kotak, PNB, etc.).",
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: c.textSecondary, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),

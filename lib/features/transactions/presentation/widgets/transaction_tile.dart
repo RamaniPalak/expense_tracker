@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
-import 'package:expense_tracker/core/constants/app_strings.dart';
+import 'package:expense_tracker/core/constants/category_config.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
 class TransactionTile extends StatefulWidget {
@@ -74,67 +74,18 @@ class _TransactionTileState extends State<TransactionTile>
     }
   }
 
-  IconData _getCategoryIcon() {
-    switch (widget.category) {
-      case AppStrings.catNetflix:
-        return Icons.movie_outlined;
-      case AppStrings.catFood:
-        return Icons.fastfood_outlined;
-      case AppStrings.catTransport:
-        return Icons.directions_car_outlined;
-      case AppStrings.catShopping:
-        return Icons.shopping_bag_outlined;
-      case AppStrings.catSalary:
-        return Icons.attach_money;
-      case AppStrings.catUpwork:
-        return Icons.work_outline;
-      case AppStrings.catInterest:
-        return Icons.account_balance_outlined;
-      case AppStrings.catFreelance:
-        return Icons.computer_outlined;
-      case AppStrings.catOther:
-        return Icons.more_horiz;
-      default:
-        return widget.isIncome ? Icons.add_circle_outline : Icons.shopping_cart_outlined;
-    }
-  }
-
-  Color _getCategoryColor() {
-    switch (widget.category) {
-      case AppStrings.catNetflix:
-        return AppColors.catNetflix;
-      case AppStrings.catFood:
-        return AppColors.catFood;
-      case AppStrings.catTransport:
-        return AppColors.catTransport;
-      case AppStrings.catShopping:
-        return const Color(0xFFFF69B4);
-      case AppStrings.catSalary:
-        return Colors.blue;
-      case AppStrings.catUpwork:
-        return AppColors.catUpwork;
-      case AppStrings.catInterest:
-        return Colors.amber;
-      case AppStrings.catFreelance:
-        return Colors.teal;
-      case AppStrings.catOther:
-        return const Color(0xFF90A4AE);
-      default:
-        return widget.isIncome ? AppColors.incomeGreen : AppColors.expenseRed;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final catColor = _getCategoryColor();
+    final catColor =
+        CategoryConfig.getColor(widget.category, isIncome: widget.isIncome);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
       child: Stack(
         children: [
@@ -144,8 +95,9 @@ class _TransactionTileState extends State<TransactionTile>
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 6),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF13172E) : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(20),
+                color:
+                    isDark ? const Color(0xFF13172E) : const Color(0xFFE2E8F0),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -160,18 +112,22 @@ class _TransactionTileState extends State<TransactionTile>
                     child: Container(
                       width: 58,
                       height: 52,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.all(Radius.circular(14)),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+                          Icon(Icons.edit_outlined,
+                              color: Colors.white, size: 20),
                           SizedBox(height: 2),
                           Text(
                             'Edit',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -188,18 +144,22 @@ class _TransactionTileState extends State<TransactionTile>
                     child: Container(
                       width: 58,
                       height: 52,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.expenseRed,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.all(Radius.circular(14)),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
+                          Icon(Icons.delete_outline_rounded,
+                              color: Colors.white, size: 20),
                           SizedBox(height: 2),
                           Text(
                             'Delete',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -232,10 +192,11 @@ class _TransactionTileState extends State<TransactionTile>
                 }
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: c.card,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: c.shadow,
@@ -252,9 +213,14 @@ class _TransactionTileState extends State<TransactionTile>
                       height: 44,
                       decoration: BoxDecoration(
                         color: catColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(12)),
                       ),
-                      child: Icon(_getCategoryIcon(), color: catColor, size: 20),
+                      child: Icon(
+                          CategoryConfig.getIcon(widget.category,
+                              isIncome: widget.isIncome),
+                          color: catColor,
+                          size: 20),
                     ),
                     const SizedBox(width: 14),
 
@@ -278,11 +244,13 @@ class _TransactionTileState extends State<TransactionTile>
                             children: [
                               Text(
                                 widget.date,
-                                style: AppTextStyles.bodySmall
-                                    .copyWith(fontSize: 12, color: c.textSecondary),
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    fontSize: 12, color: c.textSecondary),
                               ),
                               const SizedBox(width: 6),
-                              Icon(Icons.swipe_left_rounded, size: 12, color: c.textSecondary.withAlpha(120)),
+                              Icon(Icons.swipe_left_rounded,
+                                  size: 12,
+                                  color: c.textSecondary.withAlpha(120)),
                             ],
                           ),
                         ],
@@ -293,7 +261,9 @@ class _TransactionTileState extends State<TransactionTile>
                     Text(
                       "${widget.isIncome ? "+" : "-"} ₹${widget.amount}",
                       style: AppTextStyles.bodyLarge.copyWith(
-                        color: widget.isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
+                        color: widget.isIncome
+                            ? AppColors.incomeGreen
+                            : AppColors.expenseRed,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),

@@ -40,8 +40,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       final userEmail = await sl<IAuthRepository>().getUserEmail();
       if (_goal.id != null) {
         final goals = await DatabaseHelper.instance.getGoals(userEmail);
-        final freshGoal = goals.firstWhere((g) => g.id == _goal.id, orElse: () => _goal);
-        final logs = await DatabaseHelper.instance.getGoalContributions(_goal.id!, userEmail);
+        final freshGoal =
+            goals.firstWhere((g) => g.id == _goal.id, orElse: () => _goal);
+        final logs = await DatabaseHelper.instance
+            .getGoalContributions(_goal.id!, userEmail);
 
         setState(() {
           _goal = freshGoal;
@@ -79,7 +81,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             const SizedBox(height: 16),
             Text(
               'Goal Achieved!',
-              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
+              style: AppTextStyles.heading1
+                  .copyWith(fontSize: 22, color: c.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
@@ -96,9 +99,12 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.incomeGreen,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text('Awesome! 🚀', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: const Text('Awesome! 🚀',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ),
           ],
@@ -109,7 +115,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   Future<void> _handleContribution({required bool isDeposit}) async {
     final wasCompleted = _goal.isCompleted;
-    final result = await AddContributionDialog.show(context, goal: _goal, isDeposit: isDeposit);
+    final result = await AddContributionDialog.show(context,
+        goal: _goal, isDeposit: isDeposit);
     if (result == true) {
       await _loadGoalData();
       if (!wasCompleted && _goal.isCompleted && mounted) {
@@ -146,16 +153,20 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete Goal?', style: AppTextStyles.heading2.copyWith(color: c.textPrimary)),
+        title: Text('Delete Goal?',
+            style: AppTextStyles.heading2.copyWith(color: c.textPrimary)),
         content: Text(
           'Are you sure you want to delete "${_goal.title}" and its contribution history?',
           style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(color: c.textSecondary))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('Cancel', style: TextStyle(color: c.textSecondary))),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed),
             child: const Text('Delete'),
           ),
         ],
@@ -189,13 +200,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           icon: Icon(Icons.arrow_back_ios, size: 20, color: c.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Goal Details', style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary)),
+        title: Text('Goal Details',
+            style: AppTextStyles.heading2
+                .copyWith(fontSize: 20, color: c.textPrimary)),
         centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(
               _goal.isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-              color: _goal.isPaused ? AppColors.incomeGreen : const Color(0xFFF59E0B),
+              color: _goal.isPaused
+                  ? AppColors.incomeGreen
+                  : const Color(0xFFF59E0B),
             ),
             onPressed: _togglePauseGoal,
             tooltip: _goal.isPaused ? 'Resume Goal' : 'Pause Goal',
@@ -228,7 +243,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(color: color.withAlpha(80)),
                     boxShadow: [
-                      BoxShadow(color: c.shadow, blurRadius: 12, offset: const Offset(0, 4)),
+                      BoxShadow(
+                          color: c.shadow,
+                          blurRadius: 12,
+                          offset: const Offset(0, 4)),
                     ],
                   ),
                   child: Column(
@@ -237,7 +255,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: color.withAlpha(35), borderRadius: BorderRadius.circular(16)),
+                            decoration: BoxDecoration(
+                                color: color.withAlpha(35),
+                                borderRadius: BorderRadius.circular(16)),
                             child: Icon(iconData, color: color, size: 30),
                           ),
                           const SizedBox(width: 14),
@@ -250,24 +270,37 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                                     Expanded(
                                       child: Text(
                                         _goal.title.isNotEmpty
-                                            ? _goal.title[0].toUpperCase() + _goal.title.substring(1)
+                                            ? _goal.title[0].toUpperCase() +
+                                                _goal.title.substring(1)
                                             : '',
-                                        style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+                                        style: AppTextStyles.heading2.copyWith(
+                                            color: c.textPrimary, fontSize: 20),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     if (_goal.priority == 'High')
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(color: AppColors.expenseRed.withAlpha(30), borderRadius: BorderRadius.circular(8)),
-                                        child: const Text('🚨 High', style: TextStyle(color: AppColors.expenseRed, fontSize: 11, fontWeight: FontWeight.bold)),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                            color: AppColors.expenseRed
+                                                .withAlpha(30),
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: const Text('🚨 High',
+                                            style: TextStyle(
+                                                color: AppColors.expenseRed,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold)),
                                       ),
                                   ],
                                 ),
                                 const SizedBox(height: 2),
-                                Text('${_goal.category} • Due ${DateFormat('MMM dd, yyyy').format(_goal.targetDate)}',
-                                    style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary)),
+                                Text(
+                                    '${_goal.category} • Due ${DateFormat('MMM dd, yyyy').format(_goal.targetDate)}',
+                                    style: AppTextStyles.bodySmall
+                                        .copyWith(color: c.textSecondary)),
                               ],
                             ),
                           ),
@@ -287,7 +320,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                               strokeWidth: 12,
                               backgroundColor: c.border.withAlpha(80),
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                _goal.isCompleted ? AppColors.incomeGreen : color,
+                                _goal.isCompleted
+                                    ? AppColors.incomeGreen
+                                    : color,
                               ),
                             ),
                           ),
@@ -296,12 +331,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             children: [
                               Text(
                                 '${_goal.progressPercent100}%',
-                                style: AppTextStyles.heading1.copyWith(fontSize: 28, color: c.textPrimary),
+                                style: AppTextStyles.heading1.copyWith(
+                                    fontSize: 28, color: c.textPrimary),
                               ),
                               Text(
-                                _goal.isCompleted ? 'Goal Reached!' : '${_goal.daysRemaining} days left',
+                                _goal.isCompleted
+                                    ? 'Goal Reached!'
+                                    : '${_goal.daysRemaining} days left',
                                 style: AppTextStyles.bodySmall.copyWith(
-                                  color: _goal.isCompleted ? AppColors.incomeGreen : c.textSecondary,
+                                  color: _goal.isCompleted
+                                      ? AppColors.incomeGreen
+                                      : c.textSecondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -317,24 +357,33 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         children: [
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: c.border.withAlpha(60)),
+                                border:
+                                    Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text('Saved', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                    child: Text('Saved',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                            color: c.textSecondary,
+                                            fontSize: 12)),
                                   ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      NumberFormat.currency(symbol: '₹', decimalDigits: 0).format(_goal.currentAmount),
-                                      style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold, color: AppColors.incomeGreen),
+                                      NumberFormat.currency(
+                                              symbol: '₹', decimalDigits: 0)
+                                          .format(_goal.currentAmount),
+                                      style: AppTextStyles.bodyLarge.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.incomeGreen),
                                     ),
                                   ),
                                 ],
@@ -344,24 +393,33 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: c.border.withAlpha(60)),
+                                border:
+                                    Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text('Remaining', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                    child: Text('Remaining',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                            color: c.textSecondary,
+                                            fontSize: 12)),
                                   ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      NumberFormat.currency(symbol: '₹', decimalDigits: 0).format(_goal.remainingAmount),
-                                      style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
+                                      NumberFormat.currency(
+                                              symbol: '₹', decimalDigits: 0)
+                                          .format(_goal.remainingAmount),
+                                      style: AppTextStyles.bodyLarge.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: c.textPrimary),
                                     ),
                                   ),
                                 ],
@@ -371,24 +429,33 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 12),
                               decoration: BoxDecoration(
                                 color: c.background,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: c.border.withAlpha(60)),
+                                border:
+                                    Border.all(color: c.border.withAlpha(60)),
                               ),
                               child: Column(
                                 children: [
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text('Target', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12)),
+                                    child: Text('Target',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                            color: c.textSecondary,
+                                            fontSize: 12)),
                                   ),
                                   const SizedBox(height: 4),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      NumberFormat.currency(symbol: '₹', decimalDigits: 0).format(_goal.targetAmount),
-                                      style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
+                                      NumberFormat.currency(
+                                              symbol: '₹', decimalDigits: 0)
+                                          .format(_goal.targetAmount),
+                                      style: AppTextStyles.bodyLarge.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: c.textPrimary),
                                     ),
                                   ),
                                 ],
@@ -411,16 +478,20 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF59E0B).withAlpha(25),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFF59E0B).withAlpha(80)),
+                      border: Border.all(
+                          color: const Color(0xFFF59E0B).withAlpha(80)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.pause_circle_outline_rounded, color: Color(0xFFF59E0B), size: 24),
+                        const Icon(Icons.pause_circle_outline_rounded,
+                            color: Color(0xFFF59E0B), size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Goal is currently paused. Resume to restart auto-deposits and pace tracking.',
-                            style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                            style: AppTextStyles.bodySmall.copyWith(
+                                color: const Color(0xFFF59E0B),
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -433,11 +504,13 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.primary.withAlpha(15),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.primary.withAlpha(60)),
+                      border:
+                          Border.all(color: AppColors.primary.withAlpha(60)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.speed_rounded, color: AppColors.primary, size: 24),
+                        Icon(Icons.speed_rounded,
+                            color: AppColors.primary, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -445,12 +518,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             children: [
                               Text(
                                 'Recommended Saving Pace',
-                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 'Save ₹${_goal.monthlyPace.toStringAsFixed(0)} / month to hit target on time.',
-                                style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(color: c.textSecondary),
                               ),
                             ],
                           ),
@@ -467,26 +543,32 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.incomeGreen.withAlpha(15),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.incomeGreen.withAlpha(60)),
+                      border: Border.all(
+                          color: AppColors.incomeGreen.withAlpha(60)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.autorenew_rounded, color: AppColors.incomeGreen, size: 24),
+                        const Icon(Icons.autorenew_rounded,
+                            color: AppColors.incomeGreen, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Auto-deposit active: ₹${_goal.autoDepositAmount.toStringAsFixed(0)} scheduled on day ${_goal.autoDepositDay} of every month.',
-                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.incomeGreen, fontWeight: FontWeight.w600),
+                            style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.incomeGreen,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                if (_goal.productUrl != null && _goal.productUrl!.isNotEmpty) ...[
+                if (_goal.productUrl != null &&
+                    _goal.productUrl!.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: c.surface,
                       borderRadius: BorderRadius.circular(16),
@@ -494,12 +576,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.shopping_bag_outlined, color: AppColors.primary, size: 20),
+                        const Icon(Icons.shopping_bag_outlined,
+                            color: AppColors.primary, size: 20),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _goal.productUrl!,
-                            style: AppTextStyles.bodySmall.copyWith(color: c.primary, decoration: TextDecoration.underline),
+                            style: AppTextStyles.bodySmall.copyWith(
+                                color: c.primary,
+                                decoration: TextDecoration.underline),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -509,10 +594,12 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           color: c.primary,
                           tooltip: 'Copy Link',
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: _goal.productUrl!));
+                            Clipboard.setData(
+                                ClipboardData(text: _goal.productUrl!));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Product link copied to clipboard! 📋'),
+                                content: Text(
+                                    'Product link copied to clipboard! 📋'),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -538,7 +625,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.incomeGreen,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                           ),
                         ),
                       ),
@@ -548,12 +636,16 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       child: SizedBox(
                         height: 50,
                         child: OutlinedButton.icon(
-                          onPressed: () => _handleContribution(isDeposit: false),
-                          icon: const Icon(Icons.remove_circle_outline, color: AppColors.expenseRed),
-                          label: Text('Withdraw', style: TextStyle(color: c.textPrimary)),
+                          onPressed: () =>
+                              _handleContribution(isDeposit: false),
+                          icon: const Icon(Icons.remove_circle_outline,
+                              color: AppColors.expenseRed),
+                          label: Text('Withdraw',
+                              style: TextStyle(color: c.textPrimary)),
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: AppColors.expenseRed),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                           ),
                         ),
                       ),
@@ -564,12 +656,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 const SizedBox(height: 28),
 
                 // Contribution Activity History
-                Text('Contribution History', style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary)),
+                Text('Contribution History',
+                    style: AppTextStyles.heading2
+                        .copyWith(fontSize: 18, color: c.textPrimary)),
                 const SizedBox(height: 12),
 
                 if (_contributions.isEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 28),
                     decoration: BoxDecoration(
                       color: c.surface,
                       borderRadius: BorderRadius.circular(20),
@@ -578,11 +673,19 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.history_toggle_off_rounded, size: 40, color: c.textSecondary),
+                          Icon(Icons.history_toggle_off_rounded,
+                              size: 40, color: c.textSecondary),
                           const SizedBox(height: 10),
-                          Text('No deposit history yet', style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, fontWeight: FontWeight.bold)),
+                          Text('No deposit history yet',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                  color: c.textSecondary,
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
-                          Text('Tap "Add Deposit" above to add funds to this goal.', style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary, fontSize: 12), textAlign: TextAlign.center),
+                          Text(
+                              'Tap "Add Deposit" above to add funds to this goal.',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                  color: c.textSecondary, fontSize: 12),
+                              textAlign: TextAlign.center),
                         ],
                       ),
                     ),
@@ -605,10 +708,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                         ),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: (isDeposit ? AppColors.incomeGreen : AppColors.expenseRed).withAlpha(30),
+                            backgroundColor: (isDeposit
+                                    ? AppColors.incomeGreen
+                                    : AppColors.expenseRed)
+                                .withAlpha(30),
                             child: Icon(
-                              isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                              color: isDeposit ? AppColors.incomeGreen : AppColors.expenseRed,
+                              isDeposit
+                                  ? Icons.arrow_downward_rounded
+                                  : Icons.arrow_upward_rounded,
+                              color: isDeposit
+                                  ? AppColors.incomeGreen
+                                  : AppColors.expenseRed,
                               size: 18,
                             ),
                           ),
@@ -616,15 +726,19 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                             '${isDeposit ? '+' : '-'} ₹${log.amount.toStringAsFixed(0)}',
                             style: AppTextStyles.bodyMedium.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDeposit ? AppColors.incomeGreen : AppColors.expenseRed,
+                              color: isDeposit
+                                  ? AppColors.incomeGreen
+                                  : AppColors.expenseRed,
                             ),
                           ),
                           subtitle: Text(
                             '${DateFormat('MMM dd, yyyy • hh:mm a').format(log.date)}${log.note != null ? ' • "${log.note}"' : ''}',
-                            style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: c.textSecondary),
+                            style: AppTextStyles.bodySmall
+                                .copyWith(fontSize: 12, color: c.textSecondary),
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.delete_outline, size: 18, color: c.textSecondary),
+                            icon: Icon(Icons.delete_outline,
+                                size: 18, color: c.textSecondary),
                             onPressed: () => _deleteContribution(log),
                           ),
                         ),

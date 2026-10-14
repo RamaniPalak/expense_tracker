@@ -124,7 +124,8 @@ class SyncOptionsSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   'or',
-                  style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                  style:
+                      AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                 ),
               ),
               const Expanded(child: Divider()),
@@ -217,8 +218,7 @@ class _SyncOptionCardState extends State<_SyncOptionCard> {
             children: [
               // Badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(51),
                   borderRadius: BorderRadius.circular(20),

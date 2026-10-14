@@ -43,7 +43,8 @@ class QuickActionBar extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items.map((item) => _buildActionButton(context, item)).toList(),
+        children:
+            items.map((item) => _buildActionButton(context, item)).toList(),
       ),
     );
   }

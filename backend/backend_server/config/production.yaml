@@ -32,6 +32,7 @@ database:
   name: PLACEHOLDER_DB_NAME
   user: PLACEHOLDER_DB_USER
   requireSsl: true
+  sslMode: require
   #isUnixSocket: true # defaults to false
 
 # This is the setup for Redis. The default for the Google Cloud Engine Terraform

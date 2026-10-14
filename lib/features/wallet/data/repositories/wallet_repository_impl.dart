@@ -27,11 +27,11 @@ class WalletRepositoryImpl implements IWalletRepository {
 
     try {
       final localData = await databaseHelper.getBudgets(email);
-      
+
       // Perform background sync from remote server
       databaseHelper.refreshBudgets(email, syncFromRemote: true).catchError(
-        (e) => debugPrint("Background budget load sync failed: $e"),
-      );
+            (e) => debugPrint("Background budget load sync failed: $e"),
+          );
 
       return Right(localData);
     } catch (e) {

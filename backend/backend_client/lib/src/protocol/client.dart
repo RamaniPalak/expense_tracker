@@ -74,7 +74,34 @@ class EndpointAuth extends _i1.EndpointRef {
           'imagePath': imagePath,
         },
       );
+
+  /// Requests a password reset OTP for the given email.
+  /// Returns the OTP string if email is registered, null otherwise.
+  _i2.Future<String?> requestPasswordReset(String email) =>
+      caller.callServerEndpoint<String?>(
+        'auth',
+        'requestPasswordReset',
+        {'email': email},
+      );
+
+  /// Verifies OTP and resets the password.
+  /// Returns true on success, false if OTP is wrong or expired.
+  _i2.Future<bool> verifyOtpAndResetPassword(
+    String email,
+    String otp,
+    String newPassword,
+  ) =>
+      caller.callServerEndpoint<bool>(
+        'auth',
+        'verifyOtpAndResetPassword',
+        {
+          'email': email,
+          'otp': otp,
+          'newPassword': newPassword,
+        },
+      );
 }
+
 
 /// {@category Endpoint}
 class EndpointBudgetEntry extends _i1.EndpointRef {

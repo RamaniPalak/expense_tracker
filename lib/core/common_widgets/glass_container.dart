@@ -40,10 +40,11 @@ class GlassContainer extends StatelessWidget {
           decoration: BoxDecoration(
             color: (color ?? Colors.white).withOpacity(opacity),
             borderRadius: BorderRadius.circular(borderRadius),
-            border: border ?? Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+            border: border ??
+                Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
             gradient: gradient,
           ),
           child: child,

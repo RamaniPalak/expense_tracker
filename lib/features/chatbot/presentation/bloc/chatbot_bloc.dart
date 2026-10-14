@@ -21,8 +21,9 @@ class ChatbotBloc extends Bloc<ChatbotEvent, ChatbotState> {
     final count = await repository.getMessageCount();
     final suggestions = await repository.getDynamicSuggestions();
     // If limit is already reached (e.g. user reopens the screen), reflect that
-    final status =
-        count >= _kFreeMessageLimit ? ChatStatus.limitReached : ChatStatus.initial;
+    final status = count >= _kFreeMessageLimit
+        ? ChatStatus.limitReached
+        : ChatStatus.initial;
     emit(state.copyWith(
       messageCount: count,
       status: status,
@@ -34,7 +35,8 @@ class ChatbotBloc extends Bloc<ChatbotEvent, ChatbotState> {
       ResetChatEvent event, Emitter<ChatbotState> emit) async {
     await repository.resetMessageCount();
     final suggestions = await repository.getDynamicSuggestions();
-    emit(ChatbotState(suggestions: suggestions)); // reset chat but load fresh suggestions
+    emit(ChatbotState(
+        suggestions: suggestions)); // reset chat but load fresh suggestions
   }
 
   Future<void> _onSendMessage(

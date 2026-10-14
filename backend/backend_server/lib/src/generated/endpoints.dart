@@ -527,14 +527,26 @@ class Endpoints extends _i1.EndpointDispatch {
         'addBillEntry': _i1.MethodConnector(
           name: 'addBillEntry',
           params: {
-            'userEmail': _i1.ParameterDescription(name: 'userEmail', type: _i1.getType<String>(), nullable: false),
-            'title': _i1.ParameterDescription(name: 'title', type: _i1.getType<String>(), nullable: false),
-            'amount': _i1.ParameterDescription(name: 'amount', type: _i1.getType<double>(), nullable: false),
-            'dueDate': _i1.ParameterDescription(name: 'dueDate', type: _i1.getType<String>(), nullable: false),
-            'endDate': _i1.ParameterDescription(name: 'endDate', type: _i1.getType<String?>(), nullable: true),
-            'category': _i1.ParameterDescription(name: 'category', type: _i1.getType<String>(), nullable: false),
-            'isPaid': _i1.ParameterDescription(name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
-            'isRecurring': _i1.ParameterDescription(name: 'isRecurring', type: _i1.getType<bool>(), nullable: false),
+            'userEmail': _i1.ParameterDescription(
+                name: 'userEmail',
+                type: _i1.getType<String>(),
+                nullable: false),
+            'title': _i1.ParameterDescription(
+                name: 'title', type: _i1.getType<String>(), nullable: false),
+            'amount': _i1.ParameterDescription(
+                name: 'amount', type: _i1.getType<double>(), nullable: false),
+            'dueDate': _i1.ParameterDescription(
+                name: 'dueDate', type: _i1.getType<String>(), nullable: false),
+            'endDate': _i1.ParameterDescription(
+                name: 'endDate', type: _i1.getType<String?>(), nullable: true),
+            'category': _i1.ParameterDescription(
+                name: 'category', type: _i1.getType<String>(), nullable: false),
+            'isPaid': _i1.ParameterDescription(
+                name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
+            'isRecurring': _i1.ParameterDescription(
+                name: 'isRecurring',
+                type: _i1.getType<bool>(),
+                nullable: false),
           },
           call: (_i1.Session session, Map<String, dynamic> params) async =>
               (endpoints['billEntry'] as _i6.BillEntryEndpoint).addBillEntry(
@@ -552,13 +564,22 @@ class Endpoints extends _i1.EndpointDispatch {
         'updateBillEntry': _i1.MethodConnector(
           name: 'updateBillEntry',
           params: {
-            'remoteId': _i1.ParameterDescription(name: 'remoteId', type: _i1.getType<int>(), nullable: false),
-            'amount': _i1.ParameterDescription(name: 'amount', type: _i1.getType<double>(), nullable: false),
-            'dueDate': _i1.ParameterDescription(name: 'dueDate', type: _i1.getType<String>(), nullable: false),
-            'endDate': _i1.ParameterDescription(name: 'endDate', type: _i1.getType<String?>(), nullable: true),
-            'category': _i1.ParameterDescription(name: 'category', type: _i1.getType<String>(), nullable: false),
-            'isPaid': _i1.ParameterDescription(name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
-            'isRecurring': _i1.ParameterDescription(name: 'isRecurring', type: _i1.getType<bool>(), nullable: false),
+            'remoteId': _i1.ParameterDescription(
+                name: 'remoteId', type: _i1.getType<int>(), nullable: false),
+            'amount': _i1.ParameterDescription(
+                name: 'amount', type: _i1.getType<double>(), nullable: false),
+            'dueDate': _i1.ParameterDescription(
+                name: 'dueDate', type: _i1.getType<String>(), nullable: false),
+            'endDate': _i1.ParameterDescription(
+                name: 'endDate', type: _i1.getType<String?>(), nullable: true),
+            'category': _i1.ParameterDescription(
+                name: 'category', type: _i1.getType<String>(), nullable: false),
+            'isPaid': _i1.ParameterDescription(
+                name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
+            'isRecurring': _i1.ParameterDescription(
+                name: 'isRecurring',
+                type: _i1.getType<bool>(),
+                nullable: false),
           },
           call: (_i1.Session session, Map<String, dynamic> params) async =>
               (endpoints['billEntry'] as _i6.BillEntryEndpoint).updateBillEntry(
@@ -575,7 +596,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'deleteBillEntry': _i1.MethodConnector(
           name: 'deleteBillEntry',
           params: {
-            'remoteId': _i1.ParameterDescription(name: 'remoteId', type: _i1.getType<int>(), nullable: false),
+            'remoteId': _i1.ParameterDescription(
+                name: 'remoteId', type: _i1.getType<int>(), nullable: false),
           },
           call: (_i1.Session session, Map<String, dynamic> params) async =>
               (endpoints['billEntry'] as _i6.BillEntryEndpoint).deleteBillEntry(
@@ -586,7 +608,10 @@ class Endpoints extends _i1.EndpointDispatch {
         'getBillEntries': _i1.MethodConnector(
           name: 'getBillEntries',
           params: {
-            'userEmail': _i1.ParameterDescription(name: 'userEmail', type: _i1.getType<String>(), nullable: false),
+            'userEmail': _i1.ParameterDescription(
+                name: 'userEmail',
+                type: _i1.getType<String>(),
+                nullable: false),
           },
           call: (_i1.Session session, Map<String, dynamic> params) async =>
               (endpoints['billEntry'] as _i6.BillEntryEndpoint).getBillEntries(

@@ -4,8 +4,18 @@ import 'package:expense_tracker/services/api_client.dart';
 abstract class IAuthRemoteDataSource {
   Future<User?> login(String email, String password);
   Future<bool> register(String name, String email, String password);
-  Future<bool> changePassword(String email, String oldPassword, String newPassword);
+  Future<bool> changePassword(
+      String email, String oldPassword, String newPassword);
   Future<User?> updateProfile(String email, String name, String? imagePath);
+
+  /// Sends a password reset OTP for [email].
+  /// Returns the OTP if the email is registered, or null if not found.
+  Future<String?> requestPasswordReset(String email);
+
+  /// Verifies [otp] for [email] and sets [newPassword].
+  /// Returns true on success.
+  Future<bool> verifyOtpAndResetPassword(
+      String email, String otp, String newPassword);
 }
 
 class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
@@ -34,12 +44,28 @@ class AuthRemoteDataSourceImpl implements IAuthRemoteDataSource {
   }
 
   @override
-  Future<bool> changePassword(String email, String oldPassword, String newPassword) async {
-    return await apiClient.client.auth.changePassword(email, oldPassword, newPassword);
+  Future<bool> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    return await apiClient.client.auth
+        .changePassword(email, oldPassword, newPassword);
   }
 
   @override
-  Future<User?> updateProfile(String email, String name, String? imagePath) async {
+  Future<User?> updateProfile(
+      String email, String name, String? imagePath) async {
     return await apiClient.client.auth.updateProfile(email, name, imagePath);
   }
+
+  @override
+  Future<String?> requestPasswordReset(String email) async {
+    return await apiClient.client.auth.requestPasswordReset(email);
+  }
+
+  @override
+  Future<bool> verifyOtpAndResetPassword(
+      String email, String otp, String newPassword) async {
+    return await apiClient.client.auth
+        .verifyOtpAndResetPassword(email, otp, newPassword);
+  }
 }
+

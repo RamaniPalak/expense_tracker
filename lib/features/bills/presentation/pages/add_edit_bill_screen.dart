@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
@@ -54,8 +54,9 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
       _isRecurring = false; // default: one-time
       _dueDate = DateTime.now().add(const Duration(days: 7));
       _startDate = DateTime.now();
-      _endDate = DateTime.now().add(const Duration(days: 30));
     }
+
+    _endDate = DateTime.now().add(const Duration(days: 30));
   }
 
   @override
@@ -69,8 +70,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
-    final amount =
-        double.tryParse(_amountCtrl.text.replaceAll(',', '')) ?? 0.0;
+    final amount = double.tryParse(_amountCtrl.text.replaceAll(',', '')) ?? 0.0;
 
     final bill = BillModel(
       id: widget.bill?.id,
@@ -167,8 +167,8 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -305,12 +305,11 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                             ? const SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2))
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))
                             : const Text('Save',
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold)),
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
 
                       if (isEditing) ...[
@@ -360,9 +359,8 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
     bool isValueHighlighted = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final highlightBg = isDark
-        ? const Color(0xFFF1F5CD)
-        : AppColors.primary.withOpacity(0.15);
+    final highlightBg =
+        isDark ? const Color(0xFFF1F5CD) : AppColors.primary.withOpacity(0.15);
     final highlightText = isDark ? Colors.black87 : AppColors.primary;
     final arrowColor = isDark
         ? Colors.white54
@@ -434,19 +432,17 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
       isScrollControlled: true,
       backgroundColor: bgColor,
       shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final activeColor = isDark ? Colors.white : AppColors.primary;
-            final inactiveColor =
-                isDark ? Colors.white24 : Colors.black12;
+            final inactiveColor = isDark ? Colors.white24 : Colors.black12;
 
             return SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -520,8 +516,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                     const SizedBox(height: 16),
 
                     ElevatedButton(
-                      onPressed: () =>
-                          Navigator.pop(context, tempDate),
+                      onPressed: () => Navigator.pop(context, tempDate),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -531,8 +526,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                       ),
                       child: const Text('Confirm',
                           style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -558,19 +552,17 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
       isScrollControlled: true,
       backgroundColor: bgColor,
       shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final activeColor = isDark ? Colors.white : AppColors.primary;
-            final inactiveColor =
-                isDark ? Colors.white24 : Colors.black12;
+            final inactiveColor = isDark ? Colors.white24 : Colors.black12;
 
             return SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -589,8 +581,8 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                       children: [
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => setModalState(
-                                () => pickingStart = true),
+                            onTap: () =>
+                                setModalState(() => pickingStart = true),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 12, horizontal: 16),
@@ -604,14 +596,11 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                                     width: 2),
                               ),
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Start date',
-                                      style: AppTextStyles.bodySmall
-                                          .copyWith(
-                                              color: textColor
-                                                  .withOpacity(0.7))),
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                          color: textColor.withOpacity(0.7))),
                                   const SizedBox(height: 4),
                                   Text(
                                       DateFormat('yyyy-MM-dd')
@@ -624,16 +613,15 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text('-',
                               style: AppTextStyles.heading2
                                   .copyWith(color: textColor)),
                         ),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => setModalState(
-                                () => pickingStart = false),
+                            onTap: () =>
+                                setModalState(() => pickingStart = false),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 12, horizontal: 16),
@@ -647,18 +635,13 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                                     width: 2),
                               ),
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('End date',
-                                      style: AppTextStyles.bodySmall
-                                          .copyWith(
-                                              color: textColor
-                                                  .withOpacity(0.7))),
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                          color: textColor.withOpacity(0.7))),
                                   const SizedBox(height: 4),
-                                  Text(
-                                      DateFormat('yyyy-MM-dd')
-                                          .format(tempEnd),
+                                  Text(DateFormat('yyyy-MM-dd').format(tempEnd),
                                       style: AppTextStyles.bodyMedium
                                           .copyWith(color: textColor)),
                                 ],
@@ -686,8 +669,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                                   onSurface: textColor),
                             ),
                       child: CalendarDatePicker(
-                        initialDate:
-                            pickingStart ? tempStart : tempEnd,
+                        initialDate: pickingStart ? tempStart : tempEnd,
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2035),
                         onDateChanged: (date) {
@@ -709,8 +691,8 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context,
-                          {'start': tempStart, 'end': tempEnd}),
+                      onPressed: () => Navigator.pop(
+                          context, {'start': tempStart, 'end': tempEnd}),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -720,8 +702,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                       ),
                       child: const Text('Save',
                           style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 8),
                   ],

@@ -39,3 +39,22 @@ class AuthSuccess extends AuthState {
   @override
   List<Object?> get props => [message];
 }
+
+/// Emitted after a successful OTP dispatch. Carries the OTP (for demo) and
+/// the email so the verify screen knows which account to reset.
+class PasswordResetOtpSent extends AuthState {
+  final String email;
+
+  /// The OTP returned by the server (demo only — in production this is sent
+  /// via email and should NOT be returned to the client).
+  final String otp;
+
+  const PasswordResetOtpSent({required this.email, required this.otp});
+
+  @override
+  List<Object?> get props => [email, otp];
+}
+
+/// Emitted after the password has been successfully reset.
+class PasswordResetSuccess extends AuthState {}
+

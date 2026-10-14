@@ -32,21 +32,21 @@ class StatisticsPieChart extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(
-          height: 200,
+          height: 130,
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.pie_chart_outline,
-                  size: 60,
+                  size: 40,
                   color: c.textSecondary.withAlpha(80),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
                   AppStrings.noData,
                   style: GoogleFonts.inter(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: c.textSecondary,
                   ),
                 ),
@@ -63,21 +63,21 @@ class StatisticsPieChart extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SizedBox(
-            height: 200,
+            height: 145,
             child: Stack(
               children: [
                 // 1. Subtle background track (drawn behind the active sections)
                 PieChart(
                   PieChartData(
                     sectionsSpace: 0,
-                    centerSpaceRadius: 65,
+                    centerSpaceRadius: 46,
                     borderData: FlBorderData(show: false),
                     startDegreeOffset: 0,
                     sections: [
                       PieChartSectionData(
                         color: c.divider.withOpacity(0.4),
                         value: 1,
-                        radius: 24,
+                        radius: 16,
                         showTitle: false,
                       ),
                     ],
@@ -85,7 +85,8 @@ class StatisticsPieChart extends StatelessWidget {
                 ),
                 // 2. Interactive Pie Chart sections
                 PieChart(
-                  key: ValueKey("pie_${pieSections.length}_${touchedIndex}_$selectedTransactionType"),
+                  key: ValueKey(
+                      "pie_${pieSections.length}_${touchedIndex}_$selectedTransactionType"),
                   PieChartData(
                     pieTouchData: PieTouchData(
                       touchCallback: (FlTouchEvent event, pieTouchResponse) {
@@ -95,13 +96,13 @@ class StatisticsPieChart extends StatelessWidget {
                           onSelectionChanged(-1);
                           return;
                         }
-                        onSelectionChanged(
-                            pieTouchResponse.touchedSection!.touchedSectionIndex);
+                        onSelectionChanged(pieTouchResponse
+                            .touchedSection!.touchedSectionIndex);
                       },
                     ),
                     borderData: FlBorderData(show: false),
-                    sectionsSpace: pieSections.length > 1 ? 3 : 0,
-                    centerSpaceRadius: 65,
+                    sectionsSpace: pieSections.length > 1 ? 2 : 0,
+                    centerSpaceRadius: 46,
                     sections: pieSections,
                   ),
                 ),
@@ -112,22 +113,24 @@ class StatisticsPieChart extends StatelessWidget {
                     children: [
                       Text(
                         (touchedIndex == -1
-                                ? (isIncomeMode ? "TOTAL INCOME" : "TOTAL SPENT")
-                                : topSpendingList[touchedIndex]['title'].toString().toUpperCase()),
+                            ? (isIncomeMode ? "TOTAL INCOME" : "TOTAL SPENT")
+                            : topSpendingList[touchedIndex]['title']
+                                .toString()
+                                .toUpperCase()),
                         style: GoogleFonts.inter(
-                          fontSize: 11,
+                          fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: c.textSecondary.withOpacity(0.8),
-                          letterSpacing: 1.2,
+                          letterSpacing: 0.8,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         touchedIndex == -1
                             ? "₹${totalInFilter.toStringAsFixed(0)}"
                             : "₹${topSpendingList[touchedIndex]['amount'].toStringAsFixed(0)}",
                         style: GoogleFonts.outfit(
-                          fontSize: 24,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: c.textPrimary,
                         ),
@@ -147,10 +150,10 @@ class StatisticsPieChart extends StatelessWidget {
 
   Widget _buildLegends(BuildContext context, dynamic c, bool isIncomeMode) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
       child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
+        spacing: 8,
+        runSpacing: 6,
         alignment: WrapAlignment.center,
         children: List.generate(topSpendingList.length, (index) {
           final item = topSpendingList[index];
@@ -168,12 +171,16 @@ class StatisticsPieChart extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isTouched ? color.withOpacity(0.08) : c.card.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(10),
+                color: isTouched
+                    ? color.withOpacity(0.08)
+                    : c.card.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isTouched ? color.withOpacity(0.3) : c.border.withOpacity(0.3),
+                  color: isTouched
+                      ? color.withOpacity(0.3)
+                      : c.border.withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -181,28 +188,29 @@ class StatisticsPieChart extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 8,
-                    height: 8,
+                    width: 6,
+                    height: 6,
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Text(
                     item['title'],
                     style: GoogleFonts.inter(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: isTouched ? FontWeight.bold : FontWeight.w500,
                       color: c.textPrimary,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Text(
                     "${percentage.toStringAsFixed(0)}%",
                     style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: isTouched ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 10,
+                      fontWeight:
+                          isTouched ? FontWeight.bold : FontWeight.normal,
                       color: isTouched ? color : c.textSecondary,
                     ),
                   ),

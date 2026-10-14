@@ -35,5 +35,6 @@ class ChatbotState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [messages, status, errorMessage, messageCount, suggestions];
+  List<Object?> get props =>
+      [messages, status, errorMessage, messageCount, suggestions];
 }

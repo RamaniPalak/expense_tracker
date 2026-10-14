@@ -76,7 +76,8 @@ class WalletHelper {
     );
   }
 
-  static Widget buildActionButton(BuildContext context, IconData icon, String label,
+  static Widget buildActionButton(
+      BuildContext context, IconData icon, String label,
       {VoidCallback? onTap}) {
     final c = context.appColors;
     return GestureDetector(
@@ -95,8 +96,7 @@ class WalletHelper {
           const SizedBox(height: 8),
           Text(
             label,
-            style:
-                AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
+            style: AppTextStyles.bodyMedium.copyWith(color: c.textPrimary),
           ),
         ],
       ),
@@ -131,8 +131,7 @@ class WalletHelper {
           child: Text(
             text,
             style: AppTextStyles.bodyMedium.copyWith(
-              color:
-                  isSelected ? c.textPrimary : c.textSecondary,
+              color: isSelected ? c.textPrimary : c.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),

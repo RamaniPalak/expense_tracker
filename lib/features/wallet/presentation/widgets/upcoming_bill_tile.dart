@@ -78,7 +78,8 @@ class UpcomingBillTile extends StatelessWidget {
               onTap: onPayTap,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text(
                   "Pay",
                   style: AppTextStyles.bodyMedium.copyWith(

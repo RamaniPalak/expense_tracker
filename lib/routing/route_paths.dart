@@ -5,6 +5,7 @@ class RoutePaths {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String statistics = '/statistics';
   static const String calendar = '/calendar';
@@ -26,3 +27,4 @@ class RoutePaths {
   static const String addEditGoal = '/goals/add-edit';
   static const String goalDetail = '/goals/detail';
 }
+

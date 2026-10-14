@@ -49,7 +49,8 @@ class GoalService {
   }
 
   /// Adds a goal contribution to the remote server.
-  Future<GoalContributionEntry?> addGoalContribution(GoalContributionEntry entry) async {
+  Future<GoalContributionEntry?> addGoalContribution(
+      GoalContributionEntry entry) async {
     try {
       return await apiClient.client.goalEntry.addGoalContribution(entry);
     } catch (e) {

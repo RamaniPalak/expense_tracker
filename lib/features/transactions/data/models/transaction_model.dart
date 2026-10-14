@@ -50,4 +50,26 @@ class TransactionModel extends TransactionEntity {
       'userEmail': userEmail,
     };
   }
+
+  TransactionModel copyWith({
+    int? id,
+    int? remoteId,
+    String? title,
+    double? amount,
+    DateTime? date,
+    String? category,
+    bool? isIncome,
+    String? userEmail,
+  }) {
+    return TransactionModel(
+      id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      category: category ?? this.category,
+      isIncome: isIncome ?? this.isIncome,
+      userEmail: userEmail ?? this.userEmail,
+    );
+  }
 }

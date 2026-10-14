@@ -16,7 +16,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   // Repository is now handled via DI
 
-
   @override
   void initState() {
     super.initState();
@@ -49,7 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _handleBiometricAuth() async {
-    final bool biometricAvailable = await BiometricService.isBiometricAvailable();
+    final bool biometricAvailable =
+        await BiometricService.isBiometricAvailable();
 
     if (!mounted) return;
 

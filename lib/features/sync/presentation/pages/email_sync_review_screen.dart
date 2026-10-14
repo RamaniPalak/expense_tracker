@@ -7,9 +7,9 @@ import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/routing/app_router.dart';
 import 'package:expense_tracker/features/sync/data/sources/email_sync_service.dart';
 import 'package:expense_tracker/features/sync/data/models/parsed_email_transaction.dart';
-import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
-import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
@@ -67,20 +67,76 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
 
     try {
       final userEmail = await sl<IAuthRepository>().getUserEmail() ?? '';
+      final txRepo = sl<ITransactionRepository>();
+
+      int importedCount = 0;
+      int skippedCount = 0;
+      final List<TransactionEntity> toImport = [];
+
       for (var parsed in selectedList) {
-        final transaction = TransactionModel(
+        // ── Duplicate guard ──────────────────────────────────────────────────
+        final isDuplicate = await txRepo.isDuplicateTransaction(
+          amount: parsed.amount,
+          isIncome: parsed.isCredit,
+          date: parsed.date,
+          userEmail: userEmail,
+        );
+
+        if (isDuplicate) {
+          skippedCount++;
+          continue; // Skip — already exists in database
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+        toImport.add(TransactionEntity(
           title: parsed.merchant,
           amount: parsed.amount,
           date: parsed.date,
           category: parsed.category,
           isIncome: parsed.isCredit,
           userEmail: userEmail,
-        );
-        await sl<DatabaseHelper>().insertExpense(transaction);
+        ));
       }
 
-      if (mounted) {
-        context.push(RoutePaths.syncSuccess, extra: selectedList.length);
+      if (toImport.isNotEmpty) {
+        final result = await txRepo.addTransactions(toImport);
+        importedCount = result.getOrElse(() => 0);
+      }
+
+      if (!mounted) return;
+
+      if (importedCount > 0) {
+        // Navigate to success screen only when at least one was imported
+        context.push(RoutePaths.syncSuccess, extra: importedCount);
+
+        // If some duplicates were skipped, show follow-up notification
+        if (skippedCount > 0) {
+          Future.delayed(const Duration(milliseconds: 400), () {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '$skippedCount transaction${skippedCount == 1 ? '' : 's'} '
+                    'already existed and were skipped.',
+                  ),
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          });
+        }
+      } else {
+        // All selected transactions were duplicates — stay on screen and inform user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'All $skippedCount selected transaction${skippedCount == 1 ? '' : 's'} '
+              'already exist in your records.',
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+          ),
+        );
       }
     } catch (e) {
       debugPrint("Error importing email transactions: $e");
@@ -90,9 +146,11 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -123,9 +181,24 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
       'ICICI Bank': const Color(0xFFB04C4C),
       'Axis Bank': const Color(0xFF800040),
       'Kotak Bank': const Color(0xFFE62E00),
+      'PNB': const Color(0xFFA20032),
+      'Canara Bank': const Color(0xFF0083CA),
+      'IndusInd Bank': const Color(0xFF901B1E),
+      'YES Bank': const Color(0xFF003874),
+      'Federal Bank': const Color(0xFF004071),
+      'IDFC FIRST Bank': const Color(0xFF9D1D27),
+      'Bank of Baroda': const Color(0xFFF26522),
+      'Union Bank': const Color(0xFF004B87),
+      'Bank of India': const Color(0xFFDF4B26),
+      'Standard Chartered': const Color(0xFF007A3E),
+      'Citibank': const Color(0xFF003B70),
+      'HSBC': const Color(0xFFDB0011),
+      'Airtel Payments Bank': const Color(0xFFED1C24),
       'Paytm': const Color(0xFF00B9F1),
       'Razorpay': const Color(0xFF0C2340),
       'PayPal': const Color(0xFF003087),
+      'Chase': const Color(0xFF117ACA),
+      'Amex': const Color(0xFF006FCF),
     };
 
     final color = colors[bank] ?? AppColors.primary;
@@ -168,14 +241,17 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: c.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
-              const Icon(Icons.mark_email_unread_outlined, color: AppColors.primary),
+              const Icon(Icons.mark_email_unread_outlined,
+                  color: AppColors.primary),
               const SizedBox(width: 10),
               Text(
                 'Connect Email Account',
-                style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
+                style: AppTextStyles.heading2
+                    .copyWith(fontSize: 18, color: c.textPrimary),
               ),
             ],
           ),
@@ -186,7 +262,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
               children: [
                 Text(
                   'Choose method to fetch banking alerts:',
-                  style: AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
+                  style:
+                      AppTextStyles.bodySmall.copyWith(color: c.textSecondary),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -195,7 +272,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email Address',
                     prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -206,7 +284,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   decoration: InputDecoration(
                     labelText: 'App Password / Auth Key (IMAP)',
                     prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -218,12 +297,14 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 18, color: AppColors.primary),
+                      const Icon(Icons.info_outline,
+                          size: 18, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'OAuth2 / IMAP credentials remain encrypted locally on your device.',
-                          style: AppTextStyles.bodySmall.copyWith(fontSize: 11, color: c.textSecondary),
+                          style: AppTextStyles.bodySmall
+                              .copyWith(fontSize: 11, color: c.textSecondary),
                         ),
                       ),
                     ],
@@ -248,7 +329,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Connect & Sync'),
             ),
@@ -261,7 +343,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filtered;
-    final allSelected = filtered.isNotEmpty && filtered.every((t) => t.selected);
+    final allSelected =
+        filtered.isNotEmpty && filtered.every((t) => t.selected);
     final c = context.appColors;
 
     return Scaffold(
@@ -275,7 +358,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
         ),
         title: Text(
           'Email Transaction Sync',
-          style: AppTextStyles.heading2.copyWith(fontSize: 20, color: c.textPrimary),
+          style: AppTextStyles.heading2
+              .copyWith(fontSize: 20, color: c.textPrimary),
         ),
         centerTitle: true,
         actions: [
@@ -333,7 +417,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   color: AppColors.primary.withAlpha(30),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.mark_email_read_outlined, size: 20, color: AppColors.primary),
+                child: const Icon(Icons.mark_email_read_outlined,
+                    size: 20, color: AppColors.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -342,11 +427,13 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   children: [
                     Text(
                       'Connected Account',
-                      style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: c.textSecondary),
+                      style: AppTextStyles.bodySmall
+                          .copyWith(fontSize: 10, color: c.textSecondary),
                     ),
                     Text(
                       _connectedEmail,
-                      style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: c.textPrimary),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600, color: c.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -356,7 +443,10 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                 onPressed: _showConnectDialog,
                 child: Text(
                   'Change',
-                  style: TextStyle(color: c.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: TextStyle(
+                      color: c.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13),
                 ),
               ),
             ],
@@ -395,7 +485,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   children: [
                     Text(
                       '${_transactions.length} email transactions found',
-                      style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, fontSize: 15),
+                      style: AppTextStyles.bodyLarge
+                          .copyWith(color: Colors.white, fontSize: 15),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Text(
@@ -415,7 +506,10 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                 children: [
                   const Text(
                     'All',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
                   ),
                   const SizedBox(width: 4),
                   SizedBox(
@@ -447,7 +541,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? c.primary : c.surface,
                     borderRadius: BorderRadius.circular(20),
@@ -504,7 +599,8 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                   ],
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   leading: _buildBankAvatar(t.bank),
                   title: Text(
                     t.merchant,
@@ -519,12 +615,14 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '${t.bank} • ${t.category} • ${DateFormat('MMM dd, yyyy').format(t.date)}',
-                        style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: c.textSecondary),
+                        style: AppTextStyles.bodySmall
+                            .copyWith(fontSize: 12, color: c.textSecondary),
                       ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.alternate_email, size: 12, color: c.primary),
+                          Icon(Icons.alternate_email,
+                              size: 12, color: c.primary),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
@@ -559,7 +657,9 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                       Text(
                         '${t.isCredit ? '+' : '-'} ₹${t.amount.toStringAsFixed(0)}',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: t.isCredit ? AppColors.incomeGreen : AppColors.expenseRed,
+                          color: t.isCredit
+                              ? AppColors.incomeGreen
+                              : AppColors.expenseRed,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -578,7 +678,10 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
                               width: 2,
                             ),
                           ),
-                          child: t.selected ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+                          child: t.selected
+                              ? const Icon(Icons.check,
+                                  color: Colors.white, size: 14)
+                              : null,
                         ),
                       ),
                     ],
@@ -610,11 +713,14 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.primary,
                 disabledBackgroundColor: c.divider,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
               child: Text(
-                _selectedCount == 0 ? 'Select transactions to import' : 'Import Selected ($_selectedCount)',
+                _selectedCount == 0
+                    ? 'Select transactions to import'
+                    : 'Import Selected ($_selectedCount)',
                 style: AppTextStyles.buttonText.copyWith(fontSize: 16),
               ),
             ),
@@ -647,13 +753,15 @@ class _EmailSyncReviewScreenState extends State<EmailSyncReviewScreen> {
             const SizedBox(height: 24),
             Text(
               "No Email Transactions Found",
-              style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
+              style: AppTextStyles.heading1
+                  .copyWith(fontSize: 22, color: c.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               "We scanned your email inbox but couldn't find any financial transaction alerts from supported banks or payment providers.",
-              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary, height: 1.4),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: c.textSecondary, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),

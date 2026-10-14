@@ -73,7 +73,8 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _selectedEmoji = widget.category?.emoji ?? _iconPalette[0]['emoji'];
-    _selectedIconCode = widget.category?.iconCode ?? (_iconPalette[0]['icon'] as IconData).codePoint;
+    _selectedIconCode = widget.category?.iconCode ??
+        (_iconPalette[0]['icon'] as IconData).codePoint;
     _selectedColorValue = widget.category?.colorValue ?? _colorPalette[0];
   }
 
@@ -114,7 +115,8 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
 
   Future<void> _deleteCategory() async {
     if (widget.category?.id != null) {
-      await DatabaseHelper.instance.deleteCategory(widget.category!.id!, widget.userEmail);
+      await DatabaseHelper.instance
+          .deleteCategory(widget.category!.id!, widget.userEmail);
       if (mounted) Navigator.pop(context, true);
     }
   }
@@ -184,20 +186,23 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                 Expanded(
                   child: TextField(
                     controller: _nameController,
-                    style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        color: c.textPrimary, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'Category Name',
                       hintStyle: TextStyle(color: c.textSecondary),
                       filled: true,
                       fillColor: c.background,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide(color: c.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: c.border.withOpacity(0.6)),
+                        borderSide:
+                            BorderSide(color: c.border.withOpacity(0.6)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -252,7 +257,8 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                             : [],
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+                          ? const Icon(Icons.check_rounded,
+                              color: Colors.white, size: 20)
                           : null,
                     ),
                   );
@@ -297,10 +303,13 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? c.primary.withOpacity(0.2) : c.background,
+                      color: isSelected
+                          ? c.primary.withOpacity(0.2)
+                          : c.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? c.primary : c.border.withOpacity(0.5),
+                        color:
+                            isSelected ? c.primary : c.border.withOpacity(0.5),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -324,10 +333,12 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                   IconButton(
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.red.withOpacity(0.12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       padding: const EdgeInsets.all(14),
                     ),
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        color: Colors.red),
                     onPressed: _deleteCategory,
                   ),
                   const SizedBox(width: 12),
@@ -345,7 +356,9 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                       ),
                       onPressed: _saveCategory,
                       child: Text(
-                        widget.category == null ? 'Save Category' : 'Update Category',
+                        widget.category == null
+                            ? 'Save Category'
+                            : 'Update Category',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,

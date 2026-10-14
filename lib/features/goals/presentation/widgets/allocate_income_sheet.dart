@@ -126,7 +126,8 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final formattedIncome = NumberFormat.currency(symbol: '₹', decimalDigits: 0).format(widget.incomeAmount);
+    final formattedIncome = NumberFormat.currency(symbol: '₹', decimalDigits: 0)
+        .format(widget.incomeAmount);
 
     return Container(
       decoration: BoxDecoration(
@@ -165,7 +166,8 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
                   color: AppColors.incomeGreen.withAlpha(30),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.savings_rounded, color: AppColors.incomeGreen, size: 24),
+                child: const Icon(Icons.savings_rounded,
+                    color: AppColors.incomeGreen, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -174,11 +176,14 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
                   children: [
                     Text(
                       'Income Added! Allocate Savings?',
-                      style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
+                      style: AppTextStyles.heading2
+                          .copyWith(fontSize: 18, color: c.textPrimary),
                     ),
                     Text(
                       'Logged $formattedIncome (${widget.incomeTitle})',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.incomeGreen, fontWeight: FontWeight.bold),
+                      style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.incomeGreen,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -191,7 +196,8 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
           // Target Goal Selector
           Text(
             'Select Target Goal',
-            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
+            style: AppTextStyles.bodyMedium
+                .copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 8),
           Container(
@@ -222,15 +228,24 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
                         Expanded(
                           child: Text(
                             goal.title,
-                            style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: c.textPrimary,
+                                fontWeight: FontWeight.w600),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (goal.priority == 'High')
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppColors.expenseRed.withAlpha(30), borderRadius: BorderRadius.circular(6)),
-                            child: const Text('🚨 High', style: TextStyle(color: AppColors.expenseRed, fontSize: 10, fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: AppColors.expenseRed.withAlpha(30),
+                                borderRadius: BorderRadius.circular(6)),
+                            child: const Text('🚨 High',
+                                style: TextStyle(
+                                    color: AppColors.expenseRed,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold)),
                           ),
                       ],
                     ),
@@ -248,7 +263,8 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
           // Quick Percentage Allocation Chips
           Text(
             'Quick Allocation Percentage',
-            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
+            style: AppTextStyles.bodyMedium
+                .copyWith(fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 8),
           Row(
@@ -269,13 +285,16 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
           TextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: AppTextStyles.heading1.copyWith(fontSize: 22, color: c.textPrimary),
+            style: AppTextStyles.heading1
+                .copyWith(fontSize: 22, color: c.textPrimary),
             decoration: InputDecoration(
               prefixText: '₹ ',
-              prefixStyle: AppTextStyles.heading1.copyWith(fontSize: 22, color: AppColors.incomeGreen),
+              prefixStyle: AppTextStyles.heading1
+                  .copyWith(fontSize: 22, color: AppColors.incomeGreen),
               hintText: '0',
               labelText: 'Allocation Amount',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             onChanged: (val) {
               setState(() => _selectedPercentage = null);
@@ -289,8 +308,11 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: _isLoading ? null : () => Navigator.pop(context, false),
-                  child: Text('Skip for Now', style: TextStyle(color: c.textSecondary, fontWeight: FontWeight.w600)),
+                  onPressed:
+                      _isLoading ? null : () => Navigator.pop(context, false),
+                  child: Text('Skip for Now',
+                      style: TextStyle(
+                          color: c.textSecondary, fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -301,16 +323,20 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.incomeGreen,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: _isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text('Confirm Allocation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      : const Text('Confirm Allocation',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
                 ),
               ),
             ],
@@ -323,7 +349,8 @@ class _AllocateIncomeSheetState extends State<AllocateIncomeSheet> {
   Widget _buildPercentageChip(double pct, String label) {
     final c = context.appColors;
     final isSelected = _selectedPercentage == pct;
-    final calcVal = NumberFormat.currency(symbol: '₹', decimalDigits: 0).format(widget.incomeAmount * pct);
+    final calcVal = NumberFormat.currency(symbol: '₹', decimalDigits: 0)
+        .format(widget.incomeAmount * pct);
 
     return Expanded(
       child: GestureDetector(

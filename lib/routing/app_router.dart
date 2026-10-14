@@ -5,6 +5,7 @@ import 'package:expense_tracker/features/auth/presentation/pages/splash_screen.d
 import 'package:expense_tracker/features/auth/presentation/pages/onboarding_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/login_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/signup_screen.dart';
+import 'package:expense_tracker/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:expense_tracker/features/home/presentation/pages/home_screen.dart';
 import 'package:expense_tracker/features/home/presentation/pages/home_content.dart';
 import 'package:expense_tracker/features/statistics/presentation/pages/statistics_screen.dart';
@@ -27,19 +28,47 @@ import 'package:expense_tracker/features/goals/presentation/pages/goals_dashboar
 import 'package:expense_tracker/features/goals/presentation/pages/add_edit_goal_screen.dart';
 import 'package:expense_tracker/features/goals/presentation/pages/goal_detail_screen.dart';
 import 'package:expense_tracker/features/goals/data/models/goal_model.dart';
+import 'package:expense_tracker/core/di/injection_container.dart';
+import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
+
 
 part 'route_paths.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final GlobalKey<NavigatorState> _shellNavigatorStatsKey = GlobalKey<NavigatorState>(debugLabel: 'shellStats');
-final GlobalKey<NavigatorState> _shellNavigatorCalendarKey = GlobalKey<NavigatorState>(debugLabel: 'shellCalendar');
-final GlobalKey<NavigatorState> _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+final GlobalKey<NavigatorState> _shellNavigatorHomeKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellHome');
+final GlobalKey<NavigatorState> _shellNavigatorStatsKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellStats');
+final GlobalKey<NavigatorState> _shellNavigatorCalendarKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellCalendar');
+final GlobalKey<NavigatorState> _shellNavigatorProfileKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
 
 class AppRouter {
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.splash,
+    redirect: (context, state) async {
+      final publicRoutes = <String>{
+        RoutePaths.splash,
+        RoutePaths.onboarding,
+        RoutePaths.login,
+        RoutePaths.signup,
+        RoutePaths.forgotPassword,
+      };
+
+      final path = state.matchedLocation;
+      if (publicRoutes.contains(path)) {
+        return null;
+      }
+
+      final isLoggedIn = await sl<IAuthRepository>().isLoggedIn();
+      if (!isLoggedIn) {
+        return RoutePaths.login;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: RoutePaths.splash,
@@ -57,6 +86,11 @@ class AppRouter {
         path: RoutePaths.signup,
         builder: (context, state) => const SignupScreen(),
       ),
+      GoRoute(
+        path: RoutePaths.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
       // Full screen routes
       GoRoute(
         path: RoutePaths.addExpense,
@@ -69,26 +103,27 @@ class AppRouter {
               // Ignore type warnings since we rely on dynamic cast here for the local model
               expense: expense as dynamic,
             ),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               final curve = CurvedAnimation(
                 parent: animation,
                 curve: Curves.easeOutQuart,
                 reverseCurve: Curves.easeInQuart,
               );
               return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 1),
-                end: Offset.zero,
-              ).animate(curve),
-              child: FadeTransition(
-                opacity: curve,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 800),
-          reverseTransitionDuration: const Duration(milliseconds: 600),
-        );
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curve),
+                child: FadeTransition(
+                  opacity: curve,
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 800),
+            reverseTransitionDuration: const Duration(milliseconds: 600),
+          );
         },
       ),
       GoRoute(
@@ -108,11 +143,13 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const ChatbotScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeOutQuart;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
               return SlideTransition(
                 position: animation.drive(tween),
                 child: child,
@@ -135,7 +172,8 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: BillDetailScreen(bill: bill),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(1.0, 0.0),
@@ -161,7 +199,8 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: AddEditBillScreen(bill: bill, userEmail: userEmail),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1),
@@ -184,12 +223,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const SmsSyncReviewScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -204,12 +245,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const FileSyncReviewScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -224,12 +267,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const EmailSyncReviewScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -245,7 +290,8 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: SyncSuccessScreen(importedCount: count),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
             transitionDuration: const Duration(milliseconds: 400),
@@ -260,7 +306,8 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: CategoryBreakdownScreen(isIncome: isIncome),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1),
@@ -288,12 +335,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const GoalsDashboardScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(1.0, 0.0),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -309,12 +358,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: AddEditGoalScreen(goal: goal),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0.0, 1.0),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -330,12 +381,14 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: GoalDetailScreen(goal: goal),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(1.0, 0.0),
                   end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart)),
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutQuart)),
                 child: child,
               );
             },
@@ -368,7 +421,6 @@ class AppRouter {
               ),
             ],
           ),
-
           StatefulShellBranch(
             navigatorKey: _shellNavigatorCalendarKey,
             routes: [

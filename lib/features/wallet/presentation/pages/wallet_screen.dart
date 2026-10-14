@@ -14,7 +14,8 @@ import 'package:expense_tracker/features/transactions/presentation/bloc/transact
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
-import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 
 import 'package:expense_tracker/core/theme/dynamic_colors.dart';
 
@@ -26,7 +27,8 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0); // 0 for Transactions, 1 for Upcoming Bills
+  final ValueNotifier<int> _selectedTabIndex =
+      ValueNotifier<int>(0); // 0 for Transactions, 1 for Upcoming Bills
   String? _userEmail;
 
   @override
@@ -90,16 +92,25 @@ class _WalletScreenState extends State<WalletScreen> {
                           children: [
                             WalletHelper.buildActionButton(
                                 context, Icons.add, "Add", onTap: () {
-                              context.push(RoutePaths.addExpense).then((_) => _loadUser());
+                              context
+                                  .push(RoutePaths.addExpense)
+                                  .then((_) => _loadUser());
                             }),
                             WalletHelper.buildActionButton(
-                                context, Icons.qr_code_scanner, "Pay", onTap: () {
-                                  // Add Pay functionality if needed
-                                }),
+                                context, Icons.qr_code_scanner, "Pay",
+                                onTap: () {
+                              // Add Pay functionality if needed
+                            }),
                             WalletHelper.buildActionButton(
-                                context, Icons.send_outlined, "Send", onTap: () {
-                                  // Add Send functionality if needed
-                                }),
+                                context, Icons.send_outlined, "Send",
+                                onTap: () {
+                              // Add Send functionality if needed
+                            }),
+                            WalletHelper.buildActionButton(
+                                context, Icons.credit_card_rounded, "Cards",
+                                onTap: () {
+                              context.push(RoutePaths.connectWallet);
+                            }),
                           ],
                         ),
                         const SizedBox(height: 32),
@@ -177,8 +188,7 @@ class _WalletScreenState extends State<WalletScreen> {
           children: [
             Text(
               "Total Balance",
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: c.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(color: c.textSecondary),
             ),
             const SizedBox(height: 8),
             Text(
@@ -230,10 +240,12 @@ class _WalletScreenState extends State<WalletScreen> {
                 amount: expense.amount.toStringAsFixed(2),
                 isIncome: expense.isIncome,
                 onEdit: () {
-                  context.push<bool>(
-                    RoutePaths.addExpense,
-                    extra: expense,
-                  ).then((_) => _loadUser());
+                  context
+                      .push<bool>(
+                        RoutePaths.addExpense,
+                        extra: expense,
+                      )
+                      .then((_) => _loadUser());
                 },
               );
             },
@@ -248,8 +260,8 @@ class _WalletScreenState extends State<WalletScreen> {
     // 1. Update bill status
     await sl<DatabaseHelper>().updateBill(bill.copyWith(isPaid: true));
 
-    // 2. Auto-Expense: Create a transaction automatically
-    final transaction = TransactionModel(
+    // 2. Auto-Expense: Create a transaction automatically through repository for remote sync
+    final transaction = TransactionEntity(
       title: "Paid: ${bill.title}",
       amount: bill.amount,
       date: DateTime.now(),
@@ -257,7 +269,7 @@ class _WalletScreenState extends State<WalletScreen> {
       isIncome: false,
       userEmail: bill.userEmail,
     );
-    await sl<DatabaseHelper>().insertExpense(transaction);
+    await sl<ITransactionRepository>().addTransaction(transaction);
 
     // 3. Recurring Logic: Schedule next month's bill if enabled
     if (bill.isRecurring) {

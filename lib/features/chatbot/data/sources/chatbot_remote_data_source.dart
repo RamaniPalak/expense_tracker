@@ -109,8 +109,14 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
       'safetySettings': [
         {'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_NONE'},
         {'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_NONE'},
-        {'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_NONE'},
-        {'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_NONE'},
+        {
+          'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          'threshold': 'BLOCK_NONE'
+        },
+        {
+          'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          'threshold': 'BLOCK_NONE'
+        },
       ],
     });
 
@@ -153,7 +159,8 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
           friendlyMessage =
               'API key is invalid or has been revoked. Please check your configuration.';
         } else if (response.statusCode == 429) {
-          friendlyMessage = 'AI quota exceeded. Please try again in a few minutes.';
+          friendlyMessage =
+              'AI quota exceeded. Please try again in a few minutes.';
         } else if (response.statusCode == 503) {
           friendlyMessage =
               'The AI model is currently overloaded. Please try again shortly.';
@@ -166,7 +173,8 @@ class ChatbotRemoteDataSourceImpl implements ChatbotRemoteDataSource {
           friendlyMessage = 'AI error (${response.statusCode}): $apiMessage';
         }
       } catch (_) {
-        friendlyMessage = 'AI error (${response.statusCode}). Please try again.';
+        friendlyMessage =
+            'AI error (${response.statusCode}). Please try again.';
       }
       throw Exception(friendlyMessage);
     }

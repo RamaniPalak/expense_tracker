@@ -3,7 +3,8 @@ import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/core/constants/app_text_styles.dart';
 import 'package:expense_tracker/services/database_helper.dart';
 import 'package:expense_tracker/features/bills/data/models/bill_model.dart';
-import 'package:expense_tracker/features/transactions/data/models/transaction_model.dart';
+import 'package:expense_tracker/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/features/auth/domain/repositories/auth_repository.dart';
 import 'package:expense_tracker/core/di/injection_container.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +75,8 @@ class _BillsScreenState extends State<BillsScreen> {
               ...upcoming.map((bill) => _BillCard(
                     bill: bill,
                     onMarkPaid: () => _markAsPaid(bill),
-                    onTap: () => context.push(RoutePaths.billDetail, extra: bill),
+                    onTap: () =>
+                        context.push(RoutePaths.billDetail, extra: bill),
                   )),
             ],
             if (paid.isNotEmpty) ...[
@@ -83,7 +85,8 @@ class _BillsScreenState extends State<BillsScreen> {
               ...paid.map((bill) => _BillCard(
                     bill: bill,
                     isPaid: true,
-                    onTap: () => context.push(RoutePaths.billDetail, extra: bill),
+                    onTap: () =>
+                        context.push(RoutePaths.billDetail, extra: bill),
                   )),
             ],
             const SizedBox(height: 80),
@@ -97,8 +100,8 @@ class _BillsScreenState extends State<BillsScreen> {
     // 1. Update bill status
     await sl<DatabaseHelper>().updateBill(bill.copyWith(isPaid: true));
 
-    // 2. Auto-Expense: Create a transaction automatically
-    final transaction = TransactionModel(
+    // 2. Auto-Expense: Create a transaction automatically through repository for remote sync
+    final transaction = TransactionEntity(
       title: "Paid: ${bill.title}",
       amount: bill.amount,
       date: DateTime.now(),
@@ -106,14 +109,15 @@ class _BillsScreenState extends State<BillsScreen> {
       isIncome: false,
       userEmail: bill.userEmail,
     );
-    await sl<DatabaseHelper>().insertExpense(transaction);
+    await sl<ITransactionRepository>().addTransaction(transaction);
 
     // 3. Recurring Logic: Schedule next month's bill if enabled
     if (bill.isRecurring) {
       // Use Duration-based addition to safely handle month overflow (e.g. Jan 31 + 1 month)
       final currentDue = bill.dueDate;
       final nextMonth = DateTime(currentDue.year, currentDue.month + 1, 1);
-      final lastDayOfNextMonth = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
+      final lastDayOfNextMonth =
+          DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
       final nextDueDate = DateTime(
         nextMonth.year,
         nextMonth.month,
@@ -188,7 +192,8 @@ class _BillsHeader extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 "Bill Management",
-                style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 22),
+                style: AppTextStyles.heading1
+                    .copyWith(color: Colors.white, fontSize: 22),
               ),
               Text(
                 "Never miss a payment again",
@@ -271,7 +276,8 @@ class _BillCard extends StatelessWidget {
     final c = context.appColors;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final dueDay = DateTime(bill.dueDate.year, bill.dueDate.month, bill.dueDate.day);
+    final dueDay =
+        DateTime(bill.dueDate.year, bill.dueDate.month, bill.dueDate.day);
     final diff = dueDay.difference(today).inDays;
     final isOverdue = !isPaid && diff < 0;
     final isUrgent = !isPaid && diff <= 3;
@@ -297,15 +303,17 @@ class _BillCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    (isPaid ? Colors.green : (isUrgent ? Colors.red : AppColors.primary))
-                        .withAlpha(25),
+                color: (isPaid
+                        ? Colors.green
+                        : (isUrgent ? Colors.red : AppColors.primary))
+                    .withAlpha(25),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isPaid ? Icons.check_circle : Icons.calendar_today,
-                color:
-                    isPaid ? Colors.green : (isUrgent ? Colors.red : AppColors.primary),
+                color: isPaid
+                    ? Colors.green
+                    : (isUrgent ? Colors.red : AppColors.primary),
               ),
             ),
             const SizedBox(width: 16),
@@ -341,7 +349,8 @@ class _BillCard extends StatelessWidget {
                 Text(
                   "₹ ${bill.amount.toStringAsFixed(0)}",
                   style: AppTextStyles.heading2.copyWith(
-                      color: isPaid ? Colors.green : c.textPrimary, fontSize: 18),
+                      color: isPaid ? Colors.green : c.textPrimary,
+                      fontSize: 18),
                 ),
                 if (!isPaid)
                   TextButton(

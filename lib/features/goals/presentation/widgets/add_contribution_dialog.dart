@@ -18,7 +18,8 @@ class AddContributionDialog extends StatefulWidget {
     this.isDeposit = true,
   });
 
-  static Future<bool?> show(BuildContext context, {required GoalModel goal, bool isDeposit = true}) {
+  static Future<bool?> show(BuildContext context,
+      {required GoalModel goal, bool isDeposit = true}) {
     return showDialog<bool>(
       context: context,
       builder: (_) => AddContributionDialog(goal: goal, isDeposit: isDeposit),
@@ -97,7 +98,9 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
         goalId: widget.goal.id!,
         amount: amount,
         date: DateTime.now(),
-        note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        note: _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
         type: widget.isDeposit ? 'deposit' : 'withdrawal',
         userEmail: userEmail,
       );
@@ -133,11 +136,14 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isDeposit ? AppColors.incomeGreen : AppColors.expenseRed).withAlpha(30),
+              color: (isDeposit ? AppColors.incomeGreen : AppColors.expenseRed)
+                  .withAlpha(30),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isDeposit ? Icons.add_circle_outline : Icons.remove_circle_outline,
+              isDeposit
+                  ? Icons.add_circle_outline
+                  : Icons.remove_circle_outline,
               color: isDeposit ? AppColors.incomeGreen : AppColors.expenseRed,
             ),
           ),
@@ -145,7 +151,8 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
           Expanded(
             child: Text(
               isDeposit ? 'Deposit to Goal' : 'Withdraw from Goal',
-              style: AppTextStyles.heading2.copyWith(fontSize: 18, color: c.textPrimary),
+              style: AppTextStyles.heading2
+                  .copyWith(fontSize: 18, color: c.textPrimary),
             ),
           ),
         ],
@@ -166,13 +173,16 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             autofocus: true,
-            style: AppTextStyles.heading1.copyWith(fontSize: 24, color: c.textPrimary),
+            style: AppTextStyles.heading1
+                .copyWith(fontSize: 24, color: c.textPrimary),
             decoration: InputDecoration(
               prefixText: '₹ ',
-              prefixStyle: AppTextStyles.heading1.copyWith(fontSize: 24, color: c.primary),
+              prefixStyle: AppTextStyles.heading1
+                  .copyWith(fontSize: 24, color: c.primary),
               hintText: '0.00',
               labelText: 'Amount',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
           const SizedBox(height: 10),
@@ -192,14 +202,16 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
                   const SizedBox(width: 6),
                   _buildPresetChip(
                     widget.goal.remainingAmount.toStringAsFixed(0),
-                    label: 'Remaining (₹${widget.goal.remainingAmount.toStringAsFixed(0)})',
+                    label:
+                        'Remaining (₹${widget.goal.remainingAmount.toStringAsFixed(0)})',
                   ),
                 ],
                 if (!isDeposit && widget.goal.currentAmount > 0) ...[
                   const SizedBox(width: 6),
                   _buildPresetChip(
                     widget.goal.currentAmount.toStringAsFixed(0),
-                    label: 'Withdraw All (₹${widget.goal.currentAmount.toStringAsFixed(0)})',
+                    label:
+                        'Withdraw All (₹${widget.goal.currentAmount.toStringAsFixed(0)})',
                   ),
                 ],
               ],
@@ -211,9 +223,12 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
             style: TextStyle(color: c.textPrimary),
             decoration: InputDecoration(
               labelText: 'Note (optional)',
-              hintText: isDeposit ? 'e.g. Monthly savings bonus' : 'e.g. Emergency expense',
+              hintText: isDeposit
+                  ? 'e.g. Monthly savings bonus'
+                  : 'e.g. Emergency expense',
               prefixIcon: const Icon(Icons.note_alt_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
         ],
@@ -226,16 +241,19 @@ class _AddContributionDialogState extends State<AddContributionDialog> {
         ElevatedButton(
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isDeposit ? AppColors.incomeGreen : AppColors.expenseRed,
+            backgroundColor:
+                isDeposit ? AppColors.incomeGreen : AppColors.expenseRed,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           child: _isLoading
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2),
                 )
               : Text(isDeposit ? 'Add Deposit' : 'Withdraw'),
         ),

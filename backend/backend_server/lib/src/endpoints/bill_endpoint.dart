@@ -26,9 +26,16 @@ CREATE TABLE IF NOT EXISTS "bill_entry" (
     }
   }
 
-  Future<String> addBillEntry(Session session, String userEmail, String title,
-      double amount, String dueDate, String? endDate, String category,
-      bool isPaid, bool isRecurring) async {
+  Future<String> addBillEntry(
+      Session session,
+      String userEmail,
+      String title,
+      double amount,
+      String dueDate,
+      String? endDate,
+      String category,
+      bool isPaid,
+      bool isRecurring) async {
     await _ensureTableExists(session);
     final cleanEmail = userEmail.trim().toLowerCase();
     final safeTitle = title.replaceAll("'", "''");
@@ -54,9 +61,15 @@ SET "amount" = $amount,
 WHERE "id" = $id;
 """);
       return jsonEncode({
-        'id': id, 'userEmail': cleanEmail, 'title': title,
-        'amount': amount, 'dueDate': dueDate, 'endDate': endDate,
-        'category': category, 'isPaid': isPaid, 'isRecurring': isRecurring,
+        'id': id,
+        'userEmail': cleanEmail,
+        'title': title,
+        'amount': amount,
+        'dueDate': dueDate,
+        'endDate': endDate,
+        'category': category,
+        'isPaid': isPaid,
+        'isRecurring': isRecurring,
       });
     } else {
       final result = await session.db.unsafeQuery("""
@@ -66,16 +79,28 @@ RETURNING id;
 """);
       final id = result.first.first as int;
       return jsonEncode({
-        'id': id, 'userEmail': cleanEmail, 'title': title,
-        'amount': amount, 'dueDate': dueDate, 'endDate': endDate,
-        'category': category, 'isPaid': isPaid, 'isRecurring': isRecurring,
+        'id': id,
+        'userEmail': cleanEmail,
+        'title': title,
+        'amount': amount,
+        'dueDate': dueDate,
+        'endDate': endDate,
+        'category': category,
+        'isPaid': isPaid,
+        'isRecurring': isRecurring,
       });
     }
   }
 
-  Future<String> updateBillEntry(Session session, int remoteId,
-      double amount, String dueDate, String? endDate, String category,
-      bool isPaid, bool isRecurring) async {
+  Future<String> updateBillEntry(
+      Session session,
+      int remoteId,
+      double amount,
+      String dueDate,
+      String? endDate,
+      String category,
+      bool isPaid,
+      bool isRecurring) async {
     await _ensureTableExists(session);
     final safeCategory = category.replaceAll("'", "''");
     final endDateSql = endDate != null ? "'$endDate'" : 'NULL';
@@ -94,8 +119,8 @@ WHERE "id" = $remoteId;
 
   Future<bool> deleteBillEntry(Session session, int remoteId) async {
     await _ensureTableExists(session);
-    await session.db.unsafeQuery(
-        'DELETE FROM "bill_entry" WHERE "id" = $remoteId;');
+    await session.db
+        .unsafeQuery('DELETE FROM "bill_entry" WHERE "id" = $remoteId;');
     return true;
   }
 

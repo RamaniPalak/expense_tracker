@@ -11,9 +11,9 @@ import 'package:expense_tracker/features/notifications/data/models/app_notificat
 
 // ── SharedPreferences keys ─────────────────────────────────────────────────────
 const String _kDailyReminderEnabled = 'notif_daily_reminder_enabled';
-const String _kDailyReminderHour    = 'notif_daily_reminder_hour';
-const String _kDailyReminderMinute  = 'notif_daily_reminder_minute';
-const String _kBillReminderEnabled  = 'notif_bill_reminder_enabled';
+const String _kDailyReminderHour = 'notif_daily_reminder_hour';
+const String _kDailyReminderMinute = 'notif_daily_reminder_minute';
+const String _kBillReminderEnabled = 'notif_bill_reminder_enabled';
 
 // ── Notification IDs ───────────────────────────────────────────────────────────
 const int _kDailyReminderId = 0; // reserved for the daily reminder
@@ -33,7 +33,8 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // iOS settings
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -57,9 +58,11 @@ class NotificationService {
     try {
       final String timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));
-      debugPrint('[NotificationService] Local timezone initialized to: $timeZoneName');
+      debugPrint(
+          '[NotificationService] Local timezone initialized to: $timeZoneName');
     } catch (e) {
-      debugPrint('[NotificationService] Could not set local timezone, fallback: $e');
+      debugPrint(
+          '[NotificationService] Could not set local timezone, fallback: $e');
     }
 
     await requestPermissions();
@@ -71,8 +74,9 @@ class NotificationService {
   // ── Create Notification Channels for Android ───────────────────────────
   Future<void> _createNotificationChannels() async {
     if (!Platform.isAndroid) return;
-    final androidImpl = _notificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
     const dailyChannel = AndroidNotificationChannel(
       'daily_reminder_channel',
@@ -95,7 +99,8 @@ class NotificationService {
     const budgetChannel = AndroidNotificationChannel(
       'budget_alerts_channel',
       'Budget & Overspending Alerts',
-      description: 'Alerts when approaching or exceeding category budget limits',
+      description:
+          'Alerts when approaching or exceeding category budget limits',
       importance: Importance.max,
       playSound: true,
       enableVibration: true,
@@ -118,14 +123,14 @@ class NotificationService {
 
     if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImpl =
-          _notificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>();
+          _notificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
       await androidImpl?.requestNotificationsPermission();
       await androidImpl?.requestExactAlarmsPermission();
     } else if (Platform.isIOS) {
-      final iosImpl = _notificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final iosImpl =
+          _notificationsPlugin.resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>();
       await iosImpl?.requestPermissions(
         alert: true,
         badge: true,
@@ -170,7 +175,7 @@ class NotificationService {
     await prefs.setBool(_kDailyReminderEnabled, enabled);
 
     if (enabled) {
-      final hour   = await getDailyReminderHour();
+      final hour = await getDailyReminderHour();
       final minute = await getDailyReminderMinute();
       await _scheduleDailyReminder(hour: hour, minute: minute);
     } else {
@@ -212,7 +217,8 @@ class NotificationService {
   /// Instantly show a test notification banner (useful for immediate local verification)
   Future<void> showInstantTestNotification({
     String title = '💰 Daily Expense Check-In (Test)',
-    String body = "Don't forget to log today's expenses. Stay on top of your budget!",
+    String body =
+        "Don't forget to log today's expenses. Stay on top of your budget!",
   }) async {
     await _notificationsPlugin.show(
       999,
@@ -265,7 +271,8 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'daily_reminder_channel',
           'Expense Tracker Alerts',
-          channelDescription: 'Notifications for budget limits, bills, and reminders',
+          channelDescription:
+              'Notifications for budget limits, bills, and reminders',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
@@ -318,9 +325,10 @@ class NotificationService {
     // Cancel any previous daily notification first
     await _notificationsPlugin.cancel(_kDailyReminderId);
 
-    final now       = tz.TZDateTime.now(tz.local);
-    var scheduled   = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+
     // If the scheduled time is earlier than or equal to current local time, schedule for tomorrow
     if (scheduled.isBefore(now) || scheduled.isAtSameMomentAs(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
@@ -349,7 +357,8 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
-      debugPrint('[NotificationService] Daily reminder scheduled exact at $scheduled (Local: ${tz.local.name})');
+      debugPrint(
+          '[NotificationService] Daily reminder scheduled exact at $scheduled (Local: ${tz.local.name})');
     } catch (e) {
       // Fallback if exact alarms permission is disabled by user in OS settings
       await _notificationsPlugin.zonedSchedule(
@@ -374,7 +383,8 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
-      debugPrint('[NotificationService] Daily reminder scheduled inexact fallback: $e');
+      debugPrint(
+          '[NotificationService] Daily reminder scheduled inexact fallback: $e');
     }
   }
 
@@ -382,7 +392,7 @@ class NotificationService {
   Future<void> _restoreDailyReminderIfEnabled() async {
     final enabled = await isDailyReminderEnabled();
     if (enabled) {
-      final hour   = await getDailyReminderHour();
+      final hour = await getDailyReminderHour();
       final minute = await getDailyReminderMinute();
       await _scheduleDailyReminder(hour: hour, minute: minute);
     }

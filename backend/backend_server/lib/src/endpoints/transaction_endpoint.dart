@@ -27,7 +27,8 @@ class ExpenseEntryEndpoint extends Endpoint {
     final cleanEmail = userEmail.trim().toLowerCase();
     return await ExpenseEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
+      where: (t) =>
+          t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
       orderBy: (t) => t.date,
       orderDescending: true,
     );

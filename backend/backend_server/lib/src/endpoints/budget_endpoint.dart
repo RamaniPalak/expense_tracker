@@ -24,11 +24,10 @@ CREATE TABLE IF NOT EXISTS "budget_entry" (
     }
   }
 
-  Future<BudgetEntry> addBudgetEntry(
-      Session session, BudgetEntry entry) async {
+  Future<BudgetEntry> addBudgetEntry(Session session, BudgetEntry entry) async {
     await _ensureTableExists(session);
     entry.userEmail = entry.userEmail.trim().toLowerCase();
-    
+
     // Check if a budget entry already exists for the same category, month, year, and email
     final existing = await BudgetEntry.db.find(
       session,
@@ -69,7 +68,8 @@ CREATE TABLE IF NOT EXISTS "budget_entry" (
     final cleanEmail = userEmail.trim().toLowerCase();
     return await BudgetEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
+      where: (t) =>
+          t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
     );
   }
 
@@ -90,8 +90,8 @@ CREATE TABLE IF NOT EXISTS "monthly_budget_entry" (
     }
   }
 
-  Future<String> addMonthlyBudgetEntry(
-      Session session, String userEmail, double amount, int month, int year) async {
+  Future<String> addMonthlyBudgetEntry(Session session, String userEmail,
+      double amount, int month, int year) async {
     await _ensureMonthlyTableExists(session);
     final cleanEmail = userEmail.trim().toLowerCase();
 
@@ -107,7 +107,13 @@ UPDATE "monthly_budget_entry"
 SET "amount" = $amount
 WHERE "id" = $id;
 ''');
-      return jsonEncode({'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year});
+      return jsonEncode({
+        'id': id,
+        'userEmail': cleanEmail,
+        'amount': amount,
+        'month': month,
+        'year': year
+      });
     } else {
       final result = await session.db.unsafeQuery('''
 INSERT INTO "monthly_budget_entry" ("userEmail", "amount", "month", "year")
@@ -115,7 +121,13 @@ VALUES ('$cleanEmail', $amount, $month, $year)
 RETURNING id;
 ''');
       final id = result.first.first as int;
-      return jsonEncode({'id': id, 'userEmail': cleanEmail, 'amount': amount, 'month': month, 'year': year});
+      return jsonEncode({
+        'id': id,
+        'userEmail': cleanEmail,
+        'amount': amount,
+        'month': month,
+        'year': year
+      });
     }
   }
 
@@ -128,13 +140,15 @@ SELECT id, "userEmail", amount, month, year FROM "monthly_budget_entry"
 WHERE LOWER(TRIM("userEmail")) = '$cleanEmail';
 ''');
 
-    final list = result.map((row) => {
-      'id': row[0] as int,
-      'userEmail': row[1] as String,
-      'amount': (row[2] as num).toDouble(),
-      'month': (row[3] as num).toInt(),
-      'year': (row[4] as num).toInt(),
-    }).toList();
+    final list = result
+        .map((row) => {
+              'id': row[0] as int,
+              'userEmail': row[1] as String,
+              'amount': (row[2] as num).toDouble(),
+              'month': (row[3] as num).toInt(),
+              'year': (row[4] as num).toInt(),
+            })
+        .toList();
     return jsonEncode(list);
   }
 }

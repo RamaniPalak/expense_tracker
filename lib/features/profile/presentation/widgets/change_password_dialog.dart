@@ -79,7 +79,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         "Change Password",
-        style: AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
+        style:
+            AppTextStyles.heading2.copyWith(color: c.textPrimary, fontSize: 20),
       ),
       content: Form(
         key: _formKey,
@@ -90,7 +91,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
             children: [
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.error.withAlpha(25),
                     borderRadius: BorderRadius.circular(8),
@@ -98,7 +100,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                   ),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: AppColors.error, fontSize: 13),
+                    style:
+                        const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -218,7 +221,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
           child: _isLoading
@@ -232,7 +236,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 )
               : const Text(
                   "Update",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
         ),
       ],

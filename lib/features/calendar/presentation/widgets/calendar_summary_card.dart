@@ -52,7 +52,8 @@ class CalendarSummaryCard extends StatelessWidget {
           _buildSummaryColumn(
             context,
             label: "Savings",
-            value: "${savings < 0 ? '-' : ''}₹${savings.abs().toStringAsFixed(2)}",
+            value:
+                "${savings < 0 ? '-' : ''}₹${savings.abs().toStringAsFixed(2)}",
             valueColor: isDark ? Colors.white : AppColors.textPrimary,
           ),
         ],

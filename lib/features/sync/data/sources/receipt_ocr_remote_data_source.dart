@@ -99,7 +99,8 @@ class GenkitReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
       );
       return result;
     } else if (response.statusCode == 413) {
-      throw Exception('Image is too large. Please use a lower-quality photo and try again.');
+      throw Exception(
+          'Image is too large. Please use a lower-quality photo and try again.');
     } else {
       String message = 'Scan failed (${response.statusCode})';
       try {
@@ -117,8 +118,7 @@ class GenkitReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
     final uri = Uri.parse(data);
     final merchantName =
         Uri.decodeComponent(uri.queryParameters['pn'] ?? 'UPI Merchant');
-    final amount =
-        double.tryParse(uri.queryParameters['am'] ?? '0') ?? 0.0;
+    final amount = double.tryParse(uri.queryParameters['am'] ?? '0') ?? 0.0;
 
     return ReceiptOcrResult(
       category: _inferCategoryFromName(merchantName),
@@ -306,7 +306,7 @@ class DirectGeminiReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
         },
       ],
       'generationConfig': {
-        'temperature': 0.1,         // Low = deterministic extraction
+        'temperature': 0.1, // Low = deterministic extraction
         'maxOutputTokens': 512,
         'responseMimeType': 'application/json', // Forces clean JSON output
       },
@@ -326,60 +326,61 @@ class DirectGeminiReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
           ),
         );
 
-      // 5. Parse response
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body) as Map<String, dynamic>;
-        final candidates = responseData['candidates'] as List?;
+    // 5. Parse response
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      final candidates = responseData['candidates'] as List?;
 
-        if (candidates == null || candidates.isEmpty) {
-          throw Exception('Gemini returned no response. Please try again.');
+      if (candidates == null || candidates.isEmpty) {
+        throw Exception('Gemini returned no response. Please try again.');
+      }
+
+      final content = candidates[0]['content'] as Map<String, dynamic>?;
+      final parts = content?['parts'] as List?;
+      final rawText = parts?.first['text'] as String? ?? '';
+
+      if (rawText.isEmpty) {
+        throw Exception('Gemini returned an empty response. Please try again.');
+      }
+
+      // ── Clean & Sanitize Gemini JSON output ──────────────────────────────
+      String cleanText = rawText.trim();
+
+      // 1. Remove markdown code fences if present (e.g. ```json ... ```)
+      if (cleanText.startsWith('```')) {
+        cleanText = cleanText
+            .replaceAll(RegExp(r'^```(?:json)?\s*', caseSensitive: false), '')
+            .replaceAll(RegExp(r'\s*```$', caseSensitive: false), '')
+            .trim();
+      }
+
+      // 2. Extract JSON object between first '{' and last '}'
+      final start = cleanText.indexOf('{');
+      final end = cleanText.lastIndexOf('}');
+      if (start != -1 && end != -1 && end >= start) {
+        cleanText = cleanText.substring(start, end + 1);
+      }
+
+      Map<String, dynamic> jsonData;
+      try {
+        jsonData = jsonDecode(cleanText) as Map<String, dynamic>;
+      } catch (e) {
+        log('[OCR-Direct] jsonDecode failed on text: "$cleanText" (Error: $e). Using regex fallback parser...');
+        jsonData = _fallbackExtractJson(rawText);
+        if (jsonData.isEmpty) {
+          throw Exception(
+              'Could not parse receipt data from Gemini response: $e');
         }
+      }
 
-        final content = candidates[0]['content'] as Map<String, dynamic>?;
-        final parts = content?['parts'] as List?;
-        final rawText = parts?.first['text'] as String? ?? '';
+      final result = ReceiptOcrResult.fromJson(jsonData);
 
-        if (rawText.isEmpty) {
-          throw Exception('Gemini returned an empty response. Please try again.');
-        }
-
-        // ── Clean & Sanitize Gemini JSON output ──────────────────────────────
-        String cleanText = rawText.trim();
-
-        // 1. Remove markdown code fences if present (e.g. ```json ... ```)
-        if (cleanText.startsWith('```')) {
-          cleanText = cleanText
-              .replaceAll(RegExp(r'^```(?:json)?\s*', caseSensitive: false), '')
-              .replaceAll(RegExp(r'\s*```$', caseSensitive: false), '')
-              .trim();
-        }
-
-        // 2. Extract JSON object between first '{' and last '}'
-        final start = cleanText.indexOf('{');
-        final end = cleanText.lastIndexOf('}');
-        if (start != -1 && end != -1 && end >= start) {
-          cleanText = cleanText.substring(start, end + 1);
-        }
-
-        Map<String, dynamic> jsonData;
-        try {
-          jsonData = jsonDecode(cleanText) as Map<String, dynamic>;
-        } catch (e) {
-          log('[OCR-Direct] jsonDecode failed on text: "$cleanText" (Error: $e). Using regex fallback parser...');
-          jsonData = _fallbackExtractJson(rawText);
-          if (jsonData.isEmpty) {
-            throw Exception('Could not parse receipt data from Gemini response: $e');
-          }
-        }
-
-        final result = ReceiptOcrResult.fromJson(jsonData);
-
-        log(
-          '[OCR-Direct] ✅ ${result.title} • ₹${result.amount} • '
-          '${result.category} • date=${result.date} • confidence=${result.confidence}',
-        );
-        return result;
-      } else {
+      log(
+        '[OCR-Direct] ✅ ${result.title} • ₹${result.amount} • '
+        '${result.category} • date=${result.date} • confidence=${result.confidence}',
+      );
+      return result;
+    } else {
       // Map common Gemini error codes to friendly messages
       String message;
       try {
@@ -419,30 +420,42 @@ class DirectGeminiReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
 
   String _inferCategoryFromName(String name) {
     final lower = name.toLowerCase();
-    if (lower.contains('uber') || lower.contains('ola') ||
-        lower.contains('fuel') || lower.contains('petrol')) {
+    if (lower.contains('uber') ||
+        lower.contains('ola') ||
+        lower.contains('fuel') ||
+        lower.contains('petrol')) {
       return AppStrings.catAutomobile;
     }
-    if (lower.contains('food') || lower.contains('restaurant') ||
-        lower.contains('zomato') || lower.contains('swiggy') ||
+    if (lower.contains('food') ||
+        lower.contains('restaurant') ||
+        lower.contains('zomato') ||
+        lower.contains('swiggy') ||
         lower.contains('blinkit')) {
       return AppStrings.catFoodDining;
     }
-    if (lower.contains('amazon') || lower.contains('flipkart') ||
-        lower.contains('myntra') || lower.contains('meesho')) {
+    if (lower.contains('amazon') ||
+        lower.contains('flipkart') ||
+        lower.contains('myntra') ||
+        lower.contains('meesho')) {
       return AppStrings.catGifts;
     }
-    if (lower.contains('netflix') || lower.contains('prime') ||
-        lower.contains('hotstar') || lower.contains('spotify')) {
+    if (lower.contains('netflix') ||
+        lower.contains('prime') ||
+        lower.contains('hotstar') ||
+        lower.contains('spotify')) {
       return AppStrings.catEntertainment;
     }
-    if (lower.contains('electricity') || lower.contains('water') ||
-        lower.contains('gas') || lower.contains('broadband') ||
+    if (lower.contains('electricity') ||
+        lower.contains('water') ||
+        lower.contains('gas') ||
+        lower.contains('broadband') ||
         lower.contains('internet')) {
       return AppStrings.catBills;
     }
-    if (lower.contains('hospital') || lower.contains('clinic') ||
-        lower.contains('pharmacy') || lower.contains('medical')) {
+    if (lower.contains('hospital') ||
+        lower.contains('clinic') ||
+        lower.contains('pharmacy') ||
+        lower.contains('medical')) {
       return AppStrings.catHealth;
     }
     return AppStrings.catFoodDining;
@@ -481,29 +494,25 @@ class DirectGeminiReceiptOcrDataSourceImpl implements ReceiptOcrDataSource {
     }
 
     // Extract date
-    final dateMatch =
-        RegExp(r'"date"\s*:\s*"([^"]+)"').firstMatch(text);
+    final dateMatch = RegExp(r'"date"\s*:\s*"([^"]+)"').firstMatch(text);
     if (dateMatch != null) {
       result['date'] = dateMatch.group(1)?.trim();
     }
 
     // Extract category
-    final catMatch =
-        RegExp(r'"category"\s*:\s*"([^"]+)"').firstMatch(text);
+    final catMatch = RegExp(r'"category"\s*:\s*"([^"]+)"').firstMatch(text);
     if (catMatch != null) {
       result['category'] = catMatch.group(1)?.trim();
     }
 
     // Extract isIncome
-    final incMatch =
-        RegExp(r'"isIncome"\s*:\s*(true|false)').firstMatch(text);
+    final incMatch = RegExp(r'"isIncome"\s*:\s*(true|false)').firstMatch(text);
     if (incMatch != null) {
       result['isIncome'] = incMatch.group(1) == 'true';
     }
 
     // Extract confidence
-    final confMatch =
-        RegExp(r'"confidence"\s*:\s*([\d\.]+)').firstMatch(text);
+    final confMatch = RegExp(r'"confidence"\s*:\s*([\d\.]+)').firstMatch(text);
     if (confMatch != null) {
       result['confidence'] = double.tryParse(confMatch.group(1)!) ?? 1.0;
     }

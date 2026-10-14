@@ -111,7 +111,7 @@ class _MonthHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: c.tabBg,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
             child: Text(
               '$count',
@@ -241,7 +241,7 @@ class TransactionBlocListView extends StatelessWidget {
     return BlocBuilder<TransactionBloc, TransactionState>(
       builder: (context, state) {
         if (state is TransactionLoading || state is TransactionInitial) {
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
@@ -264,10 +264,10 @@ class TransactionBlocListView extends StatelessWidget {
             onReload: onReload,
           );
         }
-        // If operation success, we are likely about to reload, 
-        // so keep showing loading or the previous list could be better, 
+        // If operation success, we are likely about to reload,
+        // so keep showing loading or the previous list could be better,
         // but for now, show loading.
-        return Center(
+        return const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         );
       },

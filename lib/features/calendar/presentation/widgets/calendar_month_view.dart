@@ -53,7 +53,8 @@ class CalendarMonthView extends StatelessWidget {
   Widget _buildMonthGrid(BuildContext context) {
     final firstDay = DateTime(currentMonthYear.year, currentMonthYear.month, 1);
     final startOffset = firstDay.weekday % 7; // Sunday starts at 0
-    final daysInMonth = DateTime(currentMonthYear.year, currentMonthYear.month + 1, 0).day;
+    final daysInMonth =
+        DateTime(currentMonthYear.year, currentMonthYear.month + 1, 0).day;
     final totalCells = startOffset + daysInMonth;
 
     return GridView.builder(
@@ -71,7 +72,8 @@ class CalendarMonthView extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final dayNumber = index - startOffset + 1;
-        final cellDate = DateTime(currentMonthYear.year, currentMonthYear.month, dayNumber);
+        final cellDate =
+            DateTime(currentMonthYear.year, currentMonthYear.month, dayNumber);
         final isSelected = selectedDate != null &&
             selectedDate!.year == cellDate.year &&
             selectedDate!.month == cellDate.month &&

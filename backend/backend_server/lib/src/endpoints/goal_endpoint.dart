@@ -63,18 +63,21 @@ CREATE TABLE IF NOT EXISTS "goal_contribution_entry" (
     return result.isNotEmpty;
   }
 
-  Future<List<GoalEntry>> getGoalEntries(Session session, String userEmail) async {
+  Future<List<GoalEntry>> getGoalEntries(
+      Session session, String userEmail) async {
     await _ensureTablesExist(session);
     final cleanEmail = userEmail.trim().toLowerCase();
     return await GoalEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
+      where: (t) =>
+          t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
       orderBy: (t) => t.targetDate,
       orderDescending: false,
     );
   }
 
-  Future<GoalContributionEntry> addGoalContribution(Session session, GoalContributionEntry entry) async {
+  Future<GoalContributionEntry> addGoalContribution(
+      Session session, GoalContributionEntry entry) async {
     await _ensureTablesExist(session);
     entry.userEmail = entry.userEmail.trim().toLowerCase();
     return await GoalContributionEntry.db.insertRow(session, entry);
@@ -89,12 +92,14 @@ CREATE TABLE IF NOT EXISTS "goal_contribution_entry" (
     return result.isNotEmpty;
   }
 
-  Future<List<GoalContributionEntry>> getGoalContributions(Session session, String userEmail) async {
+  Future<List<GoalContributionEntry>> getGoalContributions(
+      Session session, String userEmail) async {
     await _ensureTablesExist(session);
     final cleanEmail = userEmail.trim().toLowerCase();
     return await GoalContributionEntry.db.find(
       session,
-      where: (t) => t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
+      where: (t) =>
+          t.userEmail.equals(cleanEmail) | t.userEmail.ilike(cleanEmail),
       orderBy: (t) => t.date,
       orderDescending: true,
     );

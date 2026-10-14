@@ -92,9 +92,8 @@ Widget _buildViewModeOption(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : c.tabBg,
+          color:
+              isSelected ? AppColors.primary.withValues(alpha: 0.1) : c.tabBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.transparent,
