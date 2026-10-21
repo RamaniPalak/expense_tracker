@@ -108,6 +108,8 @@ void withServerpod(
 class TestEndpoints {
   late final _AuthEndpoint auth;
 
+  late final _BillEntryEndpoint billEntry;
+
   late final _BudgetEntryEndpoint budgetEntry;
 
   late final _GoalEntryEndpoint goalEntry;
@@ -123,6 +125,10 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.EndpointDispatch endpoints,
   ) {
     auth = _AuthEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    billEntry = _BillEntryEndpoint(
       endpoints,
       serializationManager,
     );
@@ -282,6 +288,227 @@ class _AuthEndpoint {
       }
     });
   }
+
+  _i3.Future<String?> requestPasswordReset(
+    _i1.TestSessionBuilder sessionBuilder,
+    String email,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'auth',
+        method: 'requestPasswordReset',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'auth',
+          methodName: 'requestPasswordReset',
+          parameters: _i1.testObjectToJson({'email': email}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> verifyOtpAndResetPassword(
+    _i1.TestSessionBuilder sessionBuilder,
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'auth',
+        method: 'verifyOtpAndResetPassword',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'auth',
+          methodName: 'verifyOtpAndResetPassword',
+          parameters: _i1.testObjectToJson({
+            'email': email,
+            'otp': otp,
+            'newPassword': newPassword,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _BillEntryEndpoint {
+  _BillEntryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<String> addBillEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+    String title,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'billEntry',
+        method: 'addBillEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'billEntry',
+          methodName: 'addBillEntry',
+          parameters: _i1.testObjectToJson({
+            'userEmail': userEmail,
+            'title': title,
+            'amount': amount,
+            'dueDate': dueDate,
+            'endDate': endDate,
+            'category': category,
+            'isPaid': isPaid,
+            'isRecurring': isRecurring,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> updateBillEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    int remoteId,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'billEntry',
+        method: 'updateBillEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'billEntry',
+          methodName: 'updateBillEntry',
+          parameters: _i1.testObjectToJson({
+            'remoteId': remoteId,
+            'amount': amount,
+            'dueDate': dueDate,
+            'endDate': endDate,
+            'category': category,
+            'isPaid': isPaid,
+            'isRecurring': isRecurring,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteBillEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    int remoteId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'billEntry',
+        method: 'deleteBillEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'billEntry',
+          methodName: 'deleteBillEntry',
+          parameters: _i1.testObjectToJson({'remoteId': remoteId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> getBillEntries(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'billEntry',
+        method: 'getBillEntries',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'billEntry',
+          methodName: 'getBillEntries',
+          parameters: _i1.testObjectToJson({'userEmail': userEmail}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _BudgetEntryEndpoint {
@@ -403,6 +630,72 @@ class _BudgetEntryEndpoint {
           _localUniqueSession,
           _localCallContext.arguments,
         ) as _i3.Future<List<_i5.BudgetEntry>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> addMonthlyBudgetEntry(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+    double amount,
+    int month,
+    int year,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'addMonthlyBudgetEntry',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'addMonthlyBudgetEntry',
+          parameters: _i1.testObjectToJson({
+            'userEmail': userEmail,
+            'amount': amount,
+            'month': month,
+            'year': year,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> getMonthlyBudgetEntries(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+        endpoint: 'budgetEntry',
+        method: 'getMonthlyBudgetEntries',
+      );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'budgetEntry',
+          methodName: 'getMonthlyBudgetEntries',
+          parameters: _i1.testObjectToJson({'userEmail': userEmail}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue = await (_localCallContext.method.call(
+          _localUniqueSession,
+          _localCallContext.arguments,
+        ) as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

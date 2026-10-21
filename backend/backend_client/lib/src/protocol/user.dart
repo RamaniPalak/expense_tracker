@@ -19,6 +19,8 @@ abstract class User implements _i1.SerializableModel {
     this.imagePath,
     required this.password,
     this.createdAt,
+    this.resetOtp,
+    this.resetOtpExpiry,
   });
 
   factory User({
@@ -28,6 +30,8 @@ abstract class User implements _i1.SerializableModel {
     String? imagePath,
     required String password,
     DateTime? createdAt,
+    String? resetOtp,
+    DateTime? resetOtpExpiry,
   }) = _UserImpl;
 
   factory User.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -40,6 +44,11 @@ abstract class User implements _i1.SerializableModel {
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      resetOtp: jsonSerialization['resetOtp'] as String?,
+      resetOtpExpiry: jsonSerialization['resetOtpExpiry'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['resetOtpExpiry']),
     );
   }
 
@@ -58,6 +67,10 @@ abstract class User implements _i1.SerializableModel {
 
   DateTime? createdAt;
 
+  String? resetOtp;
+
+  DateTime? resetOtpExpiry;
+
   /// Returns a shallow copy of this [User]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -68,6 +81,8 @@ abstract class User implements _i1.SerializableModel {
     String? imagePath,
     String? password,
     DateTime? createdAt,
+    String? resetOtp,
+    DateTime? resetOtpExpiry,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -78,6 +93,8 @@ abstract class User implements _i1.SerializableModel {
       if (imagePath != null) 'imagePath': imagePath,
       'password': password,
       if (createdAt != null) 'createdAt': createdAt?.toJson(),
+      if (resetOtp != null) 'resetOtp': resetOtp,
+      if (resetOtpExpiry != null) 'resetOtpExpiry': resetOtpExpiry?.toJson(),
     };
   }
 
@@ -97,6 +114,8 @@ class _UserImpl extends User {
     String? imagePath,
     required String password,
     DateTime? createdAt,
+    String? resetOtp,
+    DateTime? resetOtpExpiry,
   }) : super._(
           id: id,
           name: name,
@@ -104,6 +123,8 @@ class _UserImpl extends User {
           imagePath: imagePath,
           password: password,
           createdAt: createdAt,
+          resetOtp: resetOtp,
+          resetOtpExpiry: resetOtpExpiry,
         );
 
   /// Returns a shallow copy of this [User]
@@ -117,6 +138,8 @@ class _UserImpl extends User {
     Object? imagePath = _Undefined,
     String? password,
     Object? createdAt = _Undefined,
+    Object? resetOtp = _Undefined,
+    Object? resetOtpExpiry = _Undefined,
   }) {
     return User(
       id: id is int? ? id : this.id,
@@ -125,6 +148,9 @@ class _UserImpl extends User {
       imagePath: imagePath is String? ? imagePath : this.imagePath,
       password: password ?? this.password,
       createdAt: createdAt is DateTime? ? createdAt : this.createdAt,
+      resetOtp: resetOtp is String? ? resetOtp : this.resetOtp,
+      resetOtpExpiry:
+          resetOtpExpiry is DateTime? ? resetOtpExpiry : this.resetOtpExpiry,
     );
   }
 }

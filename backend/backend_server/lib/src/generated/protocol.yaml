@@ -3,11 +3,20 @@ auth:
   - login:
   - changePassword:
   - updateProfile:
+  - requestPasswordReset:
+  - verifyOtpAndResetPassword:
+billEntry:
+  - addBillEntry:
+  - updateBillEntry:
+  - deleteBillEntry:
+  - getBillEntries:
 budgetEntry:
   - addBudgetEntry:
   - updateBudgetEntry:
   - deleteBudgetEntry:
   - getBudgetEntries:
+  - addMonthlyBudgetEntry:
+  - getMonthlyBudgetEntries:
 goalEntry:
   - addGoalEntry:
   - updateGoalEntry:

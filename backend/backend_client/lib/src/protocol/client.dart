@@ -75,8 +75,9 @@ class EndpointAuth extends _i1.EndpointRef {
         },
       );
 
-  /// Requests a password reset OTP for the given email.
-  /// Returns the OTP string if email is registered, null otherwise.
+  /// Initiates a password reset for the given email.
+  /// Returns a 6-digit OTP string if the email is registered, or null if not found.
+  /// In production, this OTP should be sent via email (SMTP / SendGrid / etc.).
   _i2.Future<String?> requestPasswordReset(String email) =>
       caller.callServerEndpoint<String?>(
         'auth',
@@ -84,7 +85,7 @@ class EndpointAuth extends _i1.EndpointRef {
         {'email': email},
       );
 
-  /// Verifies OTP and resets the password.
+  /// Verifies the OTP and updates the password if valid.
   /// Returns true on success, false if OTP is wrong or expired.
   _i2.Future<bool> verifyOtpAndResetPassword(
     String email,
@@ -102,6 +103,75 @@ class EndpointAuth extends _i1.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointBillEntry extends _i1.EndpointRef {
+  EndpointBillEntry(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'billEntry';
+
+  _i2.Future<String> addBillEntry(
+    String userEmail,
+    String title,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'addBillEntry',
+        {
+          'userEmail': userEmail,
+          'title': title,
+          'amount': amount,
+          'dueDate': dueDate,
+          'endDate': endDate,
+          'category': category,
+          'isPaid': isPaid,
+          'isRecurring': isRecurring,
+        },
+      );
+
+  _i2.Future<String> updateBillEntry(
+    int remoteId,
+    double amount,
+    String dueDate,
+    String? endDate,
+    String category,
+    bool isPaid,
+    bool isRecurring,
+  ) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'updateBillEntry',
+        {
+          'remoteId': remoteId,
+          'amount': amount,
+          'dueDate': dueDate,
+          'endDate': endDate,
+          'category': category,
+          'isPaid': isPaid,
+          'isRecurring': isRecurring,
+        },
+      );
+
+  _i2.Future<bool> deleteBillEntry(int remoteId) =>
+      caller.callServerEndpoint<bool>(
+        'billEntry',
+        'deleteBillEntry',
+        {'remoteId': remoteId},
+      );
+
+  _i2.Future<String> getBillEntries(String userEmail) =>
+      caller.callServerEndpoint<String>(
+        'billEntry',
+        'getBillEntries',
+        {'userEmail': userEmail},
+      );
+}
 
 /// {@category Endpoint}
 class EndpointBudgetEntry extends _i1.EndpointRef {
@@ -137,7 +207,7 @@ class EndpointBudgetEntry extends _i1.EndpointRef {
         {'userEmail': userEmail},
       );
 
-  _i2.Future<String?> addMonthlyBudgetEntry(
+  _i2.Future<String> addMonthlyBudgetEntry(
     String userEmail,
     double amount,
     int month,
@@ -154,15 +224,11 @@ class EndpointBudgetEntry extends _i1.EndpointRef {
         },
       );
 
-  _i2.Future<String?> getMonthlyBudgetEntries(
-    String userEmail,
-  ) =>
+  _i2.Future<String> getMonthlyBudgetEntries(String userEmail) =>
       caller.callServerEndpoint<String>(
         'budgetEntry',
         'getMonthlyBudgetEntries',
-        {
-          'userEmail': userEmail,
-        },
+        {'userEmail': userEmail},
       );
 }
 
@@ -260,76 +326,6 @@ class EndpointExpenseEntry extends _i1.EndpointRef {
       );
 }
 
-/// {@category Endpoint}
-class EndpointBillEntry extends _i1.EndpointRef {
-  EndpointBillEntry(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'billEntry';
-
-  _i2.Future<String?> addBillEntry(
-    String userEmail,
-    String title,
-    double amount,
-    String dueDate,
-    String? endDate,
-    String category,
-    bool isPaid,
-    bool isRecurring,
-  ) =>
-      caller.callServerEndpoint<String>(
-        'billEntry',
-        'addBillEntry',
-        {
-          'userEmail': userEmail,
-          'title': title,
-          'amount': amount,
-          'dueDate': dueDate,
-          'endDate': endDate,
-          'category': category,
-          'isPaid': isPaid,
-          'isRecurring': isRecurring,
-        },
-      );
-
-  _i2.Future<String?> updateBillEntry(
-    int remoteId,
-    double amount,
-    String dueDate,
-    String? endDate,
-    String category,
-    bool isPaid,
-    bool isRecurring,
-  ) =>
-      caller.callServerEndpoint<String>(
-        'billEntry',
-        'updateBillEntry',
-        {
-          'remoteId': remoteId,
-          'amount': amount,
-          'dueDate': dueDate,
-          'endDate': endDate,
-          'category': category,
-          'isPaid': isPaid,
-          'isRecurring': isRecurring,
-        },
-      );
-
-  _i2.Future<bool> deleteBillEntry(int remoteId) =>
-      caller.callServerEndpoint<bool>(
-        'billEntry',
-        'deleteBillEntry',
-        {'remoteId': remoteId},
-      );
-
-  _i2.Future<String?> getBillEntries(String userEmail) =>
-      caller.callServerEndpoint<String>(
-        'billEntry',
-        'getBillEntries',
-        {'userEmail': userEmail},
-      );
-}
-
 class Client extends _i1.ServerpodClientShared {
   Client(
     String host, {
@@ -357,13 +353,15 @@ class Client extends _i1.ServerpodClientShared {
               disconnectStreamsOnLostInternetConnection,
         ) {
     auth = EndpointAuth(this);
+    billEntry = EndpointBillEntry(this);
     budgetEntry = EndpointBudgetEntry(this);
     goalEntry = EndpointGoalEntry(this);
     expenseEntry = EndpointExpenseEntry(this);
-    billEntry = EndpointBillEntry(this);
   }
 
   late final EndpointAuth auth;
+
+  late final EndpointBillEntry billEntry;
 
   late final EndpointBudgetEntry budgetEntry;
 
@@ -371,15 +369,13 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointExpenseEntry expenseEntry;
 
-  late final EndpointBillEntry billEntry;
-
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
         'auth': auth,
+        'billEntry': billEntry,
         'budgetEntry': budgetEntry,
         'goalEntry': goalEntry,
         'expenseEntry': expenseEntry,
-        'billEntry': billEntry,
       };
 
   @override

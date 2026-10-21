@@ -6,6 +6,8 @@ fields:
   imagePath: String?
   password: String
   createdAt: DateTime?
+  resetOtp: String?
+  resetOtpExpiry: DateTime?
 indexes:
   user_email_idx:
     fields: email

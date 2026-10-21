@@ -11,10 +11,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
-import '../endpoints/budget_endpoint.dart' as _i3;
-import '../endpoints/goal_endpoint.dart' as _i4;
-import '../endpoints/transaction_endpoint.dart' as _i5;
-import '../endpoints/bill_endpoint.dart' as _i6;
+import '../endpoints/bill_endpoint.dart' as _i3;
+import '../endpoints/budget_endpoint.dart' as _i4;
+import '../endpoints/goal_endpoint.dart' as _i5;
+import '../endpoints/transaction_endpoint.dart' as _i6;
 import 'package:backend_server/src/generated/user.dart' as _i7;
 import 'package:backend_server/src/generated/budget_entry.dart' as _i8;
 import 'package:backend_server/src/generated/goal_entry.dart' as _i9;
@@ -32,28 +32,28 @@ class Endpoints extends _i1.EndpointDispatch {
           'auth',
           null,
         ),
-      'budgetEntry': _i3.BudgetEntryEndpoint()
+      'billEntry': _i3.BillEntryEndpoint()
+        ..initialize(
+          server,
+          'billEntry',
+          null,
+        ),
+      'budgetEntry': _i4.BudgetEntryEndpoint()
         ..initialize(
           server,
           'budgetEntry',
           null,
         ),
-      'goalEntry': _i4.GoalEntryEndpoint()
+      'goalEntry': _i5.GoalEntryEndpoint()
         ..initialize(
           server,
           'goalEntry',
           null,
         ),
-      'expenseEntry': _i5.ExpenseEntryEndpoint()
+      'expenseEntry': _i6.ExpenseEntryEndpoint()
         ..initialize(
           server,
           'expenseEntry',
-          null,
-        ),
-      'billEntry': _i6.BillEntryEndpoint()
-        ..initialize(
-          server,
-          'billEntry',
           null,
         ),
     };
@@ -163,6 +163,210 @@ class Endpoints extends _i1.EndpointDispatch {
             params['imagePath'],
           ),
         ),
+        'requestPasswordReset': _i1.MethodConnector(
+          name: 'requestPasswordReset',
+          params: {
+            'email': _i1.ParameterDescription(
+              name: 'email',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['auth'] as _i2.AuthEndpoint).requestPasswordReset(
+            session,
+            params['email'],
+          ),
+        ),
+        'verifyOtpAndResetPassword': _i1.MethodConnector(
+          name: 'verifyOtpAndResetPassword',
+          params: {
+            'email': _i1.ParameterDescription(
+              name: 'email',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'otp': _i1.ParameterDescription(
+              name: 'otp',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'newPassword': _i1.ParameterDescription(
+              name: 'newPassword',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['auth'] as _i2.AuthEndpoint).verifyOtpAndResetPassword(
+            session,
+            params['email'],
+            params['otp'],
+            params['newPassword'],
+          ),
+        ),
+      },
+    );
+    connectors['billEntry'] = _i1.EndpointConnector(
+      name: 'billEntry',
+      endpoint: endpoints['billEntry']!,
+      methodConnectors: {
+        'addBillEntry': _i1.MethodConnector(
+          name: 'addBillEntry',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'title': _i1.ParameterDescription(
+              name: 'title',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'amount': _i1.ParameterDescription(
+              name: 'amount',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'dueDate': _i1.ParameterDescription(
+              name: 'dueDate',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'endDate': _i1.ParameterDescription(
+              name: 'endDate',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'category': _i1.ParameterDescription(
+              name: 'category',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isPaid': _i1.ParameterDescription(
+              name: 'isPaid',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'isRecurring': _i1.ParameterDescription(
+              name: 'isRecurring',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['billEntry'] as _i3.BillEntryEndpoint).addBillEntry(
+            session,
+            params['userEmail'],
+            params['title'],
+            params['amount'],
+            params['dueDate'],
+            params['endDate'],
+            params['category'],
+            params['isPaid'],
+            params['isRecurring'],
+          ),
+        ),
+        'updateBillEntry': _i1.MethodConnector(
+          name: 'updateBillEntry',
+          params: {
+            'remoteId': _i1.ParameterDescription(
+              name: 'remoteId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'amount': _i1.ParameterDescription(
+              name: 'amount',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'dueDate': _i1.ParameterDescription(
+              name: 'dueDate',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'endDate': _i1.ParameterDescription(
+              name: 'endDate',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'category': _i1.ParameterDescription(
+              name: 'category',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isPaid': _i1.ParameterDescription(
+              name: 'isPaid',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'isRecurring': _i1.ParameterDescription(
+              name: 'isRecurring',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['billEntry'] as _i3.BillEntryEndpoint).updateBillEntry(
+            session,
+            params['remoteId'],
+            params['amount'],
+            params['dueDate'],
+            params['endDate'],
+            params['category'],
+            params['isPaid'],
+            params['isRecurring'],
+          ),
+        ),
+        'deleteBillEntry': _i1.MethodConnector(
+          name: 'deleteBillEntry',
+          params: {
+            'remoteId': _i1.ParameterDescription(
+              name: 'remoteId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['billEntry'] as _i3.BillEntryEndpoint).deleteBillEntry(
+            session,
+            params['remoteId'],
+          ),
+        ),
+        'getBillEntries': _i1.MethodConnector(
+          name: 'getBillEntries',
+          params: {
+            'userEmail': _i1.ParameterDescription(
+              name: 'userEmail',
+              type: _i1.getType<String>(),
+              nullable: false,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['billEntry'] as _i3.BillEntryEndpoint).getBillEntries(
+            session,
+            params['userEmail'],
+          ),
+        ),
       },
     );
     connectors['budgetEntry'] = _i1.EndpointConnector(
@@ -182,7 +386,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .addBudgetEntry(
             session,
             params['entry'],
@@ -201,7 +405,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .updateBudgetEntry(
             session,
             params['entry'],
@@ -220,7 +424,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .deleteBudgetEntry(
             session,
             params['id'],
@@ -239,7 +443,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .getBudgetEntries(
             session,
             params['userEmail'],
@@ -273,13 +477,13 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .addMonthlyBudgetEntry(
             session,
             params['userEmail'],
-            (params['amount'] as num).toDouble(),
-            (params['month'] as num).toInt(),
-            (params['year'] as num).toInt(),
+            params['amount'],
+            params['month'],
+            params['year'],
           ),
         ),
         'getMonthlyBudgetEntries': _i1.MethodConnector(
@@ -295,7 +499,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['budgetEntry'] as _i3.BudgetEntryEndpoint)
+              (endpoints['budgetEntry'] as _i4.BudgetEntryEndpoint)
                   .getMonthlyBudgetEntries(
             session,
             params['userEmail'],
@@ -320,7 +524,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).addGoalEntry(
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint).addGoalEntry(
             session,
             params['entry'],
           ),
@@ -338,7 +542,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).updateGoalEntry(
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint).updateGoalEntry(
             session,
             params['entry'],
           ),
@@ -356,7 +560,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).deleteGoalEntry(
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint).deleteGoalEntry(
             session,
             params['id'],
           ),
@@ -374,7 +578,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint).getGoalEntries(
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint).getGoalEntries(
             session,
             params['userEmail'],
           ),
@@ -392,7 +596,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint)
                   .addGoalContribution(
             session,
             params['entry'],
@@ -411,7 +615,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint)
                   .deleteGoalContribution(
             session,
             params['id'],
@@ -430,7 +634,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['goalEntry'] as _i4.GoalEntryEndpoint)
+              (endpoints['goalEntry'] as _i5.GoalEntryEndpoint)
                   .getGoalContributions(
             session,
             params['userEmail'],
@@ -455,7 +659,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i6.ExpenseEntryEndpoint)
                   .addExpenseEntry(
             session,
             params['expenseEntry'],
@@ -474,7 +678,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i6.ExpenseEntryEndpoint)
                   .updateExpenseEntry(
             session,
             params['entry'],
@@ -493,7 +697,7 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i6.ExpenseEntryEndpoint)
                   .deleteExpenseEntry(
             session,
             params['id'],
@@ -512,109 +716,8 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['expenseEntry'] as _i5.ExpenseEntryEndpoint)
+              (endpoints['expenseEntry'] as _i6.ExpenseEntryEndpoint)
                   .getExpenseEntries(
-            session,
-            params['userEmail'],
-          ),
-        ),
-      },
-    );
-    connectors['billEntry'] = _i1.EndpointConnector(
-      name: 'billEntry',
-      endpoint: endpoints['billEntry']!,
-      methodConnectors: {
-        'addBillEntry': _i1.MethodConnector(
-          name: 'addBillEntry',
-          params: {
-            'userEmail': _i1.ParameterDescription(
-                name: 'userEmail',
-                type: _i1.getType<String>(),
-                nullable: false),
-            'title': _i1.ParameterDescription(
-                name: 'title', type: _i1.getType<String>(), nullable: false),
-            'amount': _i1.ParameterDescription(
-                name: 'amount', type: _i1.getType<double>(), nullable: false),
-            'dueDate': _i1.ParameterDescription(
-                name: 'dueDate', type: _i1.getType<String>(), nullable: false),
-            'endDate': _i1.ParameterDescription(
-                name: 'endDate', type: _i1.getType<String?>(), nullable: true),
-            'category': _i1.ParameterDescription(
-                name: 'category', type: _i1.getType<String>(), nullable: false),
-            'isPaid': _i1.ParameterDescription(
-                name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
-            'isRecurring': _i1.ParameterDescription(
-                name: 'isRecurring',
-                type: _i1.getType<bool>(),
-                nullable: false),
-          },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['billEntry'] as _i6.BillEntryEndpoint).addBillEntry(
-            session,
-            params['userEmail'],
-            params['title'],
-            (params['amount'] as num).toDouble(),
-            params['dueDate'],
-            params['endDate'],
-            params['category'],
-            params['isPaid'] as bool,
-            params['isRecurring'] as bool,
-          ),
-        ),
-        'updateBillEntry': _i1.MethodConnector(
-          name: 'updateBillEntry',
-          params: {
-            'remoteId': _i1.ParameterDescription(
-                name: 'remoteId', type: _i1.getType<int>(), nullable: false),
-            'amount': _i1.ParameterDescription(
-                name: 'amount', type: _i1.getType<double>(), nullable: false),
-            'dueDate': _i1.ParameterDescription(
-                name: 'dueDate', type: _i1.getType<String>(), nullable: false),
-            'endDate': _i1.ParameterDescription(
-                name: 'endDate', type: _i1.getType<String?>(), nullable: true),
-            'category': _i1.ParameterDescription(
-                name: 'category', type: _i1.getType<String>(), nullable: false),
-            'isPaid': _i1.ParameterDescription(
-                name: 'isPaid', type: _i1.getType<bool>(), nullable: false),
-            'isRecurring': _i1.ParameterDescription(
-                name: 'isRecurring',
-                type: _i1.getType<bool>(),
-                nullable: false),
-          },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['billEntry'] as _i6.BillEntryEndpoint).updateBillEntry(
-            session,
-            (params['remoteId'] as num).toInt(),
-            (params['amount'] as num).toDouble(),
-            params['dueDate'],
-            params['endDate'],
-            params['category'],
-            params['isPaid'] as bool,
-            params['isRecurring'] as bool,
-          ),
-        ),
-        'deleteBillEntry': _i1.MethodConnector(
-          name: 'deleteBillEntry',
-          params: {
-            'remoteId': _i1.ParameterDescription(
-                name: 'remoteId', type: _i1.getType<int>(), nullable: false),
-          },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['billEntry'] as _i6.BillEntryEndpoint).deleteBillEntry(
-            session,
-            (params['remoteId'] as num).toInt(),
-          ),
-        ),
-        'getBillEntries': _i1.MethodConnector(
-          name: 'getBillEntries',
-          params: {
-            'userEmail': _i1.ParameterDescription(
-                name: 'userEmail',
-                type: _i1.getType<String>(),
-                nullable: false),
-          },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['billEntry'] as _i6.BillEntryEndpoint).getBillEntries(
             session,
             params['userEmail'],
           ),
